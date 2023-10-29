@@ -11,11 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
-      <Folder Include="Entities\" />
-      <Folder Include="Models\" />
-      <Folder Include="Repositories\" />
-      <Folder Include="Services\" />
+      <Folder Include="Services\Abstractions\" />
     </ItemGroup>
 
 </Project>
