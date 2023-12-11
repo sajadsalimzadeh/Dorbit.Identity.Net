@@ -1,61 +1,50 @@
-﻿using Dorbit.Attributes;
-using Dorbit.Exceptions;
-using Dorbit.Identity.Enums;
+﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Models.Abstractions;
+using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Identity.Entities;
 using Dorbit.Identity.Models.Users;
 using Dorbit.Identity.Repositories;
-using Dorbit.Identity.Services.Abstractions;
-using Dorbit.Models.Messages;
-using Dorbit.Services;
-using Dorbit.Utils.Cryptography;
+using Dorbit.Identity.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class UserService
+public class UserService : IUserResolver
 {
     private readonly UserRepository _userRepository;
-    private readonly MessageManager _messageManager;
+    public IUserDto User { get; set; }
 
-    public UserService(UserRepository userRepository, MessageManager messageManager)
+    public UserService(UserRepository userRepository)
     {
         _userRepository = userRepository;
-        _messageManager = messageManager;
     }
 
-    private string HashPassword(string password, string salt)
+    public Task<User> AddAsync(UserAddRequest request)
     {
-        return Hash.SHA1(password, salt);
-    }
-
-    public UserLoginRequest Login(UserLoginRequest request)
-    {
-        var user = _userRepository.Set().FirstOrDefault(x => x.Username == request.Username) ??
-                   throw new OperationException(Errors.UsernameOrPasswordWrong);
-        if (user.IsTwoFactorAuthenticationEnable)
+        var entity = request.MapTo(new User()
         {
-            if (request.LoginStrategy == UserLoginStrategy.None)
-            {
-                if (user.CellphoneLoginEnable) request.LoginStrategy = UserLoginStrategy.Cellphone;
-                else if (user.EmailLoginEnable) request.LoginStrategy = UserLoginStrategy.Email;
-                else if (user.AuthenticatorLoginEnable) request.LoginStrategy = UserLoginStrategy.Authenticator;
-            }
-
-            if (request.LoginStrategy == UserLoginStrategy.Cellphone)
-            {
-                _messageManager.Send(new MessageSmsRequest()
-                {
-                    To = user.Cellphone,
-
-                });
-            }
-        }
-
-        var hash = HashPassword(request.Password, user.Salt);
-        if(user.PasswordHash != hash) 
-            throw new OperationException(Errors.UsernameOrPasswordWrong);
-        
-        
+            Salt = Guid.NewGuid().ToString()
+        });
+        entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.Salt);
+        return _userRepository.InsertAsync(entity);
     }
 
-    public UserLoginCompleteResponse LoginWithOtp(UserLoginWithOtpRequest request)
+    public async Task<User> EditAsync(UserEditRequest request)
+    {
+        var entity = await _userRepository.GetByIdAsync(request.Id);
+        return await _userRepository.UpdateAsync(request.MapTo(entity));
+    }
+
+    public async Task<User> RemoveAsync(Guid id)
+    {
+        return await _userRepository.RemoveAsync(id);
+    }
+
+    public async Task ResetPasswordAsync(UserResetPasswordRequest request)
+    {
+        var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.Username);
+        await _userRepository.UpdateAsync(request.MapTo(user));
+    }
 }

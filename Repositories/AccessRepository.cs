@@ -1,14 +1,53 @@
-﻿using Dorbit.Attributes;
+﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Entities;
-using Dorbit.Repositories;
+using Dorbit.Identity.Models.Accesses;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
 public class AccessRepository : BaseRepository<Access>
 {
-    public AccessRepository(IdentityDbContext dbContext) : base(dbContext)
+    private readonly IMemoryCache _memoryCache;
+
+    public AccessRepository(IdentityDbContext dbContext, IMemoryCache memoryCache) : base(dbContext)
     {
+        _memoryCache = memoryCache;
+    }
+
+    public async Task<List<AccessWithChildrenDto>> GetAllAccessHierarchyWithCache()
+    {
+        var key = $"{nameof(AccessRepository)}-{nameof(GetAllAccessHierarchyWithCache)}";
+        if (!_memoryCache.TryGetValue(key, out List<AccessWithChildrenDto> result))
+        {
+            var allAccesses = await Set().ToListAsync();
+            allAccesses.ForEach(x => x.Name = x.Name.ToLower());
+
+            void FindAllChildren(Access access, AccessWithChildrenDto accessWithChildren)
+            {
+                if (accessWithChildren.Children.Contains(access.Name)) return;
+                accessWithChildren.Children.Add(access.Name);
+                foreach (var childAccess in allAccesses.Where(x => x.ParentId == access.Id || x.Name == access.Name))
+                {
+                    FindAllChildren(childAccess, accessWithChildren);
+                }
+            }
+
+            result = new List<AccessWithChildrenDto>();
+            foreach (var access in allAccesses)
+            {
+                var accessWithChildren = new AccessWithChildrenDto()
+                {
+                    Name = access.Name.ToLower()
+                };
+                FindAllChildren(access, accessWithChildren);
+                result.Add(accessWithChildren);
+            }
+        }
+
+        return result;
     }
 }

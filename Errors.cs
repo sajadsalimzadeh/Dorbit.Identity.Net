@@ -3,5 +3,8 @@
 internal enum Errors
 {
     OtpTryRemainFinished,
-    UsernameOrPasswordWrong
+    UsernameOrPasswordWrong,
+    LoginStrategyIsNotEnabled,
+    OtpValidateFailed,
+    CorrelationIdIsExpired
 }

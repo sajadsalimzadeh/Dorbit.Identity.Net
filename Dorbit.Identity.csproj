@@ -11,7 +11,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Services\Abstractions\" />
+      <None Update="Assets\accesses.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

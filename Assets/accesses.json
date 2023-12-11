@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Name": "Admin",
+    "Children": [
+      {
+        "Name": "Users",
+        "Children": [
+          {
+            "Name": "Users-Get"
+          }
+        ]
+      },
+      {
+        "Name": "Accesses"
+      }
+    ]
+  }
+]

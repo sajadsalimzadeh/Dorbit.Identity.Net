@@ -1,8 +1,8 @@
-﻿using Dorbit.Attributes;
-using Dorbit.Database.Abstractions;
+﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Entities;
-using Dorbit.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Repositories;
 

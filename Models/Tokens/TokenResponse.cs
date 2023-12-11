@@ -1,6 +1,6 @@
 ﻿namespace Dorbit.Identity.Models.Tokens;
 
-public class TokenNewResponse
+public class TokenResponse
 {
     public string Key { get; set; }
 }

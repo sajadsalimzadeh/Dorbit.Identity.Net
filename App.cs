@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿namespace Dorbit.Identity;
 
-namespace Dorbit.Identity;
-
-public static class App
+internal static class App
 {
+    public static AppSetting AppSetting { get; set; }
 }

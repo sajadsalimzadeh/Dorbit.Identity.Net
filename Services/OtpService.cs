@@ -1,6 +1,7 @@
-﻿using Dorbit.Attributes;
-using Dorbit.Exceptions;
-using Dorbit.Extensions;
+﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Exceptions;
+using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Models.Otps;
 using Dorbit.Identity.Repositories;
@@ -17,25 +18,28 @@ public class OtpService
         _otpRepository = otpRepository;
     }
 
-    public Otp Create(OtpCreateRequest request)
+    public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)
     {
-        return _otpRepository.Insert(new Otp()
+        code = new Random().NextNumber(request.Length);
+        var id = Guid.NewGuid();
+        return _otpRepository.InsertAsync(new Otp()
         {
+            Id = id,
             TryRemain = request.TryRemain,
-            Code = new Random().NextNumber(request.Length),
+            CodeHash = Hash.Sha1(code, id.ToString()),
             ExpireAt = DateTime.UtcNow.Add(request.Duration),
             IsUsed = false
         });
     }
 
-    public bool Validate(OtpValidateRequest request)
+    public async Task<bool> ValidateAsync(OtpValidateRequest request)
     {
-        var otp = _otpRepository.GetById(request.Id) ?? throw new ArgumentNullException("Otp");
+        var otp = await _otpRepository.GetByIdAsync(request.Id) ?? throw new ArgumentNullException("Otp");
         otp.TryRemain--;
         try
         {
             if (otp.TryRemain <= 0) throw new OperationException(Errors.OtpTryRemainFinished);
-            if (otp.Code == request.Code)
+            if (otp.CodeHash == request.Code)
             {
                 otp.IsUsed = true;
                 return true;
@@ -45,7 +49,7 @@ public class OtpService
         }
         finally
         {
-            _otpRepository.Update(otp);
+            await _otpRepository.UpdateAsync(otp);
         }
     }
 }

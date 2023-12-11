@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Dorbit.Entities;
+using Dorbit.Framework.Entities;
 
 namespace Dorbit.Identity.Entities;
 
-public class Access : Entity
+public class Access : FullEntity
 {
     [StringLength(32), Required] public string Name { get; set; }
     [StringLength(128)] public string Description { get; set; }

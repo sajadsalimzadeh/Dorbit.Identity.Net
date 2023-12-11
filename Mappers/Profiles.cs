@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Models.Accesses;
+using Dorbit.Identity.Models.Privileges;
 using Dorbit.Identity.Models.Tokens;
-using Dorbit.Identity.Models.UserPrivileges;
 using Dorbit.Identity.Models.Users;
-using UserDto = Dorbit.Models.Users.UserDto;
 
 namespace Dorbit.Identity.Mappers;
 
@@ -15,15 +14,19 @@ public class Profiles : Profile
         CreateMap<T, TR>();
         CreateMap<TR, T>();
     }
-    
+
     public Profiles()
     {
-        CreateMapTwoWay<Access, AccessDto>();
-        
+        CreateMap<Access, AccessDto>();
+        CreateMap<AccessAddDto, Access>();
+        CreateMap<AccessEditDto, Access>();
+
         CreateMapTwoWay<Token, TokenDto>();
-        
+        CreateMap<TokenNewRequest, Token>();
+
         CreateMapTwoWay<Privilege, PrivilegeDto>();
-        
+        CreateMapTwoWay<PrivilegeSaveRequest, Privilege>();
+
         CreateMapTwoWay<User, UserDto>();
         CreateMap<UserAddRequest, User>();
         CreateMap<UserEditRequest, User>();
