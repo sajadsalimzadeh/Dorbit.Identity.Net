@@ -1,4 +1,5 @@
 ﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Models.Abstractions;
 using Dorbit.Framework.Services.Abstractions;
@@ -11,14 +12,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class UserService : IUserResolver
+public class UserService
 {
     private readonly UserRepository _userRepository;
-    public IUserDto User { get; set; }
+    private readonly IUserResolver _userResolver;
 
-    public UserService(UserRepository userRepository)
+    public UserService(UserRepository userRepository, IUserResolver userResolver)
     {
         _userRepository = userRepository;
+        _userResolver = userResolver;
     }
 
     public Task<User> AddAsync(UserAddRequest request)
@@ -46,5 +48,25 @@ public class UserService : IUserResolver
     {
         var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.Username);
         await _userRepository.UpdateAsync(request.MapTo(user));
+    }
+    
+    public async Task ChangePasswordAsync(UserChangePasswordRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(_userResolver.User.Id);
+
+        if (request.NewPassword != request.RenewPassword)
+            throw new OperationException(Errors.NewPasswordMissMach);
+        
+        
+        if (request.NewPassword.Length < 8)
+            throw new OperationException(Errors.NewPasswordIsWeak);
+        
+        if (user.PasswordHash != HashUtility.HashPassword(request.OldPassword, user.Salt))
+            throw new OperationException(Errors.OldPasswordIsWrong);
+
+        user.Salt = Guid.NewGuid().ToString();
+        user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.Salt);
+        
+        await _userRepository.UpdateAsync(user);
     }
 }

@@ -6,5 +6,8 @@ internal enum Errors
     UsernameOrPasswordWrong,
     LoginStrategyIsNotEnabled,
     OtpValidateFailed,
-    CorrelationIdIsExpired
+    CorrelationIdIsExpired,
+    OldPasswordIsWrong,
+    NewPasswordMissMach,
+    NewPasswordIsWeak
 }

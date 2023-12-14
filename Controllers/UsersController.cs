@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
 
-[Auth]
+[Auth("User")]
 public class UsersController : CrudController<User, UserDto, UserAddRequest, UserEditRequest>
 {
     private readonly UserService _userService;
@@ -39,14 +39,21 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
         return _userService.EditAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    [HttpGet("{id}/Privileges")]
+    [HttpPost("ChangePassword"), Auth]
+    public async Task<CommandResult> ChangePassword([FromBody] UserChangePasswordRequest request)
+    {
+        await _userService.ChangePasswordAsync(request);
+        return Succeed();
+    }
+
+    [HttpGet("{id}/Privileges"), Auth("Privilege-Select")]
     public async Task<QueryResult<List<string>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
     {
         var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);
         return (privilege?.Accesses ?? new List<string>()).ToQueryResult();
     }
 
-    [HttpPost("{id}/Privileges")]
+    [HttpPost("{id}/Privileges"), Auth("Privilege")]
     public async Task<QueryResult<PrivilegeDto>> SaveUserAccessAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;

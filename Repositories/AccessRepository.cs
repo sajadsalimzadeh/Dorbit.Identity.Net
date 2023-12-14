@@ -1,4 +1,5 @@
 ﻿using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Entities;
@@ -23,14 +24,18 @@ public class AccessRepository : BaseRepository<Access>
         var key = $"{nameof(AccessRepository)}-{nameof(GetAllAccessHierarchyWithCache)}";
         if (!_memoryCache.TryGetValue(key, out List<AccessWithChildrenDto> result))
         {
-            var allAccesses = await Set().ToListAsync();
-            allAccesses.ForEach(x => x.Name = x.Name.ToLower());
+            var allAccesses = await Set().ToListAsyncWithCache(key, TimeSpan.FromMinutes(1));
+            allAccesses.ForEach(x =>
+            {
+                x.Name = x.Name.ToLower();
+                x.Parent = allAccesses.FirstOrDefault(y => y.Id == x.ParentId);
+            });
 
             void FindAllChildren(Access access, AccessWithChildrenDto accessWithChildren)
             {
                 if (accessWithChildren.Children.Contains(access.Name)) return;
                 accessWithChildren.Children.Add(access.Name);
-                foreach (var childAccess in allAccesses.Where(x => x.ParentId == access.Id || x.Name == access.Name))
+                foreach (var childAccess in allAccesses.Where(x => x.ParentId == access.Id || x.Parent?.Name == access.Name))
                 {
                     FindAllChildren(childAccess, accessWithChildren);
                 }

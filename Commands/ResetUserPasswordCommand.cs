@@ -16,7 +16,7 @@ namespace Dorbit.Identity.Commands
 
         public ResetUserPasswordCommand(UserService userService)
         {
-            this._userService = userService;
+            _userService = userService;
         }
 
         public override IEnumerable<CommandParameter> GetParameters(ICommandContext context)

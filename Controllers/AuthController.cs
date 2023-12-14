@@ -3,6 +3,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Framework.Models;
 using Dorbit.Identity.Models.Auth;
+using Dorbit.Identity.Models.Users;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,8 +51,8 @@ public class AuthController : BaseController
     }
 
     [HttpGet("[action]"), Auth]
-    public Task<CommandResult> IsLogin()
+    public Task<QueryResult<UserDto>> IsLogin()
     {
-        return Task.FromResult(new CommandResult(UserId is not null));
+        return Task.FromResult(new QueryResult<UserDto>(UserResolver.User.MapTo<UserDto>()));
     }
 }
