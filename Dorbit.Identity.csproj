@@ -1,19 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Dorbit.Identity</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Dorbit\Dorbit.Framework.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="Assets\accesses.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+      <ProjectReference Include="..\Dorbit.Framework\Dorbit.Framework.csproj" />
     </ItemGroup>
 
 </Project>

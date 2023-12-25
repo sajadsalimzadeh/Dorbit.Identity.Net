@@ -29,6 +29,7 @@ public class SeedHost : BackgroundService
         {
             await userService.AddAsync(new UserAddRequest()
             {
+                Id = Guid.Parse("733cc50c-a40e-4b79-96f5-3f5654dd33f0"),
                 Name = "admin",
                 Username = App.AppSetting.Admin.Username,
                 Password = App.AppSetting.Admin.Password,
