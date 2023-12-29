@@ -1,7 +1,6 @@
 ﻿using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
-using Dorbit.Framework.Models.Abstractions;
 using Dorbit.Framework.Services.Abstractions;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Models.Users;

@@ -1,6 +1,4 @@
-﻿using Dorbit.Framework.Entities.Abstractions;
-
-namespace Dorbit.Identity.Models.Accesses;
+﻿namespace Dorbit.Identity.Models.Accesses;
 
 public class AccessAddDto
 {
