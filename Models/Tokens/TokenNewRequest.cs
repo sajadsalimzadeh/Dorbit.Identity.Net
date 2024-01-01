@@ -1,7 +1,9 @@
-﻿namespace Dorbit.Identity.Models.Tokens;
+﻿using Dorbit.Identity.Entities;
+
+namespace Dorbit.Identity.Models.Tokens;
 
 public class TokenNewRequest
 {
-    public Guid UserId { get; set; }
+    public User User { get; set; }
     public string UserAgent { get; set; }
 }

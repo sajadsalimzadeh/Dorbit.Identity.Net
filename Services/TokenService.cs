@@ -3,10 +3,13 @@ using System.Security.Claims;
 using System.Text;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Models.Jwts;
+using Dorbit.Framework.Services;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Enums;
 using Dorbit.Identity.Models.Tokens;
 using Dorbit.Identity.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using UAParser;
 
@@ -15,78 +18,49 @@ namespace Dorbit.Identity.Services;
 [ServiceRegister]
 public class TokenService
 {
-    private const string TokenAlgorithm = SecurityAlgorithms.HmacSha256Signature;
-    private const string TokenDigest = SecurityAlgorithms.Sha512Digest;
-    
     private readonly TokenRepository _tokenRepository;
+    private readonly JwtService _jwtService;
+    private readonly IMemoryCache _memoryCache;
 
-    public TokenService(TokenRepository tokenRepository)
+    public TokenService(TokenRepository tokenRepository, JwtService jwtService, IMemoryCache memoryCache)
     {
         _tokenRepository = tokenRepository;
-    }
-
-    public Task<Token> Add(TokenAddRequest request)
-    {
-        return _tokenRepository.InsertAsync(request.MapTo<Token>());
-    }
-
-    private SecurityKey GetKey()
-    {
-        var secret = Encoding.UTF8.GetBytes(App.AppSetting.Security.Secret);
-        return new SymmetricSecurityKey(secret);
+        _jwtService = jwtService;
+        _memoryCache = memoryCache;
     }
 
     public async Task<TokenResponse> CreateAsync(TokenNewRequest request)
     {
-        var credential = new SigningCredentials(GetKey(), TokenAlgorithm, TokenDigest);
-        //create jwt
         var tokenId = Guid.NewGuid();
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.CreateToken(new SecurityTokenDescriptor()
+        var tokenResponse = await _jwtService.CreateTokenAsync(new AuthCreateTokenRequest()
         {
-            Issuer = App.AppSetting.Security.Issuer,
-            Audience = App.AppSetting.Security.Audience,
-            Expires = DateTime.UtcNow.ToUniversalTime().AddSeconds(App.AppSetting.Security.TimeoutInSecond),
-            Subject = new ClaimsIdentity(new[]
+            Expires = DateTime.UtcNow.ToUniversalTime().AddSeconds(App.Setting.Security.TimeoutInSecond),
+            Claims = new Dictionary<string, string>()
             {
-                new Claim("Id", tokenId.ToString()),
-            }),
-            SigningCredentials = credential
+                { "Id", tokenId.ToString() },
+                { "UserId", request.User.Id.ToString() },
+                { "Name", request.User.Name },
+            }
         });
 
         var uaParser = Parser.GetDefault();
         var clientInfo = uaParser.Parse(request.UserAgent ?? "");
 
-        await _tokenRepository.InsertAsync(request.MapTo(new Token()
+        var token = await _tokenRepository.InsertAsync(new Token()
         {
             Id = tokenId,
+            UserId = request.User.Id,
             Os = clientInfo.OS.Family,
             Platform = clientInfo.Device.Family,
             Application = clientInfo.Browser.Family,
             State = TokenState.Valid
-        }));
+        });
+        _memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
 
-        var tokenString = handler.WriteToken(token);
 
         return new TokenResponse()
         {
-            Key = tokenString
+            Key = tokenResponse.Key
         };
-    }
-
-    public async Task<TokenValidationResult> ValidateAsync(string token)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        var parameters = new TokenValidationParameters()
-        {
-            ValidateLifetime = true,
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidIssuer = App.AppSetting.Security.Issuer,
-            ValidAudience = App.AppSetting.Security.Audience,
-            IssuerSigningKey = GetKey()
-        };
-        return await tokenHandler.ValidateTokenAsync(token, parameters);
     }
 }

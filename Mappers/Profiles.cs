@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dorbit.Framework.Models.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Models.Accesses;
 using Dorbit.Identity.Models.Privileges;
@@ -22,12 +23,12 @@ public class Profiles : Profile
         CreateMap<AccessEditDto, Access>();
 
         CreateMapTwoWay<Token, TokenDto>();
-        CreateMap<TokenNewRequest, Token>();
 
         CreateMapTwoWay<Privilege, PrivilegeDto>();
         CreateMapTwoWay<PrivilegeSaveRequest, Privilege>();
 
-        CreateMapTwoWay<User, UserDto>();
+        CreateMapTwoWay<User, UserIdentityDto>();
+        CreateMap<UserDto, UserIdentityDto>();
         CreateMap<UserAddRequest, User>();
         CreateMap<UserEditRequest, User>();
     }

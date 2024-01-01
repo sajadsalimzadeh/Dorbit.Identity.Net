@@ -23,7 +23,7 @@ public class SeedHost : BackgroundService
         var sp = _serviceProvider.CreateScope().ServiceProvider;
         var userRepository = sp.GetService<UserRepository>();
         var userService = sp.GetService<UserService>();
-        if (string.IsNullOrEmpty(App.AppSetting.Admin.Username)) return;
+        if (string.IsNullOrEmpty(App.Setting.Admin.Username)) return;
 
         if (!await userRepository.Set().AnyAsync(x => x.Username.ToLower() == "admin"))
         {
@@ -31,10 +31,10 @@ public class SeedHost : BackgroundService
             {
                 Id = Guid.Parse("733cc50c-a40e-4b79-96f5-3f5654dd33f0"),
                 Name = "admin",
-                Username = App.AppSetting.Admin.Username,
-                Password = App.AppSetting.Admin.Password,
-                Cellphone = App.AppSetting.Admin.Cellphone,
-                Email = App.AppSetting.Admin.Email,
+                Username = App.Setting.Admin.Username,
+                Password = App.Setting.Admin.Password,
+                Cellphone = App.Setting.Admin.Cellphone,
+                Email = App.Setting.Admin.Email,
                 NeedResetPassword = true
             });
         }

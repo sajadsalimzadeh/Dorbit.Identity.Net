@@ -1,9 +1,9 @@
-﻿namespace Dorbit.Identity.Models.Users;
+﻿using Dorbit.Framework.Models.Users;
 
-public class UserDto
+namespace Dorbit.Identity.Models.Users;
+
+public class UserIdentityDto : UserDto
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; }
     public string Email { get; set; }
     public string Cellphone { get; set; }
     public string Username { get; set; }

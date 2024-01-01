@@ -17,11 +17,7 @@ public class AppSettingAdmin
 
 public class AppSettingSecurity
 {
-    public string Secret { get; set; }
-    public string Issuer { get; set; }
-    public string Audience { get; set; }
-    public short TimeoutInSecond { get; set; }
-
+    public int TimeoutInSecond { get; set; } = 300;
     public short OtpTimeoutInSec { get; set; } = 120;
 }
 

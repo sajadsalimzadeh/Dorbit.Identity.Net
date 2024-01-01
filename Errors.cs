@@ -9,5 +9,6 @@ internal enum Errors
     CorrelationIdIsExpired,
     OldPasswordIsWrong,
     NewPasswordMissMach,
-    NewPasswordIsWeak
+    NewPasswordIsWeak,
+    CorrelationIdIsInvalid
 }

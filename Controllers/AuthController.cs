@@ -4,6 +4,7 @@ using Dorbit.Framework.Filters;
 using Dorbit.Framework.Models;
 using Dorbit.Identity.Models.Auth;
 using Dorbit.Identity.Models.Users;
+using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace Dorbit.Identity.Controllers;
 public class AuthController : BaseController
 {
     private readonly AuthService _authService;
+    private readonly UserRepository _userRepository;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, UserRepository userRepository)
     {
         _authService = authService;
+        _userRepository = userRepository;
     }
 
     [HttpPost("[action]")]
@@ -51,8 +54,9 @@ public class AuthController : BaseController
     }
 
     [HttpGet("[action]"), Auth]
-    public Task<QueryResult<UserDto>> IsLogin()
+    public async Task<QueryResult<UserIdentityDto>> IsLogin()
     {
-        return Task.FromResult(new QueryResult<UserDto>(UserResolver.User.MapTo<UserDto>()));
+        var user = await _userRepository.GetByIdAsync(UserId.Value);
+        return user.MapTo<UserIdentityDto>().ToQueryResult();
     }
 }

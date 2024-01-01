@@ -1,7 +1,7 @@
-﻿using Dorbit.Framework.Attributes;
+﻿using System.Security.Claims;
+using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
-using Dorbit.Framework.Models.Abstractions;
 using Dorbit.Framework.Models.Messages;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
@@ -98,7 +98,7 @@ public class AuthService : IAuthService
         {
             Token = await _tokenService.CreateAsync(new TokenNewRequest()
             {
-                UserId = user.Id,
+                User = user,
                 UserAgent = request.UserAgent,
             })
         };
@@ -106,7 +106,7 @@ public class AuthService : IAuthService
 
     public async Task<Otp> SendOtp(AuthSendOtpRequest request)
     {
-        var otpLifetime = TimeSpan.FromSeconds(App.AppSetting.Security.OtpTimeoutInSec);
+        var otpLifetime = TimeSpan.FromSeconds(App.Setting.Security.OtpTimeoutInSec);
         var otp = await _otpService.CreateAsync(new OtpCreateRequest()
         {
             Duration = otpLifetime,
@@ -117,7 +117,7 @@ public class AuthService : IAuthService
             await _messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Value,
-                TemplateId = App.AppSetting.Message.MeliPayamakOtpBodyId,
+                TemplateId = App.Setting.Message.MeliPayamakOtpBodyId,
                 Args = new object[] { code }
             });
         }
@@ -154,28 +154,28 @@ public class AuthService : IAuthService
         var userId = await _distributedCache.GetStringAsync(correlationId);
         if (userId is null) throw new OperationException(Errors.CorrelationIdIsExpired);
 
+        if (!Guid.TryParse(userId, out var userGuid)) throw new OperationException(Errors.CorrelationIdIsInvalid);
+        var user = await _userRepository.GetByIdAsync(userGuid);
+
         return new AuthLoginResponse()
         {
             Token = await _tokenService.CreateAsync(new TokenNewRequest()
             {
-                UserId = Guid.Parse(userId),
+                User = user,
                 UserAgent = request.UserAgent
             })
         };
     }
 
-    public async Task<IUserDto> GetUserByTokenAsync(string key)
+    public async Task<bool> IsTokenValid(ClaimsPrincipal claimsPrincipal)
     {
-        var tokenValidationResult = await _tokenService.ValidateAsync(key);
-        if (tokenValidationResult.Claims.TryGetValue("Id", out var obj))
-        {
-            var tokenId = Guid.Parse(obj.ToString() ?? string.Empty);
-            var token = await _tokenRepository.Set().Include(x => x.User)
-                .GetByIdAsyncWithCache(tokenId, $"{nameof(GetUserByTokenAsync)}", TimeSpan.FromMinutes(5));
-            return token?.User;
-        }
-
-        return null;
+        var tokenId = claimsPrincipal.FindFirst("Id")?.Value;
+        if (!Guid.TryParse(tokenId, out var tokenGuid)) return false;
+        var token = await _tokenRepository.Set()
+            .WithCacheAsync(set => set.FirstOrDefaultAsync(x => x.Id == tokenGuid), tokenId, TimeSpan.FromMinutes(1));
+        if (token is null) return false;
+        if (token.State != TokenState.Valid) return false;
+        return true;
     }
 
     public async Task<bool> HasAccessAsync(Guid id, params string[] accesses)

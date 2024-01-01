@@ -9,7 +9,7 @@ public static class IdentityInstaller
 {
     public static IServiceCollection AddDorbitIdentity(this IServiceCollection services, Configuration configuration)
     {
-        App.AppSetting = services.BindConfiguration<AppSetting>();
+        App.Setting = services.BindConfiguration<AppSetting>();
 
         services.AddDbContext<IdentityDbContext>(configuration.DbContextConfiguration);
 

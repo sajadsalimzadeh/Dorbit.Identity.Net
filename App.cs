@@ -2,5 +2,5 @@
 
 internal static class App
 {
-    public static AppSetting AppSetting { get; set; }
+    public static AppSetting Setting { get; set; }
 }
