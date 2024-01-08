@@ -50,13 +50,13 @@ public class AuthController : BaseController
             Secure = false,
             Path = "/"
         });
-        return Task.FromResult(new CommandResult(UserId is not null));
+        return Task.FromResult(new CommandResult(true));
     }
 
     [HttpGet("[action]"), Auth]
     public async Task<QueryResult<UserIdentityDto>> IsLogin()
     {
-        var user = await _userRepository.GetByIdAsync(UserId.Value);
+        var user = await _userRepository.GetByIdAsync(UserId);
         return user.MapTo<UserIdentityDto>().ToQueryResult();
     }
 }
