@@ -28,7 +28,7 @@ public class AuthController : BaseController
         var loginResponse = await _authService.Login(request);
         if (loginResponse.Token is not null)
         {
-            Response.Cookies.Append("Token", loginResponse.Token.Key, new CookieOptions()
+            Response.Cookies.Append("CSRF", loginResponse.Token.Csrf.ToString(), new CookieOptions()
             {
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 HttpOnly = true,

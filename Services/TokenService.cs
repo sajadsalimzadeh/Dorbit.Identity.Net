@@ -56,11 +56,11 @@ public class TokenService
             State = TokenState.Valid
         });
         _memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
-
-
+        
         return new TokenResponse()
         {
-            Key = tokenResponse.Key
+            Csrf = token.Id,
+            Key = tokenResponse.Key,
         };
     }
 }

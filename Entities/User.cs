@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Claims;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Models.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
-public class User : FullEntity, IUserDto
+public class User : FullEntity
 {
     [StringLength(128), Required] public string Name { get; set; }
     [StringLength(32), Required] public string Username { get; set; }
@@ -27,4 +29,6 @@ public class User : FullEntity, IUserDto
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; } = true;
     [MaxLength(1024)] public string InActiveMessage { get; set; }
+
+    [NotMapped] public ClaimsPrincipal Claims { get; set; }
 }

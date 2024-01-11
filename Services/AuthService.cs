@@ -12,6 +12,7 @@ using Dorbit.Identity.Models.Otps;
 using Dorbit.Identity.Models.Tokens;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -167,10 +168,13 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<bool> IsTokenValid(ClaimsPrincipal claimsPrincipal)
+    public async Task<bool> IsTokenValid(HttpContext context, ClaimsPrincipal claimsPrincipal)
     {
         var tokenId = claimsPrincipal.FindFirst("Id")?.Value;
         if (!Guid.TryParse(tokenId, out var tokenGuid)) return false;
+        if (!context.Request.Cookies.TryGetValue("CSRF", out var csrf)) return false;
+        if (!Guid.TryParse(csrf, out var csrfGuid)) return false;
+        if (csrfGuid != tokenGuid) return false;
         var token = await _tokenRepository.Set()
             .WithCacheAsync(set => set.FirstOrDefaultAsync(x => x.Id == tokenGuid), tokenId, TimeSpan.FromMinutes(1));
         if (token is null) return false;
