@@ -12,6 +12,7 @@ namespace Dorbit.Identity.Commands
     {
         private readonly AccessRepository _accessRepository;
 
+        public override bool IsRoot { get; } = false;
         public override string Message => "Sync Policies";
 
         public ImportAccessCommand(AccessRepository accessRepository)

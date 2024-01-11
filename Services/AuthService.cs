@@ -180,7 +180,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> HasAccessAsync(Guid id, params string[] accesses)
     {
-        var allUserAccess = await _privilegeService.GetAllAccessByUserIdAsync(id);
+        var allUserAccess = await _privilegeService.GetAllByUserIdAsync(id);
         if (allUserAccess.Any(userAccess => accesses.Contains(userAccess))) return true;
         return false;
     }

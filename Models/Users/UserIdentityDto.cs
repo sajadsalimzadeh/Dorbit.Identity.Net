@@ -10,4 +10,5 @@ public class UserIdentityDto : UserDto
     public bool IsTwoFactorAuthenticationEnable { get; set; }
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; }
+    public IEnumerable<string> Accesses { get; set; }
 }

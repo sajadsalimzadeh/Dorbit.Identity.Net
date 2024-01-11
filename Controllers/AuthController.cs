@@ -15,11 +15,13 @@ public class AuthController : BaseController
 {
     private readonly AuthService _authService;
     private readonly UserRepository _userRepository;
+    private readonly PrivilegeService _privilegeService;
 
-    public AuthController(AuthService authService, UserRepository userRepository)
+    public AuthController(AuthService authService, UserRepository userRepository, PrivilegeService privilegeService)
     {
         _authService = authService;
         _userRepository = userRepository;
+        _privilegeService = privilegeService;
     }
 
     [HttpPost("[action]")]
@@ -50,13 +52,15 @@ public class AuthController : BaseController
             Secure = false,
             Path = "/"
         });
-        return Task.FromResult(new CommandResult(UserId is not null));
+        return Task.FromResult(new CommandResult(UserResolver.User is not null));
     }
 
     [HttpGet("[action]"), Auth]
     public async Task<QueryResult<UserIdentityDto>> IsLogin()
     {
-        var user = await _userRepository.GetByIdAsync(UserId.Value);
-        return user.MapTo<UserIdentityDto>().ToQueryResult();
+        var user = await _userRepository.GetByIdAsync(UserId);
+        var dto = user.MapTo<UserIdentityDto>();
+        dto.Accesses = await _privilegeService.GetAllByUserIdAsync(user.Id);
+        return dto.ToQueryResult();
     }
 }

@@ -57,6 +57,6 @@ public class UsersController : CrudController<User, UserIdentityDto, UserAddRequ
     public async Task<QueryResult<PrivilegeDto>> SaveUserAccessAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
-        return (await _privilegeService.SaveUserAccessAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
+        return (await _privilegeService.SaveAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 }

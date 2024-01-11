@@ -3,6 +3,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Repositories;
 
@@ -14,6 +15,11 @@ public class UserRepository : BaseRepository<User>
     public UserRepository(IdentityDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    public Task<User> GetByUsernameAsync(string username)
+    {
+        return Set().FirstOrDefaultAsync(x => x.Username == username);
     }
 
     public Task<List<Privilege>> GetAllUserPrivileges(Guid id)
