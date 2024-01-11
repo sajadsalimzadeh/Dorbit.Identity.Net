@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Dorbit\Dorbit.Framework.csproj" />
+      <ProjectReference Include="..\Dorbit.Framework\Dorbit.Framework.csproj" />
     </ItemGroup>
 
 </Project>
