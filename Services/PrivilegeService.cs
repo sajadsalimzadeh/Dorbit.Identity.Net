@@ -25,7 +25,7 @@ public class PrivilegeService
         _accessRepository = accessRepository;
     }
 
-    public async Task<IEnumerable<string>> GetAllAccessByUserIdAsync(Guid id)
+    public async Task<IEnumerable<string>> GetAllByUserIdAsync(Guid id)
     {
         var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);
         var allAccesses = await _accessRepository.GetAllAccessHierarchyWithCache();
@@ -46,7 +46,7 @@ public class PrivilegeService
         return result.Distinct();
     }
 
-    public async Task<Privilege> SaveUserAccessAsync(PrivilegeSaveRequest request)
+    public async Task<Privilege> SaveAsync(PrivilegeSaveRequest request)
     {
         request.Accesses = request.Accesses.Select(x => x.ToLower()).ToList();
         var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == request.UserId);

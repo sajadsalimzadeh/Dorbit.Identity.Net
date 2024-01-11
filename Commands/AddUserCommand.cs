@@ -12,6 +12,7 @@ namespace Dorbit.Identity.Commands
     {
         private readonly UserService _userService;
 
+        public override bool IsRoot { get; } = false;
         public override string Message => "Add User";
 
         public override IEnumerable<CommandParameter> GetParameters(ICommandContext context)
