@@ -1,4 +1,6 @@
-﻿namespace Dorbit.Identity.Models.Tokens;
+﻿using System;
+
+namespace Dorbit.Identity.Models.Tokens;
 
 public class TokenResponse
 {

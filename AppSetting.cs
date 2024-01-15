@@ -19,6 +19,7 @@ public class AppSettingSecurity
 {
     public int TimeoutInSecond { get; set; } = 300;
     public short OtpTimeoutInSec { get; set; } = 120;
+    public int MaxActiveTokenCountPerUser { get; set; } = 1;
 }
 
 public class AppSettingMessage

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
 using Dorbit.Framework.Entities;
@@ -29,6 +30,7 @@ public class User : FullEntity
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; } = true;
     [MaxLength(1024)] public string InActiveMessage { get; set; }
+    public short ActiveTokenCount { get; set; } = 1;
 
     [NotMapped] public ClaimsPrincipal Claims { get; set; }
 }

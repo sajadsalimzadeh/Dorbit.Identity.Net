@@ -1,4 +1,6 @@
-﻿namespace Dorbit.Identity.Models.Users;
+﻿using System;
+
+namespace Dorbit.Identity.Models.Users;
 
 public class UserAddRequest
 {

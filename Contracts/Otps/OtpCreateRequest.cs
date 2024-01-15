@@ -1,4 +1,6 @@
-﻿namespace Dorbit.Identity.Models.Otps;
+﻿using System;
+
+namespace Dorbit.Identity.Models.Otps;
 
 public class OtpCreateRequest
 {

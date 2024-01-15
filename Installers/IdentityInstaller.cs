@@ -1,4 +1,5 @@
-﻿using Dorbit.Framework.Extensions;
+﻿using System;
+using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Databases;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ public static class IdentityInstaller
 {
     public static IServiceCollection AddDorbitIdentity(this IServiceCollection services, Configuration configuration)
     {
-        App.Setting = services.BindConfiguration<AppSetting>();
+        AppIdentity.Setting = services.BindConfiguration<AppSetting>();
 
         services.AddDbContext<IdentityDbContext>(configuration.DbContextConfiguration);
 

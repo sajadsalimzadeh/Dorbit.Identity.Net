@@ -1,4 +1,5 @@
-﻿using Dorbit.Identity.Entities;
+﻿using System.Collections.Generic;
+using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Newtonsoft.Json;

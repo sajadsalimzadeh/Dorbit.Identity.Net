@@ -1,4 +1,5 @@
-﻿using Dorbit.Framework.Models.Users;
+﻿using System.Collections.Generic;
+using Dorbit.Framework.Models.Users;
 
 namespace Dorbit.Identity.Models.Users;
 

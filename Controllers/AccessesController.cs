@@ -1,4 +1,5 @@
-﻿using Dorbit.Framework.Controllers;
+﻿using System.Threading.Tasks;
+using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Filters;
 using Dorbit.Framework.Models;
 using Dorbit.Identity.Entities;

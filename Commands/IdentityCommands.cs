@@ -1,7 +1,12 @@
-﻿using Dorbit.Framework.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using ICommand = Dorbit.Framework.Commands.Abstractions.ICommand;
 
 namespace Dorbit.Identity.Commands;
 

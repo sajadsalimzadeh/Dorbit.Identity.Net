@@ -1,4 +1,7 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
@@ -107,7 +110,7 @@ public class AuthService : IAuthService
 
     public async Task<Otp> SendOtp(AuthSendOtpRequest request)
     {
-        var otpLifetime = TimeSpan.FromSeconds(App.Setting.Security.OtpTimeoutInSec);
+        var otpLifetime = TimeSpan.FromSeconds(AppIdentity.Setting.Security.OtpTimeoutInSec);
         var otp = await _otpService.CreateAsync(new OtpCreateRequest()
         {
             Duration = otpLifetime,
@@ -118,7 +121,7 @@ public class AuthService : IAuthService
             await _messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Value,
-                TemplateId = App.Setting.Message.MeliPayamakOtpBodyId,
+                TemplateId = AppIdentity.Setting.Message.MeliPayamakOtpBodyId,
                 Args = new object[] { code }
             });
         }

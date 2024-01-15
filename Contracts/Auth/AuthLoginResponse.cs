@@ -1,4 +1,5 @@
-﻿using Dorbit.Identity.Enums;
+﻿using System;
+using Dorbit.Identity.Enums;
 using Dorbit.Identity.Models.Tokens;
 
 namespace Dorbit.Identity.Models.Auth;

@@ -1,4 +1,5 @@
-﻿using Dorbit.Framework.Database;
+﻿using System;
+using Dorbit.Framework.Database;
 using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 

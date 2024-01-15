@@ -1,4 +1,6 @@
-﻿namespace Dorbit.Identity.Models.Accesses;
+﻿using System.Collections.Generic;
+
+namespace Dorbit.Identity.Models.Accesses;
 
 public class AccessWithChildrenDto
 {

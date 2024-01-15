@@ -1,4 +1,6 @@
-﻿using Dorbit.Framework.Controllers;
+﻿using System;
+using System.Threading.Tasks;
+using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Framework.Models;
@@ -55,7 +57,7 @@ public class AuthController : BaseController
         return Task.FromResult(new CommandResult(UserResolver.User is not null));
     }
 
-    [HttpGet("[action]"), Auth]
+    [HttpGet("IsLogin"), Auth]
     public async Task<QueryResult<UserIdentityDto>> IsLogin()
     {
         var user = await _userRepository.GetByIdAsync(UserId);

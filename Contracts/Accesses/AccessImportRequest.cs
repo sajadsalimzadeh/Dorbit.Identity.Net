@@ -1,4 +1,7 @@
-﻿namespace Dorbit.Identity.Models.Accesses;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Dorbit.Identity.Models.Accesses;
 
 public class AccessImportRequest
 {
