@@ -1,0 +1,49 @@
+﻿[
+  {
+    "Name": "AllAccess",
+    "Children": [
+      {
+        "Name": "Identity",
+        "Children": [
+          {
+            "Name": "User",
+            "Children": [
+              {
+                "Name": "User-Read"
+              }
+            ]
+          },
+          {
+            "Name": "Access",
+            "Children": [
+              {
+                "Name": "Access-Read"
+              }
+            ]
+          },
+          {
+            "Name": "Privilege",
+            "Children": [
+              {
+                "Name": "Privilege-Read"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "Roles",
+    "Children": [
+      {
+        "Name": "Admin",
+        "Children": [
+          {
+            "Name": "AllAccess"
+          }
+        ]
+      }
+    ]
+  }
+]

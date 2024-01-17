@@ -38,6 +38,15 @@ public class TokenService
         var uaParser = Parser.GetDefault();
         var clientInfo = uaParser.Parse(request.UserAgent ?? "");
 
+        var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, AppIdentity.Setting.Security.MaxActiveTokenCountPerUser);
+        var activeTokens = await _tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
+        foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(activeTokens.Count - maxActiveTokenCount + 1))
+        {
+            _memoryCache.Remove(activeToken.Id);
+            activeToken.State = TokenState.Terminated;
+            await _tokenRepository.UpdateAsync(activeToken);
+        }
+
         var tokenId = Guid.NewGuid();
         var token = await _tokenRepository.InsertAsync(new Token()
         {
@@ -46,19 +55,10 @@ public class TokenService
             Os = clientInfo.OS.Family,
             Platform = clientInfo.Device.Family,
             Application = clientInfo.Browser.Family,
-            ExpireTime = DateTime.UtcNow.ToUniversalTime().AddSeconds(AppIdentity.Setting.Security.TimeoutInSecond),
+            ExpireTime = DateTime.UtcNow.AddSeconds(AppIdentity.Setting.Security.TimeoutInSecond),
             State = TokenState.Valid
         });
-        var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, AppIdentity.Setting.Security.MaxActiveTokenCountPerUser);
-        var activeTokens = await _tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
-        if (activeTokens.Count >= maxActiveTokenCount)
-        {
-            foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(maxActiveTokenCount - activeTokens.Count))
-            {
-                await _tokenRepository.RemoveAsync(activeToken);
-            }
-        }
-        
+
         var tokenResponse = await _jwtService.CreateTokenAsync(new JwtCreateTokenRequest()
         {
             Expires = token.ExpireTime,
@@ -70,7 +70,7 @@ public class TokenService
             }
         });
         _memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
-        
+
         return new TokenResponse()
         {
             Csrf = token.Id,

@@ -10,4 +10,10 @@
       <ProjectReference Include="..\Dorbit\Dorbit.Framework.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Assets\accesses-identity.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

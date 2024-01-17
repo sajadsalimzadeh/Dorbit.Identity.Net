@@ -11,6 +11,7 @@ using Dorbit.Identity.Models.Users;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
@@ -32,6 +33,12 @@ public class UsersController : CrudController<User, UserIdentityDto, UserAddRequ
         _privilegeService = privilegeService;
     }
 
+    [Auth("User-Read")]
+    public override Task<PagedListResult<UserIdentityDto>> Select(ODataQueryOptions<User> queryOptions)
+    {
+        return base.Select(queryOptions);
+    }
+
     public override Task<QueryResult<UserIdentityDto>> Add(UserAddRequest dto)
     {
         return _userService.AddAsync(dto).MapAsync<User, UserIdentityDto>().ToQueryResultAsync();
@@ -49,7 +56,7 @@ public class UsersController : CrudController<User, UserIdentityDto, UserAddRequ
         return Succeed();
     }
 
-    [HttpGet("{id}/Privileges"), Auth("Privilege-Select")]
+    [HttpGet("{id}/Privileges"), Auth("Privilege-Read")]
     public async Task<QueryResult<List<string>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
     {
         var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);

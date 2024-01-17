@@ -24,7 +24,7 @@ namespace Dorbit.Identity.Commands
             _accessRepository = accessRepository;
         }
 
-        public override Task Invoke(ICommandContext context)
+        public override Task InvokeAsync(ICommandContext context)
         {
             var dbPolicies = _accessRepository.Set(false).ToList();
 

@@ -20,7 +20,7 @@ public class User : FullEntity
     [StringLength(20)] public string Cellphone { get; set; }
     public DateTime? CellphoneValidateTime { get; set; }
 
-    [StringLength(20)] public string Email { get; set; }
+    [StringLength(64)] public string Email { get; set; }
     public DateTime? EmailValidateTime { get; set; }
 
     public byte[] AuthenticatorKey { get; set; }

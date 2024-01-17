@@ -29,7 +29,7 @@ namespace Dorbit.Identity.Commands
             _userService = userService;
         }
 
-        public override Task Invoke(ICommandContext context)
+        public override Task InvokeAsync(ICommandContext context)
         {
             return _userService.AddAsync(new UserAddRequest()
             {

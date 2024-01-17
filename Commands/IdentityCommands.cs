@@ -29,7 +29,7 @@ public class IdentityCommands : Command
         yield return _serviceProvider.GetService<ResetUserPasswordCommand>();
     }
 
-    public override Task Invoke(ICommandContext context)
+    public override Task InvokeAsync(ICommandContext context)
     {
         return Task.CompletedTask;
     }

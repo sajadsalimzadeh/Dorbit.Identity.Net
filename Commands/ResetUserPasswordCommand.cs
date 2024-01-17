@@ -28,7 +28,7 @@ namespace Dorbit.Identity.Commands
             yield return new CommandParameter("Password");
         }
 
-        public override Task Invoke(ICommandContext context)
+        public override Task InvokeAsync(ICommandContext context)
         {
             return _userService.ResetPasswordAsync(new UserResetPasswordRequest()
             {
