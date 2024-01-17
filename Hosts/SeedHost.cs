@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Entities.Abstractions;
 using Dorbit.Framework.Hosts;
 using Dorbit.Framework.Utils.Json;
 using Dorbit.Identity.Entities;
@@ -32,7 +36,7 @@ public class SeedHost : BaseHost
         var userService = sp.GetService<UserService>();
         if (string.IsNullOrEmpty(AppIdentity.Setting.Admin.Username)) return;
 
-        if (!await userRepository.Set().AnyAsync(x => x.Username.ToLower() == "admin"))
+        if (!await userRepository.Set().AnyAsync(x => x.Username.ToLower() == "admin", cancellationToken: cancellationToken))
         {
             await userService.AddAsync(new UserAddRequest()
             {
