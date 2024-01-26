@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Jwts;
-using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Tokens;
@@ -15,7 +11,6 @@ using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
 using UAParser;
 
 namespace Dorbit.Identity.Services;

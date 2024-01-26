@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;

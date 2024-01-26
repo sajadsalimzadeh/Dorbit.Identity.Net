@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
-using Dorbit.Framework.Entities.Abstractions;
 using Dorbit.Framework.Hosts;
-using Dorbit.Framework.Utils.Json;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Extensions;
@@ -16,7 +10,6 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Dorbit.Identity.Hosts;
 

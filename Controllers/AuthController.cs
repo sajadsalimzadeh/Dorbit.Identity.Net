@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dorbit.Framework.Contracts;
-using Dorbit.Framework.Contracts.Users;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
