@@ -26,6 +26,11 @@ public class UserRepository : BaseRepository<User>
         return Set().FirstOrDefaultAsync(x => x.Username == username);
     }
 
+    public Task<User> GetAdminAsync()
+    {
+        return Set().FirstOrDefaultAsync(x => x.Username.ToLower() == "admin");
+    }
+
     public Task<List<Privilege>> GetAllUserPrivileges(Guid id)
     {
         var now = DateTime.UtcNow;

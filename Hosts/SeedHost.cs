@@ -26,15 +26,16 @@ public class SeedHost : BaseHost
         
         var userRepository = sp.GetService<UserRepository>();
         var userService = sp.GetService<UserService>();
-        if (string.IsNullOrEmpty(AppIdentity.Setting.Admin.Username)) return;
+        if (string.IsNullOrEmpty(AppIdentity.Setting.Admin.Password)) return;
 
-        if (!await userRepository.Set().AnyAsync(x => x.Username.ToLower() == "admin", cancellationToken: cancellationToken))
+        var admin = await userRepository.GetAdminAsync();
+        if (admin is null)
         {
-            await userService.AddAsync(new UserAddRequest()
+            admin = await userService.AddAsync(new UserAddRequest()
             {
                 Id = Guid.Parse("733cc50c-a40e-4b79-96f5-3f5654dd33f0"),
-                Name = AppIdentity.Setting.Admin.Name ?? AppIdentity.Setting.Admin.Username,
-                Username = AppIdentity.Setting.Admin.Username,
+                Name = AppIdentity.Setting.Admin.Name ?? "admin",
+                Username = "admin",
                 Password = AppIdentity.Setting.Admin.Password,
                 Cellphone = AppIdentity.Setting.Admin.Cellphone,
                 Email = AppIdentity.Setting.Admin.Email,
@@ -43,17 +44,16 @@ public class SeedHost : BaseHost
         }
         
         var accessRepository = sp.GetService<AccessRepository>();
-        await accessRepository.SeedAccessAsync("accesses-identity");
+        await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
         
         var privilegeService = serviceProvider.GetService<PrivilegeService>();
 
-        var admin = await userRepository.GetByUsernameAsync("admin");
         if (admin is not null)
         {
             await privilegeService.SaveAsync(new PrivilegeSaveRequest()
             {
                 UserId =admin.Id,
-                Accesses = ["AllAccess"]
+                Accesses = ["Admin"]
             });
         }
     }

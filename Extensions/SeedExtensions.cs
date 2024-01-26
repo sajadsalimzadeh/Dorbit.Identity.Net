@@ -12,11 +12,11 @@ namespace Dorbit.Identity.Extensions;
 
 public static class SeedExtensions
 {
-    private static object _seedLock = new { };
+    private static readonly object SeedLock = new { };
 
     public static Task SeedAccessAsync(this AccessRepository accessRepository, string filename)
     {
-        lock (_seedLock)
+        lock (SeedLock)
         {
             var allAccesses = accessRepository.Set().Include(x => x.Parent).ToList();
 
