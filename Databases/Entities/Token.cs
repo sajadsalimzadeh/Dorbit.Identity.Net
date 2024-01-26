@@ -2,9 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
-using Dorbit.Identity.Enums;
+using Dorbit.Identity.Contracts;
 
-namespace Dorbit.Identity.Entities;
+namespace Dorbit.Identity.Databases.Entities;
 
 public class Token : Entity
 {

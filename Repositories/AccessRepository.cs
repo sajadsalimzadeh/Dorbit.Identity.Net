@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
+using Dorbit.Identity.Contracts.Accesses;
 using Dorbit.Identity.Databases;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Accesses;
+using Dorbit.Identity.Databases.Entities;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Dorbit.Identity.Repositories;

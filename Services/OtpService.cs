@@ -4,8 +4,8 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Utils.Cryptography;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Otps;
+using Dorbit.Identity.Contracts.Otps;
+using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 
 namespace Dorbit.Identity.Services;

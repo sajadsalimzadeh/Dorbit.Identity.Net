@@ -1,6 +1,4 @@
-﻿using Dorbit.Identity.Enums;
-
-namespace Dorbit.Identity.Models.Auth;
+﻿namespace Dorbit.Identity.Contracts.Auth;
 
 public class AuthLoginRequest
 {

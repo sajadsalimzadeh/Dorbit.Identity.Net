@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Dorbit.Identity.Models.Accesses;
+namespace Dorbit.Identity.Contracts.Accesses;
 
 public class AccessImportRequest
 {

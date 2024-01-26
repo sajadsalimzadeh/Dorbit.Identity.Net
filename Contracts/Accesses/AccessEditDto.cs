@@ -1,7 +1,7 @@
 ﻿using System;
 using Dorbit.Framework.Entities.Abstractions;
 
-namespace Dorbit.Identity.Models.Accesses;
+namespace Dorbit.Identity.Contracts.Accesses;
 
 public class AccessEditDto : IEntity
 {

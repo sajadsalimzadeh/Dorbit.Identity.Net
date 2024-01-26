@@ -1,7 +1,7 @@
 ﻿using System;
 using Dorbit.Framework.Entities.Abstractions;
 
-namespace Dorbit.Identity.Models.Users;
+namespace Dorbit.Identity.Contracts.Users;
 
 public class UserEditRequest : IEntity
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dorbit.Identity.Models.Tokens;
+namespace Dorbit.Identity.Contracts.Tokens;
 
 public class TokenResponse
 {

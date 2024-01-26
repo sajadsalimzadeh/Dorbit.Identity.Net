@@ -1,7 +1,7 @@
 ﻿using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases;
-using Dorbit.Identity.Entities;
+using Dorbit.Identity.Databases.Entities;
 
 namespace Dorbit.Identity.Repositories;
 

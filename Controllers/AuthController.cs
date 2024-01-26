@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Dorbit.Framework.Contracts;
+using Dorbit.Framework.Contracts.Users;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
-using Dorbit.Framework.Models;
-using Dorbit.Identity.Models.Auth;
-using Dorbit.Identity.Models.Users;
+using Dorbit.Identity.Contracts.Auth;
+using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
@@ -58,10 +59,10 @@ public class AuthController : BaseController
     }
 
     [HttpGet("IsLogin"), Auth]
-    public async Task<QueryResult<UserIdentityDto>> IsLogin()
+    public async Task<QueryResult<UserDto>> IsLogin()
     {
         var user = await _userRepository.GetByIdAsync(UserId);
-        var dto = user.MapTo<UserIdentityDto>();
+        var dto = user.MapTo<UserDto>();
         dto.Accesses = await _privilegeService.GetAllByUserIdAsync(user.Id);
         return dto.ToQueryResult();
     }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dorbit.Identity.Entities;
+namespace Dorbit.Identity.Databases.Entities;
 
 [Index(nameof(UserId), IsUnique = true)]
 public class Privilege : FullEntity

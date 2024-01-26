@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
-using Dorbit.Framework.Models;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Privileges;
-using Dorbit.Identity.Models.Users;
+using Dorbit.Identity.Contracts.Privileges;
+using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Controllers;
 
 [Auth("User")]
-public class UsersController : CrudController<User, UserIdentityDto, UserAddRequest, UserEditRequest>
+public class UsersController : CrudController<User, UserDto, UserAddRequest, UserEditRequest>
 {
     private readonly UserService _userService;
     private readonly PrivilegeRepository _privilegeRepository;
@@ -34,19 +34,19 @@ public class UsersController : CrudController<User, UserIdentityDto, UserAddRequ
     }
 
     [Auth("User-Read")]
-    public override Task<PagedListResult<UserIdentityDto>> Select(ODataQueryOptions<User> queryOptions)
+    public override Task<PagedListResult<UserDto>> Select(ODataQueryOptions<User> queryOptions)
     {
         return base.Select(queryOptions);
     }
 
-    public override Task<QueryResult<UserIdentityDto>> Add(UserAddRequest dto)
+    public override Task<QueryResult<UserDto>> Add(UserAddRequest dto)
     {
-        return _userService.AddAsync(dto).MapAsync<User, UserIdentityDto>().ToQueryResultAsync();
+        return _userService.AddAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override Task<QueryResult<UserIdentityDto>> Edit(Guid id, UserEditRequest dto)
+    public override Task<QueryResult<UserDto>> Edit(Guid id, UserEditRequest dto)
     {
-        return _userService.EditAsync(dto).MapAsync<User, UserIdentityDto>().ToQueryResultAsync();
+        return _userService.EditAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     [HttpPost("ChangePassword"), Auth]

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
-using Dorbit.Framework.Models.Commands;
-using Dorbit.Identity.Models.Users;
+using Dorbit.Framework.Contracts.Commands;
+using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Services;
 
 namespace Dorbit.Identity.Commands

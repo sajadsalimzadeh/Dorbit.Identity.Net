@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Dorbit.Identity.Entities;
+using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +41,7 @@ public static class SeedExtensions
                 }
             }
 
-            var accessFilename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Assets/{filename}.json");
+            var accessFilename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename);
             if (File.Exists(accessFilename))
             {
                 var json = File.ReadAllTextAsync(accessFilename).Result;

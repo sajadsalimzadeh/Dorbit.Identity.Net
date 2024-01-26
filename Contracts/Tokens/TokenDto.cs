@@ -1,6 +1,4 @@
-﻿using Dorbit.Identity.Enums;
-
-namespace Dorbit.Identity.Models.Tokens;
+﻿namespace Dorbit.Identity.Contracts.Tokens;
 
 public class TokenDto
 {

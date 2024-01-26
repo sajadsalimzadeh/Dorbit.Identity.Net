@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dorbit.Identity.Models.Otps;
+namespace Dorbit.Identity.Contracts.Otps;
 
 public class OtpCreateRequest
 {

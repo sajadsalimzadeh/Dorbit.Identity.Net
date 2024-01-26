@@ -3,10 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
 using Dorbit.Framework.Entities;
-using Dorbit.Framework.Models.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dorbit.Identity.Entities;
+namespace Dorbit.Identity.Databases.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 public class User : FullEntity

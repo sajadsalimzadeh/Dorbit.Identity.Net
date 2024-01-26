@@ -1,5 +1,5 @@
 ﻿
-namespace Dorbit.Identity.Models.Tokens;
+namespace Dorbit.Identity.Contracts.Tokens;
 
 public class TokenAddRequest
 {

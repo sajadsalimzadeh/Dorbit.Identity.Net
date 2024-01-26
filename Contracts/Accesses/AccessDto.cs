@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dorbit.Identity.Models.Accesses;
+namespace Dorbit.Identity.Contracts.Accesses;
 
 public class AccessDto
 {

@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Accesses;
+using Dorbit.Identity.Contracts.Accesses;
+using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 
 namespace Dorbit.Identity.Commands

@@ -1,8 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Dorbit.Identity.Models.Privileges;
+namespace Dorbit.Identity.Contracts.Privileges;
 
 public class PrivilegeDto
 {

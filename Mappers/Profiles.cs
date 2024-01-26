@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using Dorbit.Framework.Models.Users;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Accesses;
-using Dorbit.Identity.Models.Privileges;
-using Dorbit.Identity.Models.Tokens;
-using Dorbit.Identity.Models.Users;
+using Dorbit.Framework.Contracts.Users;
+using Dorbit.Identity.Contracts.Accesses;
+using Dorbit.Identity.Contracts.Privileges;
+using Dorbit.Identity.Contracts.Tokens;
+using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Entities;
 
 namespace Dorbit.Identity.Mappers;
 
@@ -27,8 +27,9 @@ public class Profiles : Profile
         CreateMapTwoWay<Privilege, PrivilegeDto>();
         CreateMapTwoWay<PrivilegeSaveRequest, Privilege>();
 
-        CreateMapTwoWay<User, UserIdentityDto>();
-        CreateMap<UserDto, UserIdentityDto>();
+        CreateMapTwoWay<User, UserDto>();
+        CreateMap<User, BaseUserDto>();
+        CreateMap<BaseUserDto, UserDto>();
         CreateMap<UserAddRequest, User>();
         CreateMap<UserEditRequest, User>();
     }

@@ -1,8 +1,7 @@
 ﻿using System;
-using Dorbit.Identity.Enums;
-using Dorbit.Identity.Models.Tokens;
+using Dorbit.Identity.Contracts.Tokens;
 
-namespace Dorbit.Identity.Models.Auth;
+namespace Dorbit.Identity.Contracts.Auth;
 
 public class AuthLoginResponse
 {

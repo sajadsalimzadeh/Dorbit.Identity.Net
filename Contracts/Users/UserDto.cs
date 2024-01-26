@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-using Dorbit.Framework.Models.Users;
+using Dorbit.Framework.Contracts.Users;
 
-namespace Dorbit.Identity.Models.Users;
+namespace Dorbit.Identity.Contracts.Users;
 
-public class UserIdentityDto : UserDto
+public class UserDto : BaseUserDto
 {
     public string Email { get; set; }
     public string Cellphone { get; set; }
-    public string Username { get; set; }
     public bool IsTwoFactorAuthenticationEnable { get; set; }
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; }

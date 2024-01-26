@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
+using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Databases;
-using Dorbit.Identity.Entities;
-using Dorbit.Identity.Models.Privileges;
+using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 

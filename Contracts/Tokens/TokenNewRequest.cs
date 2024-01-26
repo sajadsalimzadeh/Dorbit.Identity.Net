@@ -1,6 +1,6 @@
-﻿using Dorbit.Identity.Entities;
+﻿using Dorbit.Identity.Databases.Entities;
 
-namespace Dorbit.Identity.Models.Tokens;
+namespace Dorbit.Identity.Contracts.Tokens;
 
 public class TokenNewRequest
 {
