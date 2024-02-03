@@ -21,9 +21,19 @@ public class UserRepository : BaseRepository<User>
         _dbContext = dbContext;
     }
 
-    public Task<User> GetByUsernameAsync(string username)
+    public Task<User> GetByUsernameAsync(string value)
     {
-        return Set().FirstOrDefaultAsync(x => x.Username == username);
+        return Set().FirstOrDefaultAsync(x => x.Username == value);
+    }
+    
+    public Task<User> GetByCellphoneAsync(string value)
+    {
+        return Set().FirstOrDefaultAsync(x => x.Cellphone == value);
+    }
+    
+    public Task<User> GetByEmailAsync(string value)
+    {
+        return Set().FirstOrDefaultAsync(x => x.Email == value);
     }
 
     public Task<User> GetAdminAsync()

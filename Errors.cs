@@ -4,11 +4,13 @@ internal enum Errors
 {
     OtpTryRemainFinished,
     UsernameOrPasswordWrong,
-    LoginStrategyIsNotEnabled,
+    LoginStrategyNotSupported,
     OtpValidateFailed,
     CorrelationIdIsExpired,
     OldPasswordIsWrong,
     NewPasswordMissMach,
     NewPasswordIsWeak,
-    CorrelationIdIsInvalid
+    CorrelationIdIsInvalid,
+    CanNotDeActiveAdmin,
+    CanNotRemoveAdminUser
 }

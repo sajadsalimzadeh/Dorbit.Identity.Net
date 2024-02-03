@@ -5,6 +5,7 @@ using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts.Auth;
+using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
@@ -26,13 +27,11 @@ public class AuthController : BaseController
         _privilegeService = privilegeService;
     }
 
-    [HttpPost("[action]")]
-    public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginRequest request)
+    private void HandleToken(TokenResponse tokenResponse)
     {
-        var loginResponse = await _authService.Login(request);
-        if (loginResponse.Token is not null)
+        if (tokenResponse is not null)
         {
-            Response.Cookies.Append("CSRF", loginResponse.Token.Csrf.ToString(), new CookieOptions()
+            Response.Cookies.Append("CSRF", tokenResponse.Csrf.ToString(), new CookieOptions()
             {
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 HttpOnly = true,
@@ -40,7 +39,21 @@ public class AuthController : BaseController
                 Path = "/"
             });
         }
+    }
 
+    [HttpPost("Login")]
+    public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginRequest request)
+    {
+        var loginResponse = await _authService.LoginAsync(request);
+        HandleToken(loginResponse.Token);
+        return loginResponse.ToQueryResult();
+    }
+
+    [HttpPost("LoginWithCode")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithCodeRequest request)
+    {
+        var loginResponse = await _authService.LoginWithCodeAsync(request);
+        HandleToken(loginResponse.Token);
         return loginResponse.ToQueryResult();
     }
 

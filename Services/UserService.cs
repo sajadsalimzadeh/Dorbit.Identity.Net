@@ -31,6 +31,11 @@ public class UserService
             Salt = Guid.NewGuid().ToString()
         });
         entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.Salt);
+
+        if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone)) entity.CellphoneValidateTime = DateTime.Now;
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailValidateTime = DateTime.Now;
+        if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey)) entity.AuthenticatorValidateTime = DateTime.Now;
+        
         return _userRepository.InsertAsync(entity);
     }
 
@@ -42,6 +47,8 @@ public class UserService
 
     public async Task<User> RemoveAsync(Guid id)
     {
+        var admin = await _userRepository.GetAdminAsync();
+        if (admin.Id == id) throw new OperationException(Errors.CanNotRemoveAdminUser);
         return await _userRepository.RemoveAsync(id);
     }
 
@@ -69,5 +76,21 @@ public class UserService
         user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.Salt);
         
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<User> DeActiveAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        var admin = await _userRepository.GetAdminAsync();
+        if (admin.Id == user.Id) throw new OperationException(Errors.CanNotDeActiveAdmin);
+        user.IsActive = false;
+        return await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<User> ActiveAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        user.IsActive = true;
+        return await _userRepository.UpdateAsync(user);
     }
 }

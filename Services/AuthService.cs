@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Messages;
@@ -12,6 +13,7 @@ using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Tokens;
+using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
@@ -25,87 +27,76 @@ namespace Dorbit.Identity.Services;
 public class AuthService : IAuthService
 {
     private readonly OtpService _otpService;
-    private readonly UserRepository _userRepository;
     private readonly TokenService _tokenService;
-    private readonly TokenRepository _tokenRepository;
+    private readonly IUserResolver _userResolver;
+    private readonly UserService _userService;
+    private readonly UserRepository _userRepository;
     private readonly MessageManager _messageManager;
+    private readonly TokenRepository _tokenRepository;
     private readonly PrivilegeService _privilegeService;
     private readonly IDistributedCache _distributedCache;
 
-    public AuthService(
-        OtpService otpService,
+    public AuthService(OtpService otpService,
         TokenService tokenService,
-        TokenRepository tokenRepository,
+        IUserResolver userResolver,
+        UserService userService,
         UserRepository userRepository,
         MessageManager messageManager,
+        TokenRepository tokenRepository,
         PrivilegeService privilegeService,
         IDistributedCache distributedCache)
     {
         _otpService = otpService;
         _tokenService = tokenService;
-        _tokenRepository = tokenRepository;
+        _userResolver = userResolver;
+        _userService = userService;
         _userRepository = userRepository;
         _messageManager = messageManager;
+        _tokenRepository = tokenRepository;
         _privilegeService = privilegeService;
         _distributedCache = distributedCache;
     }
 
-    public async Task<AuthLoginResponse> Login(AuthLoginRequest request)
+    public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
     {
-        var user = _userRepository.Set().FirstOrDefault(x => x.Username == request.Username) ??
-                   throw new OperationException(Errors.UsernameOrPasswordWrong);
-
-        var isTwoFactorAuthenticationEnable = user.IsTwoFactorAuthenticationEnable;
-        if (request.LoginStrategy == UserLoginStrategy.StaticPassword || request.LoginStrategy == UserLoginStrategy.None)
+        if (request.LoginStrategy == LoginStrategy.StaticPassword)
         {
+            var user = _userRepository.Set().FirstOrDefault(x => x.Username == request.Username) ??
+                       throw new OperationException(Errors.UsernameOrPasswordWrong);
+
             var hash = HashUtility.HashPassword(request.Value, user.Salt);
             if (user.PasswordHash != hash) throw new OperationException(Errors.UsernameOrPasswordWrong);
-        }
-        else
-        {
-            isTwoFactorAuthenticationEnable = true;
-        }
 
-        if (isTwoFactorAuthenticationEnable)
-        {
-            if (request.LoginStrategy == UserLoginStrategy.None)
+            return new AuthLoginResponse()
             {
-                if (user.CellphoneValidateTime.HasValue) request.LoginStrategy = UserLoginStrategy.Cellphone;
-                else if (user.EmailValidateTime.HasValue) request.LoginStrategy = UserLoginStrategy.Email;
-                else if (user.AuthenticatorValidateTime.HasValue) request.LoginStrategy = UserLoginStrategy.Authenticator;
-            }
-            else
-            {
-                if ((request.LoginStrategy == UserLoginStrategy.Cellphone && !user.CellphoneValidateTime.HasValue) ||
-                    (request.LoginStrategy == UserLoginStrategy.Email && !user.EmailValidateTime.HasValue) ||
-                    (request.LoginStrategy == UserLoginStrategy.Authenticator && !user.AuthenticatorValidateTime.HasValue))
-                    throw new OperationException(Errors.LoginStrategyIsNotEnabled);
-            }
-
-            if (request.LoginStrategy == UserLoginStrategy.Cellphone || request.LoginStrategy == UserLoginStrategy.Email)
-            {
-                var otp = await SendOtp(new AuthSendOtpRequest()
+                Token = await _tokenService.CreateAsync(new TokenNewRequest()
                 {
-                    Value = user.Username,
-                    LoginStrategy = request.LoginStrategy
-                });
-
-                return new AuthLoginResponse()
-                {
-                    OtpId = otp.Id,
-                    UserLoginStrategy = request.LoginStrategy
-                };
-            }
+                    User = user,
+                    UserAgent = request.UserAgent,
+                })
+            };
         }
 
-        return new AuthLoginResponse()
+        if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
         {
-            Token = await _tokenService.CreateAsync(new TokenNewRequest()
+            var otp = await SendOtp(new AuthSendOtpRequest()
             {
-                User = user,
-                UserAgent = request.UserAgent,
-            })
-        };
+                Value = request.Username,
+                LoginStrategy = request.LoginStrategy
+            });
+
+            return new AuthLoginResponse()
+            {
+                OtpId = otp.Id,
+                LoginStrategy = request.LoginStrategy
+            };
+        }
+
+        if (request.LoginStrategy == LoginStrategy.Authenticator)
+        {
+        }
+
+        throw new OperationException(Errors.LoginStrategyNotSupported);
     }
 
     public async Task<Otp> SendOtp(AuthSendOtpRequest request)
@@ -116,23 +107,23 @@ public class AuthService : IAuthService
             Duration = otpLifetime,
             Length = 5
         }, out var code);
-        if (request.LoginStrategy == UserLoginStrategy.Cellphone)
+        if (request.LoginStrategy == LoginStrategy.Cellphone)
         {
             await _messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Value,
-                TemplateId = AppIdentity.Setting.Message.MeliPayamakOtpBodyId,
-                Args = new object[] { code }
+                TemplateType = MessageTemplateType.Otp,
+                Args = [code]
             });
         }
-        else if (request.LoginStrategy == UserLoginStrategy.Email)
+        else if (request.LoginStrategy == LoginStrategy.Email)
         {
             await _messageManager.SendAsync(new MessageEmailRequest()
             {
                 To = request.Value,
                 Subject = "Login one time password code",
                 Body = "Code: {0}",
-                Args = new object[] { otp.CodeHash }
+                Args = [code]
             });
         }
 
@@ -145,30 +136,54 @@ public class AuthService : IAuthService
         return otp;
     }
 
-    public async Task<AuthLoginResponse> CompleteLoginAsync(AuthLoginWithOtpRequest request)
+    public async Task<AuthLoginResponse> LoginWithCodeAsync(AuthLoginWithCodeRequest request)
     {
-        var correlationId = request.Id.ToString();
-        var otpValidateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
+        var value = await _distributedCache.GetStringAsync(request.OtpId.ToString());
+        if (value is null) throw new OperationException(Errors.CorrelationIdIsExpired);
+
+        if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
         {
-            Id = request.Id,
-            Code = HashUtility.HashOtp(request.Code, correlationId)
-        });
-        if (!otpValidateResult) throw new OperationException(Errors.OtpValidateFailed);
-
-        var userId = await _distributedCache.GetStringAsync(correlationId);
-        if (userId is null) throw new OperationException(Errors.CorrelationIdIsExpired);
-
-        if (!Guid.TryParse(userId, out var userGuid)) throw new OperationException(Errors.CorrelationIdIsInvalid);
-        var user = await _userRepository.GetByIdAsync(userGuid);
-
-        return new AuthLoginResponse()
-        {
-            Token = await _tokenService.CreateAsync(new TokenNewRequest()
+            var otpValidateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
             {
-                User = user,
-                UserAgent = request.UserAgent
-            })
-        };
+                Id = request.OtpId,
+                Code = request.Code
+            });
+            if (!otpValidateResult) throw new OperationException(Errors.OtpValidateFailed);
+
+            User user;
+            if (request.LoginStrategy == LoginStrategy.Cellphone) user = await _userRepository.GetByCellphoneAsync(value);
+            else if (request.LoginStrategy == LoginStrategy.Email) user = await _userRepository.GetByEmailAsync(value);
+            else throw new OperationException(Errors.LoginStrategyNotSupported);
+
+            if (user is null)
+            {
+                var userAddRequest = new UserAddRequest();
+
+                if (request.LoginStrategy == LoginStrategy.Cellphone)
+                {
+                    userAddRequest.Username = userAddRequest.Cellphone = value;
+                    userAddRequest.ValidateTypes = UserValidateTypes.Cellphone;
+                }
+                else if (request.LoginStrategy == LoginStrategy.Email)
+                {
+                    userAddRequest.Username = userAddRequest.Email = value;
+                    userAddRequest.ValidateTypes = UserValidateTypes.Email;
+                }
+
+                user = await _userService.AddAsync(userAddRequest);
+            }
+
+            return new AuthLoginResponse()
+            {
+                Token = await _tokenService.CreateAsync(new TokenNewRequest()
+                {
+                    User = user,
+                    UserAgent = request.UserAgent
+                })
+            };
+        }
+
+        throw new OperationException(Errors.LoginStrategyNotSupported);
     }
 
     public async Task<bool> IsTokenValid(HttpContext context, ClaimsPrincipal claimsPrincipal)
@@ -185,10 +200,14 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public Task<bool> HasAccessAsync(params string[] accesses)
+    {
+        return HasAccessAsync(_userResolver.User.Id, accesses);
+    }
+
     public async Task<bool> HasAccessAsync(Guid id, params string[] accesses)
     {
         var allUserAccess = await _privilegeService.GetAllByUserIdAsync(id);
-        if (allUserAccess.Any(userAccess => accesses.Contains(userAccess))) return true;
-        return false;
+        return allUserAccess.Any(accesses.Select(x => x.ToLower()).Contains);
     }
 }

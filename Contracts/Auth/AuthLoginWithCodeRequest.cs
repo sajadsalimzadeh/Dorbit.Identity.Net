@@ -2,10 +2,10 @@
 
 namespace Dorbit.Identity.Contracts.Auth;
 
-public class AuthLoginWithOtpRequest
+public class AuthLoginWithCodeRequest
 {
-    public Guid Id { get; set; }
-    public UserLoginStrategy LoginStrategy { get; set; }
+    public Guid OtpId { get; set; }
+    public LoginStrategy LoginStrategy { get; set; }
     public string UserAgent { get; set; }
     public string Code { get; set; }
 }

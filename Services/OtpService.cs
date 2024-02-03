@@ -7,6 +7,7 @@ using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Utilities;
 
 namespace Dorbit.Identity.Services;
 
@@ -41,7 +42,7 @@ public class OtpService
         try
         {
             if (otp.TryRemain <= 0) throw new OperationException(Errors.OtpTryRemainFinished);
-            if (otp.CodeHash == request.Code)
+            if (otp.CodeHash == HashUtility.HashOtp(request.Code, otp.Id.ToString()))
             {
                 otp.IsUsed = true;
                 return true;

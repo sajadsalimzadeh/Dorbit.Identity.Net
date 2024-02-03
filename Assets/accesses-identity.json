@@ -10,6 +10,12 @@
             "Children": [
               {
                 "Name": "User-Read"
+              },
+              {
+                "Name": "User-DeActive"
+              },
+              {
+                "Name": "User-Active"
               }
             ]
           },

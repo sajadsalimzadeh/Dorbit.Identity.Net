@@ -3,5 +3,5 @@
 public class AuthSendOtpRequest
 {
     public string Value { get; set; }
-    public UserLoginStrategy LoginStrategy { get; set; }
+    public LoginStrategy LoginStrategy { get; set; }
 }

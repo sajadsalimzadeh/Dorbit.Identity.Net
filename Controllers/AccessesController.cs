@@ -12,8 +12,8 @@ namespace Dorbit.Identity.Controllers;
 public class AccessesController : CrudController<Access, AccessDto, AccessAddDto, AccessEditDto>
 {
     [Auth("Access-Read")]
-    public override Task<PagedListResult<AccessDto>> Select(ODataQueryOptions<Access> queryOptions)
+    public override Task<PagedListResult<AccessDto>> SelectAsync()
     {
-        return base.Select(queryOptions);
+        return base.SelectAsync();
     }
 }

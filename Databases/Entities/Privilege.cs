@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
+using Innofactor.EfCoreJsonValueConverter;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Databases.Entities;
@@ -16,5 +17,6 @@ public class Privilege : FullEntity
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }
     
+    [JsonField]
     public List<string> Accesses { get; set; }
 }
