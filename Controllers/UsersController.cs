@@ -57,17 +57,17 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     [HttpGet("Own")]
     public Task<QueryResult<UserDto>> GetOwnAsync()
     {
-        return _userRepository.GetByIdAsync(UserId).MapAsync<User, UserDto>().ToQueryResultAsync();
+        return _userRepository.GetByIdAsync(UserId).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest dto)
     {
-        return _userService.AddAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.AddAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override Task<QueryResult<UserDto>> EditAsync(Guid id, UserEditRequest dto)
     {
-        return _userService.EditAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.EditAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
     
     [Auth]
@@ -75,12 +75,12 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     public Task<QueryResult<UserDto>> EditOwnAsync(UserEditRequest dto)
     {
         dto.Id = UserId;
-        return _userService.EditAsync(dto).MapAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.EditAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override Task<QueryResult<UserDto>> Remove(Guid id)
     {
-        return _userService.RemoveAsync(id).MapAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.RemoveAsync(id).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     [HttpPost("ChangePassword"), Auth]
