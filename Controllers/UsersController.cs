@@ -90,29 +90,35 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
         return Succeed();
     }
 
-    [HttpGet("{id}/Privileges"), Auth("Privilege-Read")]
+    [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
     public async Task<QueryResult<List<string>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
     {
         var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);
         return (privilege?.Accesses ?? new List<string>()).ToQueryResult();
     }
 
-    [HttpPost("{id}/Privileges"), Auth("Privilege")]
+    [HttpPost("{id:guid}/Privileges"), Auth("Privilege")]
     public async Task<QueryResult<PrivilegeDto>> SaveUserAccessAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
         return (await _privilegeService.SaveAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 
-    [HttpPost("{id}/DeActive"), Auth("User-DeActive")]
-    public async Task<QueryResult<UserDto>> DeActiveAsync([FromRoute] Guid id)
+    [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]
+    public async Task<QueryResult<UserDto>> DeActiveAsync([FromRoute] UserDeActiveRequest request)
     {
-        return (await _userService.DeActiveAsync(id)).MapTo<UserDto>().ToQueryResult();
+        return (await _userService.DeActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
 
-    [HttpPost("{id}/Active"), Auth("User-Active")]
-    public async Task<QueryResult<UserDto>> ActiveAsync([FromRoute] Guid id)
+    [HttpPost("{id:guid}/Active"), Auth("User-Active")]
+    public async Task<QueryResult<UserDto>> ActiveAsync([FromRoute] UserActiveRequest request)
     {
-        return (await _userService.ActiveAsync(id)).MapTo<UserDto>().ToQueryResult();
+        return (await _userService.ActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
+    }
+    
+    [HttpPost("{id:guid}/Message"), Auth("User-Message")]
+    public async Task<QueryResult<UserDto>> SetMessageAsync(UserMessageRequest request)
+    {
+        return (await _userService.SetMessageAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
 }

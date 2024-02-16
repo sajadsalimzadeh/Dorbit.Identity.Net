@@ -16,6 +16,9 @@
               },
               {
                 "Name": "User-Active"
+              },
+              {
+                "Name": "User-Message"
               }
             ]
           },

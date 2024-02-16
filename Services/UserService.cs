@@ -32,10 +32,12 @@ public class UserService
         });
         entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.Salt);
 
-        if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone)) entity.CellphoneValidateTime = DateTime.Now;
+        if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
+            entity.CellphoneValidateTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailValidateTime = DateTime.Now;
-        if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey)) entity.AuthenticatorValidateTime = DateTime.Now;
-        
+        if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
+            entity.AuthenticatorValidateTime = DateTime.Now;
+
         return _userRepository.InsertAsync(entity);
     }
 
@@ -57,40 +59,49 @@ public class UserService
         var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.Username);
         await _userRepository.UpdateAsync(request.MapTo(user));
     }
-    
+
     public async Task ChangePasswordAsync(UserChangePasswordRequest request)
     {
         var user = await _userRepository.GetByIdAsync(_userResolver.User.Id);
 
         if (request.NewPassword != request.RenewPassword)
             throw new OperationException(Errors.NewPasswordMissMach);
-        
-        
+
+
         if (request.NewPassword.Length < 8)
             throw new OperationException(Errors.NewPasswordIsWeak);
-        
+
         if (user.PasswordHash != HashUtility.HashPassword(request.OldPassword, user.Salt))
             throw new OperationException(Errors.OldPasswordIsWrong);
 
         user.Salt = Guid.NewGuid().ToString();
         user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.Salt);
-        
+
         await _userRepository.UpdateAsync(user);
     }
 
-    public async Task<User> DeActiveAsync(Guid id)
+    public async Task<User> DeActiveAsync(UserDeActiveRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        var user = await _userRepository.GetByIdAsync(request.Id);
         var admin = await _userRepository.GetAdminAsync();
         if (admin.Id == user.Id) throw new OperationException(Errors.CanNotDeActiveAdmin);
         user.IsActive = false;
+        user.Message = request.Message;
         return await _userRepository.UpdateAsync(user);
     }
 
-    public async Task<User> ActiveAsync(Guid id)
+    public async Task<User> ActiveAsync(UserActiveRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        var user = await _userRepository.GetByIdAsync(request.Id);
         user.IsActive = true;
+        user.Message = request.Message;
+        return await _userRepository.UpdateAsync(user);
+    }
+    
+    public async Task<User> SetMessageAsync(UserMessageRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(request.Id);
+        user.Message = request.Message;
         return await _userRepository.UpdateAsync(user);
     }
 }
