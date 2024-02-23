@@ -34,7 +34,6 @@ public class User : FullEntity
     public string AuthenticatorKey { get; set; }
     public DateTime? AuthenticatorValidateTime { get; set; }
 
-    public bool IsTwoFactorAuthenticationEnable { get; set; }
     public bool NeedResetPassword { get; set; }
     
     public bool IsActive { get; set; } = true;

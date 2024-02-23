@@ -4,6 +4,8 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Repositories;
@@ -17,11 +19,13 @@ public class UserService
 {
     private readonly UserRepository _userRepository;
     private readonly IUserResolver _userResolver;
+    private readonly OtpService _otpService;
 
-    public UserService(UserRepository userRepository, IUserResolver userResolver)
+    public UserService(UserRepository userRepository, IUserResolver userResolver, OtpService otpService)
     {
         _userRepository = userRepository;
         _userResolver = userResolver;
+        _otpService = otpService;
     }
 
     public Task<User> AddAsync(UserAddRequest request)
@@ -68,11 +72,31 @@ public class UserService
             throw new OperationException(Errors.NewPasswordMissMach);
 
 
-        if (request.NewPassword.Length < 8)
+        if (request.NewPassword.Length < 4)
             throw new OperationException(Errors.NewPasswordIsWeak);
 
-        if (user.PasswordHash != HashUtility.HashPassword(request.OldPassword, user.Salt))
-            throw new OperationException(Errors.OldPasswordIsWrong);
+        switch (request.Strategy)
+        {
+            case LoginStrategy.StaticPassword:
+            {
+                if (user.PasswordHash != HashUtility.HashPassword(request.Value, user.Salt))
+                    throw new OperationException(Errors.OldPasswordIsInvalid);
+                break;
+            }
+            case LoginStrategy.Cellphone or LoginStrategy.Email:
+            {
+                var validateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
+                {
+                    Id = request.OtpId,
+                    Code = request.Value
+                });
+                if(!validateResult.Success)
+                    throw new OperationException(Errors.OtpIsInvalid);
+                break;
+            }
+            default:
+                throw new OperationException(Errors.LoginStrategyNotSupported);
+        }
 
         user.Salt = Guid.NewGuid().ToString();
         user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.Salt);
@@ -97,7 +121,7 @@ public class UserService
         user.Message = request.Message;
         return await _userRepository.UpdateAsync(user);
     }
-    
+
     public async Task<User> SetMessageAsync(UserMessageRequest request)
     {
         var user = await _userRepository.GetByIdAsync(request.Id);

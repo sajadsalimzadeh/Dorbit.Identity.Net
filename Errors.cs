@@ -7,10 +7,11 @@ internal enum Errors
     LoginStrategyNotSupported,
     OtpValidateFailed,
     CorrelationIdIsExpired,
-    OldPasswordIsWrong,
+    OldPasswordIsInvalid,
     NewPasswordMissMach,
     NewPasswordIsWeak,
     CorrelationIdIsInvalid,
     CanNotDeActiveAdmin,
-    CanNotRemoveAdminUser
+    CanNotRemoveAdminUser,
+    OtpIsInvalid
 }

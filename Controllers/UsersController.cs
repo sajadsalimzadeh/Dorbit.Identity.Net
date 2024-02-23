@@ -60,14 +60,14 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
         return _userRepository.GetByIdAsync(UserId).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest dto)
+    public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
     {
-        return _userService.AddAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.AddAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override Task<QueryResult<UserDto>> EditAsync(Guid id, UserEditRequest dto)
+    public override Task<QueryResult<UserDto>> EditAsync(Guid id, UserEditRequest request)
     {
-        return _userService.EditAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return _userService.EditAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
     
     [Auth]

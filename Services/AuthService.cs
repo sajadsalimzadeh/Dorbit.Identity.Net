@@ -31,30 +31,25 @@ public class AuthService : IAuthService
     private readonly IUserResolver _userResolver;
     private readonly UserService _userService;
     private readonly UserRepository _userRepository;
-    private readonly MessageManager _messageManager;
     private readonly TokenRepository _tokenRepository;
     private readonly PrivilegeService _privilegeService;
-    private readonly IDistributedCache _distributedCache;
 
-    public AuthService(OtpService otpService,
+    public AuthService(
+        OtpService otpService,
         TokenService tokenService,
         IUserResolver userResolver,
         UserService userService,
         UserRepository userRepository,
-        MessageManager messageManager,
         TokenRepository tokenRepository,
-        PrivilegeService privilegeService,
-        IDistributedCache distributedCache)
+        PrivilegeService privilegeService)
     {
         _otpService = otpService;
         _tokenService = tokenService;
         _userResolver = userResolver;
         _userService = userService;
         _userRepository = userRepository;
-        _messageManager = messageManager;
         _tokenRepository = tokenRepository;
         _privilegeService = privilegeService;
-        _distributedCache = distributedCache;
     }
 
     public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
@@ -79,7 +74,7 @@ public class AuthService : IAuthService
 
         if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
         {
-            var otp = await SendOtp(new AuthSendOtpRequest()
+            var otp = await _otpService.SendOtp(new AuthSendOtpRequest()
             {
                 Value = request.Username,
                 LoginStrategy = request.LoginStrategy
@@ -99,48 +94,8 @@ public class AuthService : IAuthService
         throw new OperationException(Errors.LoginStrategyNotSupported);
     }
 
-    public async Task<Otp> SendOtp(AuthSendOtpRequest request)
-    {
-        var otpLifetime = TimeSpan.FromSeconds(AppIdentity.Setting.Security.OtpTimeoutInSec);
-        var otp = await _otpService.CreateAsync(new OtpCreateRequest()
-        {
-            Duration = otpLifetime,
-            Length = 5
-        }, out var code);
-        if (request.LoginStrategy == LoginStrategy.Cellphone)
-        {
-            await _messageManager.SendAsync(new MessageSmsRequest()
-            {
-                To = request.Value,
-                TemplateType = MessageTemplateType.Otp,
-                Args = [code]
-            });
-        }
-        else if (request.LoginStrategy == LoginStrategy.Email)
-        {
-            await _messageManager.SendAsync(new MessageEmailRequest()
-            {
-                To = request.Value,
-                Subject = "Login one time password code",
-                Body = "Code: {0}",
-                Args = [code]
-            });
-        }
-
-        await _distributedCache.SetStringAsync(otp.Id.ToString(), request.Value,
-            new DistributedCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = otpLifetime
-            });
-
-        return otp;
-    }
-
     public async Task<AuthLoginResponse> LoginWithCodeAsync(AuthLoginWithCodeRequest request)
     {
-        var value = await _distributedCache.GetStringAsync(request.OtpId.ToString());
-        if (value is null) throw new OperationException(Errors.CorrelationIdIsExpired);
-
         if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
         {
             var otpValidateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
@@ -148,11 +103,11 @@ public class AuthService : IAuthService
                 Id = request.OtpId,
                 Code = request.Code
             });
-            if (!otpValidateResult) throw new OperationException(Errors.OtpValidateFailed);
+            if (!otpValidateResult.Success) throw new OperationException(Errors.OtpValidateFailed);
 
             User user;
-            if (request.LoginStrategy == LoginStrategy.Cellphone) user = await _userRepository.GetByCellphoneAsync(value);
-            else if (request.LoginStrategy == LoginStrategy.Email) user = await _userRepository.GetByEmailAsync(value);
+            if (request.LoginStrategy == LoginStrategy.Cellphone) user = await _userRepository.GetByCellphoneAsync(otpValidateResult.Value);
+            else if (request.LoginStrategy == LoginStrategy.Email) user = await _userRepository.GetByEmailAsync(otpValidateResult.Value);
             else throw new OperationException(Errors.LoginStrategyNotSupported);
 
             if (user is null)
@@ -161,12 +116,12 @@ public class AuthService : IAuthService
 
                 if (request.LoginStrategy == LoginStrategy.Cellphone)
                 {
-                    userAddRequest.Username = userAddRequest.Cellphone = value;
+                    userAddRequest.Username = userAddRequest.Cellphone = otpValidateResult.Value;
                     userAddRequest.ValidateTypes = UserValidateTypes.Cellphone;
                 }
                 else if (request.LoginStrategy == LoginStrategy.Email)
                 {
-                    userAddRequest.Username = userAddRequest.Email = value;
+                    userAddRequest.Username = userAddRequest.Email = otpValidateResult.Value;
                     userAddRequest.ValidateTypes = UserValidateTypes.Email;
                 }
 

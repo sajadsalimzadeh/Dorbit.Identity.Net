@@ -1,6 +1,8 @@
+using Dorbit.Framework.Controllers;
+
 namespace Dorbit.Identity.Controllers;
 
-public class OtpsController
+public class OtpsController : BaseController
 {
     
 }

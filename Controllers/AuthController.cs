@@ -57,7 +57,7 @@ public class AuthController : BaseController
         return loginResponse.ToQueryResult();
     }
 
-    [HttpDelete("[action]")]
+    [HttpDelete("Logout")]
     public Task<CommandResult> Logout()
     {
         Response.Cookies.Append("Token", "", new CookieOptions()

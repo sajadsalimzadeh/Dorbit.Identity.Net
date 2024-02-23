@@ -6,11 +6,21 @@ namespace Dorbit.Identity.Contracts.Users;
 
 public class UserDto : BaseUserDto
 {
-    public string Email { get; set; }
+    public bool HasPassword { get; set; }
+    
     public string Cellphone { get; set; }
-    public bool IsTwoFactorAuthenticationEnable { get; set; }
+    public DateTime? CellphoneValidateTime { get; set; }
+    
+    public string Email { get; set; }
+    public DateTime? EmailValidateTime { get; set; }
+    
+    public string AuthenticatorKey { get; set; }
+    public DateTime? AuthenticatorValidateTime { get; set; }
+    
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; }
+    
     public string Message { get; set; }
+    
     public IEnumerable<string> Accesses { get; set; }
 }
