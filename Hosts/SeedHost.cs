@@ -42,6 +42,16 @@ public class SeedHost : BaseHost
                 NeedResetPassword = true
             });
         }
+        var testUser = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == "test");
+        if (testUser is null)
+        {
+            testUser = await userService.AddAsync(new UserAddRequest()
+            {
+                Name = "test",
+                Username = "test",
+                Password = "123",
+            });
+        }
         
         var accessRepository = sp.GetService<AccessRepository>();
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
