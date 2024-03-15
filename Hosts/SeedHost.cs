@@ -5,8 +5,8 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Hosts;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Extensions;
-using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +23,7 @@ public class SeedHost : BaseHost
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var sp = ServiceProvider.CreateScope().ServiceProvider;
-        
+
         var userRepository = sp.GetService<UserRepository>();
         var userService = sp.GetService<UserService>();
         if (string.IsNullOrEmpty(AppIdentity.Setting.Admin.Password)) return;
@@ -42,27 +42,16 @@ public class SeedHost : BaseHost
                 NeedResetPassword = true
             });
         }
-        var testUser = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == "test");
-        if (testUser is null)
-        {
-            testUser = await userService.AddAsync(new UserAddRequest()
-            {
-                Name = "test",
-                Username = "test",
-                Password = "123",
-            });
-        }
-        
         var accessRepository = sp.GetService<AccessRepository>();
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
-        
+
         var privilegeService = serviceProvider.GetService<PrivilegeService>();
 
         if (admin is not null)
         {
             await privilegeService.SaveAsync(new PrivilegeSaveRequest()
             {
-                UserId =admin.Id,
+                UserId = admin.Id,
                 Accesses = ["Admin"]
             });
         }

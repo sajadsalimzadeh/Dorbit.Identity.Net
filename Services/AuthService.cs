@@ -15,7 +15,7 @@ using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

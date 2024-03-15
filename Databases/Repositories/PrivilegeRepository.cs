@@ -1,9 +1,8 @@
 ﻿using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Repositories;
-using Dorbit.Identity.Databases;
 using Dorbit.Identity.Databases.Entities;
 
-namespace Dorbit.Identity.Repositories;
+namespace Dorbit.Identity.Databases.Repositories;
 
 [ServiceRegister]
 public class PrivilegeRepository : BaseRepository<Privilege>

@@ -1,7 +1,9 @@
-﻿namespace Dorbit.Identity.Contracts.Users;
+﻿using System;
+
+namespace Dorbit.Identity.Contracts.Users;
 
 public class UserResetPasswordRequest
 {
-    public string Username { get; set; }
+    public Guid Id { get; set; }
     public string Password { get; set; }
 }

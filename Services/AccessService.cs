@@ -1,6 +1,6 @@
 ﻿using Dorbit.Framework.Attributes;
 using Dorbit.Identity.Contracts.Accesses;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 
 namespace Dorbit.Identity.Services;
 

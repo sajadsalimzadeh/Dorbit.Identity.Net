@@ -5,6 +5,7 @@ using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
 using Dorbit.Framework.Contracts.Commands;
 using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Services;
 
 namespace Dorbit.Identity.Commands
@@ -13,13 +14,15 @@ namespace Dorbit.Identity.Commands
     public class ResetUserPasswordCommand : Command
     {
         private readonly UserService _userService;
+        private readonly UserRepository _userRepository;
 
         public override bool IsRoot { get; } = false;
         public override string Message => "Reset User Password";
 
-        public ResetUserPasswordCommand(UserService userService)
+        public ResetUserPasswordCommand(UserService userService, UserRepository userRepository)
         {
             _userService = userService;
+            _userRepository = userRepository;
         }
 
         public override IEnumerable<CommandParameter> GetParameters(ICommandContext context)
@@ -28,11 +31,12 @@ namespace Dorbit.Identity.Commands
             yield return new CommandParameter("Password");
         }
 
-        public override Task InvokeAsync(ICommandContext context)
+        public override async Task InvokeAsync(ICommandContext context)
         {
-            return _userService.ResetPasswordAsync(new UserResetPasswordRequest()
+            var user = await _userRepository.GetByUsernameAsync(context.Arguments["Username"].ToString());
+            await _userService.ResetPasswordAsync(new UserResetPasswordRequest()
             {
-                Username = context.Arguments["Username"].ToString(),
+                Id = user.Id,
                 Password = context.Arguments["Password"].ToString(),
             });
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
@@ -8,7 +9,7 @@ using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,12 +19,22 @@ namespace Dorbit.Identity.Services;
 public class UserService
 {
     private readonly UserRepository _userRepository;
+    private readonly TokenRepository _tokenRepository;
+    private readonly PrivilegeRepository _privilegeRepository;
     private readonly IUserResolver _userResolver;
     private readonly OtpService _otpService;
 
-    public UserService(UserRepository userRepository, IUserResolver userResolver, OtpService otpService)
+    public UserService(
+        OtpService otpService,
+        IUserResolver userResolver,
+        UserRepository userRepository,
+        TokenRepository tokenRepository,
+        PrivilegeRepository privilegeRepository
+    )
     {
         _userRepository = userRepository;
+        _tokenRepository = tokenRepository;
+        _privilegeRepository = privilegeRepository;
         _userResolver = userResolver;
         _otpService = otpService;
     }
@@ -55,13 +66,20 @@ public class UserService
     {
         var admin = await _userRepository.GetAdminAsync();
         if (admin.Id == id) throw new OperationException(Errors.CanNotRemoveAdminUser);
-        return await _userRepository.RemoveAsync(id);
+        var transaction = _userRepository.DbContext.BeginTransaction();
+        await _privilegeRepository.BulkDeleteAsync(x => x.UserId == id);
+        await _tokenRepository.BulkDeleteAsync(x => x.UserId == id);
+        var dto = await _userRepository.DeleteAsync(id);
+        transaction.Commit();
+        return dto;
     }
 
-    public async Task ResetPasswordAsync(UserResetPasswordRequest request)
+    public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
     {
-        var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.Username);
-        await _userRepository.UpdateAsync(request.MapTo(user));
+        var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
+        user.PasswordHash = HashUtility.HashPassword(request.Password, user.Salt);
+        await _userRepository.UpdateAsync(user);
+        return user;
     }
 
     public async Task ChangePasswordAsync(UserChangePasswordRequest request)
@@ -90,7 +108,7 @@ public class UserService
                     Id = request.OtpId,
                     Code = request.Value
                 });
-                if(!validateResult.Success)
+                if (!validateResult.Success)
                     throw new OperationException(Errors.OtpIsInvalid);
                 break;
             }
