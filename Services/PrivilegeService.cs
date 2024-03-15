@@ -7,7 +7,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Services;

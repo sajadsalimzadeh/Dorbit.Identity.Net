@@ -32,7 +32,11 @@ public class Profiles : Profile
         CreateMap<UserDto, User>();
         CreateMap<User, BaseUserDto>();
         CreateMap<BaseUserDto, UserDto>();
-        CreateMap<UserAddRequest, User>();
-        CreateMap<UserEditRequest, User>();
+        CreateMap<UserAddRequest, User>()
+            .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
+            .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
+        CreateMap<UserEditRequest, User>()
+            .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
+            .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
     }
 }

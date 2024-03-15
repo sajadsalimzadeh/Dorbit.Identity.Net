@@ -8,7 +8,7 @@ using Dorbit.Framework.Services;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using UAParser;

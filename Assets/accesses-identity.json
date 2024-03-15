@@ -19,6 +19,9 @@
               },
               {
                 "Name": "User-Message"
+              },
+              {
+                "Name": "User-ResetPassword"
               }
             ]
           },

@@ -9,7 +9,7 @@ using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -52,7 +52,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
 
         return result;
     }
-    
+
     [Auth]
     [HttpGet("Own")]
     public Task<QueryResult<UserDto>> GetOwnAsync()
@@ -69,7 +69,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     {
         return _userService.EditAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
-    
+
     [Auth]
     [HttpPatch("Own")]
     public Task<QueryResult<UserDto>> EditOwnAsync(UserEditRequest dto)
@@ -83,11 +83,19 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
         return _userService.RemoveAsync(id).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    [HttpPost("ChangePassword"), Auth]
+    [HttpPost("Own/ChangePassword"), Auth]
     public async Task<CommandResult> ChangePasswordAsync([FromBody] UserChangePasswordRequest request)
     {
         await _userService.ChangePasswordAsync(request);
         return Succeed();
+    }
+
+    [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
+    public async Task<QueryResult<UserDto>> ResetPasswordAsync([FromRoute] Guid id, [FromBody] UserResetPasswordRequest request)
+    {
+        request.Id = id;
+        var user = await _userService.ResetPasswordAsync(request);
+        return user.MapTo<UserDto>().ToQueryResult();
     }
 
     [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
@@ -115,7 +123,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     {
         return (await _userService.ActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
-    
+
     [HttpPost("{id:guid}/Message"), Auth("User-Message")]
     public async Task<QueryResult<UserDto>> SetMessageAsync(UserMessageRequest request)
     {

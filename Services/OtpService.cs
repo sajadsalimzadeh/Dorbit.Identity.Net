@@ -10,7 +10,7 @@ using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 
