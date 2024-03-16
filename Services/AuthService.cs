@@ -54,9 +54,10 @@ public class AuthService : IAuthService
 
     public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
     {
+        var username = request.Username.ToLower();
         if (request.LoginStrategy == LoginStrategy.StaticPassword)
         {
-            var user = _userRepository.Set().FirstOrDefault(x => x.Username == request.Username) ??
+            var user = _userRepository.Set().FirstOrDefault(x => x.Username == username) ??
                        throw new OperationException(Errors.UsernameOrPasswordWrong);
 
             var hash = HashUtility.HashPassword(request.Value, user.Salt);
@@ -76,7 +77,7 @@ public class AuthService : IAuthService
         {
             var otp = await _otpService.SendOtp(new AuthSendOtpRequest()
             {
-                Value = request.Username,
+                Value = username,
                 LoginStrategy = request.LoginStrategy
             });
 
