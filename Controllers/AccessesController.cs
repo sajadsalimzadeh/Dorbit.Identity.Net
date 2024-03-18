@@ -4,7 +4,6 @@ using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts.Accesses;
 using Dorbit.Identity.Databases.Entities;
-using Microsoft.AspNetCore.OData.Query;
 
 namespace Dorbit.Identity.Controllers;
 

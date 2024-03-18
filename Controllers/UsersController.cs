@@ -12,7 +12,6 @@ using Dorbit.Identity.Databases.Entities;
 using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
