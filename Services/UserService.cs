@@ -44,6 +44,7 @@ public class UserService
         {
             Salt = Guid.NewGuid().ToString()
         });
+        entity.Username = entity.Username.ToLower();
         entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.Salt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
