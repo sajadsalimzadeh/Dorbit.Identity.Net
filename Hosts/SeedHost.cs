@@ -8,7 +8,6 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Extensions;
 using Dorbit.Identity.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dorbit.Identity.Hosts;

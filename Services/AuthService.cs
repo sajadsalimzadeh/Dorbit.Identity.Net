@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
-using Dorbit.Framework.Contracts.Messages;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
-using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
@@ -19,7 +16,6 @@ using Dorbit.Identity.Databases.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Dorbit.Identity.Services;
 
