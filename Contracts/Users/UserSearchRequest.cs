@@ -2,6 +2,6 @@ namespace Dorbit.Identity.Contracts.Users;
 
 public class UserSearchRequest
 {
-    public string Name { get; set; }
-    public bool WaitForGroup { get; set; }
+    public string Search { get; set; }
+    public int? Code { get; set; }
 }

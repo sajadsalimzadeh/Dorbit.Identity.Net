@@ -6,6 +6,8 @@ namespace Dorbit.Identity.Contracts.Users;
 
 public class UserDto : BaseUserDto
 {
+    public int Code { get; set; }
+    
     public bool HasPassword { get; set; }
     
     public string Cellphone { get; set; }

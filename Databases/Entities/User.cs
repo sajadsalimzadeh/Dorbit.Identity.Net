@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
+using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ namespace Dorbit.Identity.Databases.Entities;
 [Index(nameof(Email), IsUnique = true)]
 public class User : FullEntity
 {
+    [Sequence("seq_user_code")] public int Code { get; set; }
+    
     [StringLength(128)] 
     public string Name { get; set; }
     [StringLength(32), Required] 

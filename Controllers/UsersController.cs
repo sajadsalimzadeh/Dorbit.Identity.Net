@@ -38,10 +38,14 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     }
 
     [Auth("User-Read")]
-    public override async Task<PagedListResult<UserDto>> SelectAsync()
+    [HttpGet("Search")]
+    public async Task<QueryResult<List<UserDto>>> SelectAsync([FromQuery] UserSearchRequest request)
     {
-        var result = await base.SelectAsync();
-        foreach (var userDto in result.Data)
+        var query = _userRepository.Set();
+        if (!string.IsNullOrEmpty(request.Search)) query = query.Where(x => x.Name.Contains(request.Search) || x.Username.Contains(request.Search));
+        if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
+        var users = (await query.ToListAsync()).MapTo<List<UserDto>>();
+        foreach (var userDto in users)
         {
             var allAccesses = await _privilegeRepository.Set()
                 .Where(x => x.UserId == userDto.Id)
@@ -50,7 +54,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
             userDto.Accesses = allAccesses.SelectMany(x => x);
         }
 
-        return result;
+        return users.ToQueryResult();
     }
 
     [Auth]
