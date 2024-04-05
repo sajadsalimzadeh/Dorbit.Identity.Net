@@ -4,7 +4,7 @@ using Dorbit.Identity.Contracts.Accesses;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
-using Dorbit.Identity.Databases.Entities;
+using Dorbit.Identity.Entities;
 
 namespace Dorbit.Identity.Mappers;
 

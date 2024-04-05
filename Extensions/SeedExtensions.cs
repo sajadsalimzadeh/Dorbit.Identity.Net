@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Databases.Repositories;
+using Dorbit.Identity.Entities;
+using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Extensions;

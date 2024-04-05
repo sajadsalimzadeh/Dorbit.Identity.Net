@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
-using Dorbit.Identity.Databases.Entities;
+using Dorbit.Identity.Databases;
+using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dorbit.Identity.Databases.Repositories;
+namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
 public class UserRepository : BaseRepository<User>

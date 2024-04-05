@@ -6,8 +6,8 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Databases;
-using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Databases.Repositories;
+using Dorbit.Identity.Entities;
+using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Services;

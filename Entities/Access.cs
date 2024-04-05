@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
 
-namespace Dorbit.Identity.Databases.Entities;
+namespace Dorbit.Identity.Entities;
 
 public class Access : FullEntity
 {

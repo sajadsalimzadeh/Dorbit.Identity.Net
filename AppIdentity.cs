@@ -2,5 +2,5 @@
 
 internal static class AppIdentity
 {
-    public static AppSetting Setting { get; set; }
+    public static IdentityAppSetting Setting { get; set; }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Entities.Abstractions;
 
-namespace Dorbit.Identity.Databases.Entities;
+namespace Dorbit.Identity.Entities;
 
 public class Otp : Entity, ICreationTime
 {

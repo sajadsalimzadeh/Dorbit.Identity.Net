@@ -7,8 +7,8 @@ using Dorbit.Framework.Services.Abstractions;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
-using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Databases.Repositories;
+using Dorbit.Identity.Entities;
+using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.EntityFrameworkCore;
 

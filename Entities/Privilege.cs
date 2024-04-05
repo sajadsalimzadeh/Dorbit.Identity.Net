@@ -5,7 +5,7 @@ using Dorbit.Framework.Entities;
 using Innofactor.EfCoreJsonValueConverter;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dorbit.Identity.Databases.Entities;
+namespace Dorbit.Identity.Entities;
 
 [Index(nameof(UserId), IsUnique = true)]
 public class Privilege : FullEntity

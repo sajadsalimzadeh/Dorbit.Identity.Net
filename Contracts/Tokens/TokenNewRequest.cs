@@ -1,4 +1,4 @@
-﻿using Dorbit.Identity.Databases.Entities;
+﻿using Dorbit.Identity.Entities;
 
 namespace Dorbit.Identity.Contracts.Tokens;
 

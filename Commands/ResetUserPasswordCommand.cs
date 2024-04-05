@@ -5,7 +5,7 @@ using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
 using Dorbit.Framework.Contracts.Commands;
 using Dorbit.Identity.Contracts.Users;
-using Dorbit.Identity.Databases.Repositories;
+using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 
 namespace Dorbit.Identity.Commands

@@ -6,10 +6,11 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Contracts.Accesses;
-using Dorbit.Identity.Databases.Entities;
+using Dorbit.Identity.Databases;
+using Dorbit.Identity.Entities;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Dorbit.Identity.Databases.Repositories;
+namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
 public class AccessRepository : BaseRepository<Access>

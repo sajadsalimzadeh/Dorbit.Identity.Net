@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
 using Dorbit.Identity.Contracts;
 
-namespace Dorbit.Identity.Databases.Entities;
+namespace Dorbit.Identity.Entities;
 
 public class Token : Entity
 {

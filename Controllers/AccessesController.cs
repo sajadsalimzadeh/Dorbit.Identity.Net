@@ -3,7 +3,7 @@ using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts.Accesses;
-using Dorbit.Identity.Databases.Entities;
+using Dorbit.Identity.Entities;
 
 namespace Dorbit.Identity.Controllers;
 

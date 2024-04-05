@@ -7,8 +7,8 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
 using Dorbit.Framework.Commands.Abstractions;
 using Dorbit.Identity.Contracts.Accesses;
-using Dorbit.Identity.Databases.Entities;
-using Dorbit.Identity.Databases.Repositories;
+using Dorbit.Identity.Entities;
+using Dorbit.Identity.Repositories;
 
 namespace Dorbit.Identity.Commands
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Database;
-using Dorbit.Identity.Databases.Entities;
+using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Databases;

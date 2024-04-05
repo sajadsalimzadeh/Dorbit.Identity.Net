@@ -6,7 +6,7 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dorbit.Identity.Databases.Entities;
+namespace Dorbit.Identity.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Cellphone), IsUnique = true)]
