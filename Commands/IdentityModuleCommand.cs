@@ -10,13 +10,13 @@ using ICommand = Dorbit.Framework.Commands.Abstractions.ICommand;
 namespace Dorbit.Identity.Commands;
 
 [ServiceRegister]
-public class IdentityCommands : Command
+public class IdentityModuleCommand : Command
 {
     private readonly IServiceProvider _serviceProvider;
     
-    public override string Message { get; } = "Identity Commands";
+    public override string Message { get; } = "Identity Module";
 
-    public IdentityCommands(IServiceProvider serviceProvider)
+    public IdentityModuleCommand(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
