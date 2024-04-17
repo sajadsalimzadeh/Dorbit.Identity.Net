@@ -31,8 +31,8 @@ public class TokenService
 
     public async Task<TokenResponse> CreateAsync(TokenNewRequest request)
     {
-        var uaParser = Parser.GetDefault();
-        var clientInfo = uaParser.Parse(request.UserAgent ?? "");
+        var uaParser = await Parser.GetDefaultAsync();
+        var clientInfo = await uaParser.ParseAsync(request.UserAgent ?? "");
 
         var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, AppIdentity.Setting.Security.MaxActiveTokenCountPerUser);
         var activeTokens = await _tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
