@@ -13,5 +13,6 @@ internal enum Errors
     CorrelationIdIsInvalid,
     CanNotDeActiveAdmin,
     CanNotRemoveAdminUser,
-    OtpIsInvalid
+    OtpIsInvalid,
+    UserNotExists
 }

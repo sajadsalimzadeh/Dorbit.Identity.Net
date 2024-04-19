@@ -109,6 +109,7 @@ public class AuthService : IAuthService
 
             if (user is null)
             {
+                throw new OperationException(Errors.UserNotExists);
                 var userAddRequest = new UserAddRequest();
 
                 if (request.LoginStrategy == LoginStrategy.Cellphone)
