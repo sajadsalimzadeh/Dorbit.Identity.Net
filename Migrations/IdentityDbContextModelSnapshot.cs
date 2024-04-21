@@ -18,12 +18,12 @@ namespace Dorbit.Identity.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("identity")
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Access", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Access", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -81,15 +81,15 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Accesses", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Otp", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Otp", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("CodeHash")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone");
@@ -105,10 +105,12 @@ namespace Dorbit.Identity.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CodeHash");
+
                     b.ToTable("Otp", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Privilege", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Privilege", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -167,7 +169,7 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Privileges", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Tenant", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -214,7 +216,7 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Tenants", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Token", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Token", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -251,7 +253,7 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Tokens", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.User", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -362,18 +364,18 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Users", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Access", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Access", b =>
                 {
-                    b.HasOne("Dorbit.Identity.Databases.Entities.Access", "Parent")
+                    b.HasOne("Dorbit.Identity.Entities.Access", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Privilege", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Privilege", b =>
                 {
-                    b.HasOne("Dorbit.Identity.Databases.Entities.User", "User")
+                    b.HasOne("Dorbit.Identity.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -382,9 +384,9 @@ namespace Dorbit.Identity.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Token", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Token", b =>
                 {
-                    b.HasOne("Dorbit.Identity.Databases.Entities.User", "User")
+                    b.HasOne("Dorbit.Identity.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -393,7 +395,7 @@ namespace Dorbit.Identity.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Databases.Entities.Access", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Access", b =>
                 {
                     b.Navigation("Children");
                 });
