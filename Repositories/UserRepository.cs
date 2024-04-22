@@ -44,7 +44,7 @@ public class UserRepository : BaseRepository<User>
     public Task<List<Privilege>> GetAllUserPrivileges(Guid id)
     {
         var now = DateTime.UtcNow;
-        return _dbContext.Set<Privilege>()
+        return _dbContext.DbSet<Privilege>()
             .Where(x => x.UserId == id && x.StartTime < now && x.EndTime > now)
             .ToListAsyncWithCache($"{nameof(GetAllUserPrivileges)}-{id}", TimeSpan.FromMinutes(5));
     }
