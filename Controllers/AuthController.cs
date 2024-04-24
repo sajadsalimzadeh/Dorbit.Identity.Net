@@ -18,12 +18,18 @@ namespace Dorbit.Identity.Controllers;
 public class AuthController : BaseController
 {
     private readonly AuthService _authService;
+    private readonly IdentityAppSetting _identityAppSetting;
     private readonly UserRepository _userRepository;
     private readonly PrivilegeService _privilegeService;
 
-    public AuthController(AuthService authService, UserRepository userRepository, PrivilegeService privilegeService)
+    public AuthController(
+        AuthService authService, 
+        IdentityAppSetting identityAppSetting,
+        UserRepository userRepository, 
+        PrivilegeService privilegeService)
     {
         _authService = authService;
+        _identityAppSetting = identityAppSetting;
         _userRepository = userRepository;
         _privilegeService = privilegeService;
     }
@@ -34,7 +40,7 @@ public class AuthController : BaseController
         {
             Response.Cookies.Append("CSRF", tokenResponse.Csrf.ToString(), new CookieOptions()
             {
-                Expires = DateTime.UtcNow.AddMinutes(30),
+                Expires = DateTime.UtcNow.AddSeconds(_identityAppSetting.Security.TimeoutInSecond),
                 HttpOnly = true,
                 Secure = false,
                 Path = "/"
