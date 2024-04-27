@@ -70,7 +70,7 @@ public class UserService
         await _privilegeRepository.BulkDeleteAsync(x => x.UserId == id);
         await _tokenRepository.BulkDeleteAsync(x => x.UserId == id);
         var dto = await _userRepository.DeleteAsync(id);
-        transaction.Commit();
+        await transaction.CommitAsync();
         return dto;
     }
 
@@ -84,7 +84,7 @@ public class UserService
 
     public async Task ChangePasswordAsync(UserChangePasswordRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(_userResolver.User.Id);
+        var user = await _userRepository.GetByIdAsync((Guid)_userResolver.User.Id);
 
         if (request.NewPassword != request.RenewPassword)
             throw new OperationException(Errors.NewPasswordMissMach);

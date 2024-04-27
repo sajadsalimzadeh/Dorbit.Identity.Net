@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Controllers;
 
 [Auth("User")]
-public class UsersController : CrudController<User, UserDto, UserAddRequest, UserEditRequest>
+public class UsersController : CrudController<User, Guid, UserDto, UserAddRequest, UserEditRequest>
 {
     private readonly UserService _userService;
     private readonly UserRepository _userRepository;
@@ -47,8 +47,9 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
         var users = (await query.ToListAsync()).MapTo<List<UserDto>>();
         foreach (var userDto in users)
         {
+            var userId = (Guid)userDto.Id;
             var allAccesses = await _privilegeRepository.Set()
-                .Where(x => x.UserId == userDto.Id)
+                .Where(x => x.UserId == userId)
                 .Select(x => x.Accesses)
                 .ToListAsyncWithCache($"Privileges-Accesses-{userDto.Id}", TimeSpan.FromSeconds(5));
             userDto.Accesses = allAccesses.SelectMany(x => x);
@@ -61,7 +62,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     [HttpGet("Own")]
     public Task<QueryResult<UserDto>> GetOwnAsync()
     {
-        return _userRepository.GetByIdAsync(UserId).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return _userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
@@ -78,7 +79,7 @@ public class UsersController : CrudController<User, UserDto, UserAddRequest, Use
     [HttpPatch("Own")]
     public Task<QueryResult<UserDto>> EditOwnAsync(UserEditRequest dto)
     {
-        dto.Id = UserId;
+        dto.Id = GetUserId();
         return _userService.EditAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 

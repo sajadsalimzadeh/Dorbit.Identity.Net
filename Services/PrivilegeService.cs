@@ -29,9 +29,9 @@ public class PrivilegeService
         _accessRepository = accessRepository;
     }
 
-    public async Task<IEnumerable<string>> GetAllByUserIdAsync(Guid id)
+    public async Task<IEnumerable<string>> GetAllByUserIdAsync(object id)
     {
-        var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);
+        var privilege = await _privilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId.Equals(id));
         var allAccesses = await _accessRepository.GetAllAccessHierarchyWithCache();
         var result = new List<string>();
         if (privilege is not null)

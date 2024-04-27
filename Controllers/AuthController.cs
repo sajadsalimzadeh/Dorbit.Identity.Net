@@ -80,7 +80,7 @@ public class AuthController : BaseController
     [HttpGet("IsLogin"), Auth]
     public async Task<QueryResult<UserDto>> IsLogin()
     {
-        var user = await _userRepository.GetByIdAsync(UserId);
+        var user = await _userRepository.GetByIdAsync(GetUserId<Guid>());
         var dto = user.MapTo<UserDto>();
         dto.Accesses = await _privilegeService.GetAllByUserIdAsync(user.Id);
         return dto.ToQueryResult();

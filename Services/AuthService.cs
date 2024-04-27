@@ -158,7 +158,7 @@ public class AuthService : IAuthService
         return HasAccessAsync(_userResolver.User.Id, accesses);
     }
 
-    public async Task<bool> HasAccessAsync(Guid id, params string[] accesses)
+    public async Task<bool> HasAccessAsync(object id, params string[] accesses)
     {
         var allUserAccess = await _privilegeService.GetAllByUserIdAsync(id);
         return allUserAccess.Any(accesses.Select(x => x.ToLower()).Contains);
