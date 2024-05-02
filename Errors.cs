@@ -14,5 +14,6 @@ internal enum Errors
     CanNotDeActiveAdmin,
     CanNotRemoveAdminUser,
     OtpIsInvalid,
-    UserNotExists
+    UserNotExists,
+    UserExists
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
@@ -19,6 +20,7 @@ public class UserService
 {
     private readonly UserRepository _userRepository;
     private readonly TokenRepository _tokenRepository;
+    private readonly IdentityAppSetting _identityAppSetting;
     private readonly PrivilegeRepository _privilegeRepository;
     private readonly IUserResolver _userResolver;
     private readonly OtpService _otpService;
@@ -28,19 +30,27 @@ public class UserService
         IUserResolver userResolver,
         UserRepository userRepository,
         TokenRepository tokenRepository,
+        IdentityAppSetting identityAppSetting,
         PrivilegeRepository privilegeRepository
     )
     {
         _userRepository = userRepository;
         _tokenRepository = tokenRepository;
+        _identityAppSetting = identityAppSetting;
         _privilegeRepository = privilegeRepository;
         _userResolver = userResolver;
         _otpService = otpService;
     }
 
-    public Task<User> AddAsync(UserAddRequest request)
+    public async Task<User> AddAsync(UserAddRequest request)
     {
-        var entity = request.MapTo(new User()
+        var existsUser = await _userRepository.Set(false).FirstOrDefaultAsync(x =>
+            x.Username.ToLower() == request.Username ||
+            (!string.IsNullOrEmpty(x.Cellphone) && x.Cellphone == request.Cellphone) ||
+            (!string.IsNullOrEmpty(x.Email) && x.Email == request.Email)
+        );
+        if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(Errors.UserExists);
+        var entity = request.MapTo(existsUser ?? new User()
         {
             Salt = Guid.NewGuid().ToString()
         });
@@ -53,7 +63,8 @@ public class UserService
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
             entity.AuthenticatorValidateTime = DateTime.Now;
 
-        return _userRepository.InsertAsync(entity);
+        entity.IsDeleted = false;
+        return await _userRepository.SaveAsync(entity);
     }
 
     public async Task<User> EditAsync(UserEditRequest request)
@@ -90,7 +101,7 @@ public class UserService
             throw new OperationException(Errors.NewPasswordMissMach);
 
 
-        if (request.NewPassword.Length < 4)
+        if (!new Regex(_identityAppSetting.Security.PasswordPattern).IsMatch(request.NewPassword))
             throw new OperationException(Errors.NewPasswordIsWeak);
 
         switch (request.Strategy)
