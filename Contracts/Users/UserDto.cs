@@ -24,5 +24,7 @@ public class UserDto : BaseUserDto
     
     public string Message { get; set; }
     
+    public short ActiveTokenCount { get; set; }
+    
     public IEnumerable<string> Accesses { get; set; }
 }

@@ -44,7 +44,7 @@ public class UsersController : CrudController<User, Guid, UserDto, UserAddReques
         var query = _userRepository.Set();
         if (!string.IsNullOrEmpty(request.Search)) query = query.Where(x => x.Name.Contains(request.Search) || x.Username.Contains(request.Search));
         if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
-        var users = (await query.ToListAsync()).MapTo<List<UserDto>>();
+        var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserDto>>();
         foreach (var userDto in users)
         {
             var userId = (Guid)userDto.Id;
