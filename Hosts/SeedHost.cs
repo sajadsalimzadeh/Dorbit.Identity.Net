@@ -32,7 +32,6 @@ public class SeedHost : BaseHost
         {
             admin = await userService.AddAsync(new UserAddRequest()
             {
-                Id = Guid.Parse("733cc50c-a40e-4b79-96f5-3f5654dd33f0"),
                 Name = AppIdentity.Setting.Admin.Name ?? "admin",
                 Username = "admin",
                 Password = AppIdentity.Setting.Admin.Password,
