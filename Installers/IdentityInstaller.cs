@@ -12,11 +12,7 @@ public static class IdentityInstaller
     {
         AppIdentity.Setting = services.BindConfiguration<IdentityAppSetting>();
 
-        services.AddDbContext<IdentityDbContext>(options =>
-        {
-            configuration.DbContextConfiguration(options);
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-        });
+        services.AddDbContext<IdentityDbContext>(configuration.DbContextConfiguration);
 
         services.AddAutoMapper(typeof(IdentityInstaller).Assembly);
 
