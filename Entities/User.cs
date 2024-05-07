@@ -9,8 +9,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
-[Index(nameof(Cellphone), IsUnique = true)]
-[Index(nameof(Email), IsUnique = true)]
 public class User : FullEntity
 {
     [Sequence("seq_user_code")] public int Code { get; set; }
