@@ -67,7 +67,7 @@ public class AuthController : BaseController
     [HttpDelete("Logout")]
     public Task<CommandResult> Logout()
     {
-        Response.Cookies.Append("Token", "", new CookieOptions()
+        Response.Cookies.Append("CSRF", "", new CookieOptions()
         {
             Expires = DateTime.UtcNow.AddMinutes(-30),
             HttpOnly = true,
