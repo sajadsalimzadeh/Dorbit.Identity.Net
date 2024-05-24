@@ -23,7 +23,6 @@ public class IdentityDbContext : EfDbContext
     }
 
     public DbSet<User> Users { get; set; }
-    public DbSet<Access> Accesses { get; set; }
     public DbSet<Privilege> Privileges { get; set; }
     public DbSet<Otp> Otp { get; set; }
     public DbSet<Tenant> Tenants { get; set; }

@@ -13,7 +13,8 @@ public static class IdentityInstaller
         AppIdentity.Setting = services.BindConfiguration<IdentityAppSetting>();
 
         services.AddDbContext<IdentityDbContext>(configuration.DbContextConfiguration);
-
+        services.AddDbContext<IdentityInMemoryDbContext>(o => o.UseInMemoryDatabase("IdentityInMemoryDb"));
+        
         services.AddAutoMapper(typeof(IdentityInstaller).Assembly);
 
         services.AddControllers(typeof(IdentityInstaller).Assembly).AddODataDefault();

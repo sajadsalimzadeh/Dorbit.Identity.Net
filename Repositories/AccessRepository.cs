@@ -17,7 +17,7 @@ public class AccessRepository : BaseRepository<Access>
 {
     private readonly IMemoryCache _memoryCache;
 
-    public AccessRepository(IdentityDbContext dbContext, IMemoryCache memoryCache) : base(dbContext)
+    public AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache memoryCache) : base(dbContext)
     {
         _memoryCache = memoryCache;
     }
