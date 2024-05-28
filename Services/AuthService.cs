@@ -53,7 +53,7 @@ public class AuthService : IAuthService
         var username = request.Username.ToLower();
         if (request.LoginStrategy == LoginStrategy.StaticPassword)
         {
-            var user = _userRepository.Set().FirstOrDefault(x => x.Username == username) ??
+            var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
                        throw new OperationException(Errors.UsernameOrPasswordWrong);
 
             var hash = HashUtility.HashPassword(request.Value, user.Salt);
