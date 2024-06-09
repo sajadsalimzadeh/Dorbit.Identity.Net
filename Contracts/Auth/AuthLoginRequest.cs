@@ -6,5 +6,5 @@ public class AuthLoginRequest
     public string UserAgent { get; set; }
     
     public string Value { get; set; }
-    public LoginStrategy LoginStrategy { get; set; }
+    public AuthMethod LoginStrategy { get; set; }
 }

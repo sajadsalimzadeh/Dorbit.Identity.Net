@@ -51,7 +51,7 @@ public class AuthService : IAuthService
     public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
     {
         var username = request.Username.ToLower();
-        if (request.LoginStrategy == LoginStrategy.StaticPassword)
+        if (request.LoginStrategy == AuthMethod.StaticPassword)
         {
             var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
                        throw new OperationException(Errors.UsernameOrPasswordWrong);
@@ -69,12 +69,12 @@ public class AuthService : IAuthService
             };
         }
 
-        if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
+        if (request.LoginStrategy == AuthMethod.Cellphone || request.LoginStrategy == AuthMethod.Email)
         {
             var otp = await _otpService.SendOtp(new AuthSendOtpRequest()
             {
                 Value = username,
-                LoginStrategy = request.LoginStrategy
+                Method = request.LoginStrategy
             });
 
             return new AuthLoginResponse()
@@ -84,7 +84,7 @@ public class AuthService : IAuthService
             };
         }
 
-        if (request.LoginStrategy == LoginStrategy.Authenticator)
+        if (request.LoginStrategy == AuthMethod.Authenticator)
         {
         }
 
@@ -93,7 +93,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthLoginResponse> LoginWithCodeAsync(AuthLoginWithCodeRequest request)
     {
-        if (request.LoginStrategy == LoginStrategy.Cellphone || request.LoginStrategy == LoginStrategy.Email)
+        if (request.LoginStrategy == AuthMethod.Cellphone || request.LoginStrategy == AuthMethod.Email)
         {
             var otpValidateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
             {
@@ -103,8 +103,8 @@ public class AuthService : IAuthService
             if (!otpValidateResult.Success) throw new OperationException(Errors.OtpValidateFailed);
 
             User user;
-            if (request.LoginStrategy == LoginStrategy.Cellphone) user = await _userRepository.GetByCellphoneAsync(otpValidateResult.Value);
-            else if (request.LoginStrategy == LoginStrategy.Email) user = await _userRepository.GetByEmailAsync(otpValidateResult.Value);
+            if (request.LoginStrategy == AuthMethod.Cellphone) user = await _userRepository.GetByCellphoneAsync(otpValidateResult.Value);
+            else if (request.LoginStrategy == AuthMethod.Email) user = await _userRepository.GetByEmailAsync(otpValidateResult.Value);
             else throw new OperationException(Errors.LoginStrategyNotSupported);
 
             if (user is null)
@@ -112,12 +112,12 @@ public class AuthService : IAuthService
                 throw new OperationException(Errors.UserNotExists);
                 var userAddRequest = new UserAddRequest();
 
-                if (request.LoginStrategy == LoginStrategy.Cellphone)
+                if (request.LoginStrategy == AuthMethod.Cellphone)
                 {
                     userAddRequest.Username = userAddRequest.Cellphone = otpValidateResult.Value;
                     userAddRequest.ValidateTypes = UserValidateTypes.Cellphone;
                 }
-                else if (request.LoginStrategy == LoginStrategy.Email)
+                else if (request.LoginStrategy == AuthMethod.Email)
                 {
                     userAddRequest.Username = userAddRequest.Email = otpValidateResult.Value;
                     userAddRequest.ValidateTypes = UserValidateTypes.Email;

@@ -1,6 +1,6 @@
 ﻿namespace Dorbit.Identity.Contracts;
 
-public enum LoginStrategy
+public enum AuthMethod
 {
     None = 0,
     StaticPassword = 1,

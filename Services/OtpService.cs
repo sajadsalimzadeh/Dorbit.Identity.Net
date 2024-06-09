@@ -88,7 +88,7 @@ public class OtpService
             Duration = otpLifetime,
             Length = 5
         }, out var code);
-        if (request.LoginStrategy == LoginStrategy.Cellphone)
+        if (request.Method == AuthMethod.Cellphone)
         {
             await _messageManager.SendAsync(new MessageSmsRequest()
             {
@@ -97,7 +97,7 @@ public class OtpService
                 Args = [code]
             });
         }
-        else if (request.LoginStrategy == LoginStrategy.Email)
+        else if (request.Method == AuthMethod.Email)
         {
             await _messageManager.SendAsync(new MessageEmailRequest()
             {

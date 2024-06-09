@@ -100,15 +100,15 @@ public class UserService
         if (!new Regex(_identityAppSetting.Security.PasswordPattern).IsMatch(request.NewPassword))
             throw new OperationException(Errors.NewPasswordIsWeak);
 
-        switch (request.Strategy)
+        switch (request.Method)
         {
-            case LoginStrategy.StaticPassword:
+            case AuthMethod.StaticPassword:
             {
                 if (user.PasswordHash != HashUtility.HashPassword(request.Value, user.Salt))
                     throw new OperationException(Errors.OldPasswordIsInvalid);
                 break;
             }
-            case LoginStrategy.Cellphone or LoginStrategy.Email:
+            case AuthMethod.Cellphone or AuthMethod.Email:
             {
                 var validateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
                 {
