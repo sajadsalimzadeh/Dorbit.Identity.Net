@@ -2,13 +2,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Hosts;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Extensions;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Hosts;
 
@@ -25,18 +28,19 @@ public class SeedHost : BaseHost
 
         var userRepository = sp.GetService<UserRepository>();
         var userService = sp.GetService<UserService>();
-        if (string.IsNullOrEmpty(AppIdentity.Setting.Admin.Password)) return;
+        var configAdmin = sp.GetService<IOptions<ConfigAdmin>>()?.Value;
+        if (string.IsNullOrEmpty(configAdmin?.Password)) return;
 
         var admin = await userRepository.GetAdminAsync();
         if (admin is null)
         {
             admin = await userService.AddAsync(new UserAddRequest()
             {
-                Name = AppIdentity.Setting.Admin.Name ?? "admin",
+                Name = configAdmin.Name ?? "admin",
                 Username = "admin",
-                Password = AppIdentity.Setting.Admin.Password,
-                Cellphone = AppIdentity.Setting.Admin.Cellphone,
-                Email = AppIdentity.Setting.Admin.Email,
+                Password = configAdmin.Password,
+                Cellphone = configAdmin.Cellphone,
+                Email = configAdmin.Email,
                 NeedResetPassword = true
             });
         }
