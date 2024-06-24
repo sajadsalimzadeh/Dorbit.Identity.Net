@@ -8,11 +8,11 @@ namespace Dorbit.Identity.Installers;
 
 public static class IdentityInstaller
 {
-    public static IServiceCollection AddDorbitIdentity(this IServiceCollection services, Configuration configuration)
+    public static IServiceCollection AddDorbitIdentity(this IServiceCollection services, Configs configs)
     {
         AppIdentity.Setting = services.BindConfiguration<IdentityAppSetting>();
 
-        services.AddDbContext<IdentityDbContext>(configuration.DbContextConfiguration);
+        services.AddDbContext<IdentityDbContext>(configs.DbContextConfiguration);
         services.AddDbContext<IdentityInMemoryDbContext>(o => o.UseInMemoryDatabase("IdentityInMemoryDb"));
         
         services.AddAutoMapper(typeof(IdentityInstaller).Assembly);
@@ -22,7 +22,7 @@ public static class IdentityInstaller
         return services;
     }
 
-    public class Configuration
+    public class Configs
     {
         public required Action<DbContextOptionsBuilder> DbContextConfiguration { get; set; }
     }
