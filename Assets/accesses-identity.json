@@ -53,6 +53,9 @@
         "Children": [
           {
             "Name": "AllAccess"
+          },
+          {
+            "Name": "Developer"
           }
         ]
       }
