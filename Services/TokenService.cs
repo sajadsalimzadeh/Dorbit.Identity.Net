@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Jwts;
 using Dorbit.Framework.Services;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using UAParser;
 
 namespace Dorbit.Identity.Services;
@@ -21,12 +23,19 @@ public class TokenService
     private readonly TokenRepository _tokenRepository;
     private readonly JwtService _jwtService;
     private readonly IMemoryCache _memoryCache;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity;
 
-    public TokenService(TokenRepository tokenRepository, JwtService jwtService, IMemoryCache memoryCache)
+    public TokenService(
+        JwtService jwtService,
+        IMemoryCache memoryCache,
+        TokenRepository tokenRepository,
+        IOptions<ConfigIdentitySecurity> configSecurityOptions
+    )
     {
-        _tokenRepository = tokenRepository;
         _jwtService = jwtService;
         _memoryCache = memoryCache;
+        _tokenRepository = tokenRepository;
+        _configIdentitySecurity = configSecurityOptions.Value;
     }
 
     public async Task<TokenResponse> CreateAsync(TokenNewRequest request)
@@ -34,7 +43,7 @@ public class TokenService
         var uaParser = await Parser.GetDefaultAsync();
         var clientInfo = await uaParser.ParseAsync(request.UserAgent ?? "");
 
-        var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, AppIdentity.Setting.Security.MaxActiveTokenCountPerUser);
+        var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
         var activeTokens = await _tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
         foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(activeTokens.Count - maxActiveTokenCount + 1))
         {
@@ -51,7 +60,7 @@ public class TokenService
             Os = clientInfo.OS.Family,
             Platform = clientInfo.Device.Family,
             Application = clientInfo.Browser.Family,
-            ExpireTime = DateTime.UtcNow.AddSeconds(AppIdentity.Setting.Security.TimeoutInSecond),
+            ExpireTime = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
             State = TokenState.Valid
         });
 

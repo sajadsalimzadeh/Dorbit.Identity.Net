@@ -5,6 +5,7 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
@@ -12,6 +13,7 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Services;
 
@@ -20,26 +22,26 @@ public class UserService
 {
     private readonly UserRepository _userRepository;
     private readonly TokenRepository _tokenRepository;
-    private readonly IdentityAppSetting _identityAppSetting;
     private readonly PrivilegeRepository _privilegeRepository;
     private readonly IUserResolver _userResolver;
     private readonly OtpService _otpService;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity;
 
     public UserService(
         OtpService otpService,
         IUserResolver userResolver,
         UserRepository userRepository,
         TokenRepository tokenRepository,
-        IdentityAppSetting identityAppSetting,
-        PrivilegeRepository privilegeRepository
+        PrivilegeRepository privilegeRepository,
+        IOptions<ConfigIdentitySecurity> configSecurityOptions
     )
     {
         _userRepository = userRepository;
         _tokenRepository = tokenRepository;
-        _identityAppSetting = identityAppSetting;
         _privilegeRepository = privilegeRepository;
         _userResolver = userResolver;
         _otpService = otpService;
+        _configIdentitySecurity = configSecurityOptions.Value;
     }
 
     public async Task<User> AddAsync(UserAddRequest request)
@@ -97,7 +99,7 @@ public class UserService
             throw new OperationException(Errors.NewPasswordMissMach);
 
 
-        if (!new Regex(_identityAppSetting.Security.PasswordPattern).IsMatch(request.NewPassword))
+        if (!new Regex(_configIdentitySecurity.PasswordPattern).IsMatch(request.NewPassword))
             throw new OperationException(Errors.NewPasswordIsWeak);
 
         switch (request.Method)

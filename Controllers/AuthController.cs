@@ -5,6 +5,7 @@ using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
@@ -12,26 +13,27 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Controllers;
 
 public class AuthController : BaseController
 {
     private readonly AuthService _authService;
-    private readonly IdentityAppSetting _identityAppSetting;
     private readonly UserRepository _userRepository;
     private readonly PrivilegeService _privilegeService;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity;
 
     public AuthController(
         AuthService authService, 
-        IdentityAppSetting identityAppSetting,
         UserRepository userRepository, 
-        PrivilegeService privilegeService)
+        PrivilegeService privilegeService,
+        IOptions<ConfigIdentitySecurity> configSecurityOptions)
     {
         _authService = authService;
-        _identityAppSetting = identityAppSetting;
         _userRepository = userRepository;
         _privilegeService = privilegeService;
+        _configIdentitySecurity = configSecurityOptions.Value;
     }
 
     private void HandleToken(TokenResponse tokenResponse)
@@ -40,7 +42,7 @@ public class AuthController : BaseController
         {
             Response.Cookies.Append("CSRF", tokenResponse.Csrf.ToString(), new CookieOptions()
             {
-                Expires = DateTime.UtcNow.AddSeconds(_identityAppSetting.Security.TimeoutInSecond),
+                Expires = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
                 HttpOnly = true,
                 Secure = false,
                 Path = "/"

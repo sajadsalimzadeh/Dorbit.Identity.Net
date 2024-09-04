@@ -6,6 +6,7 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Otps;
@@ -13,6 +14,7 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Services;
 
@@ -22,16 +24,19 @@ public class OtpService
     private readonly OtpRepository _otpRepository;
     private readonly MessageManager _messageManager;
     private readonly IDistributedCache _distributedCache;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity;
 
     public OtpService(
         OtpRepository otpRepository,
         MessageManager messageManager,
-        IDistributedCache distributedCache
+        IDistributedCache distributedCache,
+        IOptions<ConfigIdentitySecurity> configSecurityOptions
     )
     {
         _otpRepository = otpRepository;
         _messageManager = messageManager;
         _distributedCache = distributedCache;
+        _configIdentitySecurity = configSecurityOptions.Value;
     }
 
     public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)
@@ -82,7 +87,7 @@ public class OtpService
 
     public async Task<Otp> SendOtp(AuthSendOtpRequest request)
     {
-        var otpLifetime = TimeSpan.FromSeconds(AppIdentity.Setting.Security.OtpTimeoutInSec);
+        var otpLifetime = TimeSpan.FromSeconds(_configIdentitySecurity.OtpTimeoutInSec);
         var otp = await CreateAsync(new OtpCreateRequest()
         {
             Duration = otpLifetime,
