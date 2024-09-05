@@ -28,8 +28,14 @@ public static class IdentityInstaller
 
     public class Configs
     {
-        public required IConfig<ConfigAdmin> ConfigAdmin { get; set; }
-        public required IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; }
+        public IConfig<ConfigAdmin> ConfigAdmin { get; set; }
+        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; }
         public required Action<DbContextOptionsBuilder> DbContextConfiguration { get; set; }
+
+        public Configs(IConfiguration configuration)
+        {
+            ConfigAdmin = configuration.GetConfig<ConfigAdmin>("Admin");
+            ConfigSecurity = configuration.GetConfig<ConfigIdentitySecurity>("Security");
+        }
     }
 }

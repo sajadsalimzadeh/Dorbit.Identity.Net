@@ -16,19 +16,15 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Hosts;
 
 [ServiceRegister(Lifetime = ServiceLifetime.Singleton)]
-public class SeedHost : BaseHost
+public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvider)
 {
-    public SeedHost(IServiceProvider serviceProvider) : base(serviceProvider)
-    {
-    }
-
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        var sp = ServiceProvider.CreateScope().ServiceProvider;
+        using var scope = serviceProvider.CreateScope();
 
-        var userRepository = sp.GetService<UserRepository>();
-        var userService = sp.GetService<UserService>();
-        var configAdmin = sp.GetService<IOptions<ConfigAdmin>>()?.Value;
+        var userRepository = scope.ServiceProvider.GetService<UserRepository>();
+        var userService = scope.ServiceProvider.GetService<UserService>();
+        var configAdmin = scope.ServiceProvider.GetService<IOptions<ConfigAdmin>>()?.Value;
         if (string.IsNullOrEmpty(configAdmin?.Password)) return;
 
         var admin = await userRepository.GetAdminAsync();
@@ -44,7 +40,7 @@ public class SeedHost : BaseHost
                 NeedResetPassword = true
             });
         }
-        var accessRepository = sp.GetService<AccessRepository>();
+        var accessRepository = scope.ServiceProvider.GetService<AccessRepository>();
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
 
         var privilegeService = serviceProvider.GetService<PrivilegeService>();
