@@ -7,36 +7,35 @@ using Dorbit.Framework.Contracts.Commands;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Services;
 
-namespace Dorbit.Identity.Commands
+namespace Dorbit.Identity.Commands;
+
+[ServiceRegister]
+public class AddUserCommand : Command
 {
-    [ServiceRegister]
-    public class AddUserCommand : Command
+    private readonly UserService _userService;
+
+    public override bool IsRoot { get; } = false;
+    public override string Message => "Add User";
+
+    public override IEnumerable<CommandParameter> GetParameters(ICommandContext context)
     {
-        private readonly UserService _userService;
+        yield return new CommandParameter("Name");
+        yield return new CommandParameter("Username");
+        yield return new CommandParameter("Password");
+    }
 
-        public override bool IsRoot { get; } = false;
-        public override string Message => "Add User";
+    public AddUserCommand(UserService userService)
+    {
+        _userService = userService;
+    }
 
-        public override IEnumerable<CommandParameter> GetParameters(ICommandContext context)
+    public override Task InvokeAsync(ICommandContext context)
+    {
+        return _userService.AddAsync(new UserAddRequest()
         {
-            yield return new CommandParameter("Name");
-            yield return new CommandParameter("Username");
-            yield return new CommandParameter("Password");
-        }
-
-        public AddUserCommand(UserService userService)
-        {
-            _userService = userService;
-        }
-
-        public override Task InvokeAsync(ICommandContext context)
-        {
-            return _userService.AddAsync(new UserAddRequest()
-            {
-                Name = context.Arguments["Name"].ToString(),
-                Username = context.Arguments["Username"].ToString(),
-                Password = context.Arguments["Password"].ToString(),
-            });
-        }
+            Name = context.Arguments["Name"].ToString(),
+            Username = context.Arguments["Username"].ToString(),
+            Password = context.Arguments["Password"].ToString(),
+        });
     }
 }
