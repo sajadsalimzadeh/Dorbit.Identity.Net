@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dorbit.Identity.Contracts.Users;
+﻿namespace Dorbit.Identity.Contracts.Users;
 
 public class UserAddRequest
 {

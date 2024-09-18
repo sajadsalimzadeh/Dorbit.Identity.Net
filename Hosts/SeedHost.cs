@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
-using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Hosts;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Privileges;
