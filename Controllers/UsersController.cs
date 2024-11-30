@@ -37,6 +37,12 @@ public class UsersController : CrudController<User, Guid, UserDto, UserAddReques
     }
 
     [Auth("User-Read")]
+    public override Task<PagedListResult<UserDto>> SelectAsync()
+    {
+        return base.SelectAsync();
+    }
+
+    [Auth("User-Read")]
     [HttpGet("Search")]
     public async Task<QueryResult<List<UserDto>>> SelectAsync([FromQuery] UserSearchRequest request)
     {
