@@ -54,10 +54,10 @@ public class AuthService : IAuthService
         if (request.LoginStrategy == AuthMethod.StaticPassword)
         {
             var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
-                       throw new OperationException(Errors.UsernameOrPasswordWrong);
+                       throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
             var hash = HashUtility.HashPassword(request.Value, user.Salt);
-            if (user.PasswordHash != hash) throw new OperationException(Errors.UsernameOrPasswordWrong);
+            if (user.PasswordHash != hash) throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
             return new AuthLoginResponse()
             {
@@ -88,7 +88,7 @@ public class AuthService : IAuthService
         {
         }
 
-        throw new OperationException(Errors.LoginStrategyNotSupported);
+        throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
     }
 
     public async Task<AuthLoginResponse> LoginWithCodeAsync(AuthLoginWithCodeRequest request)
@@ -100,16 +100,16 @@ public class AuthService : IAuthService
                 Id = request.OtpId,
                 Code = request.Code
             });
-            if (!otpValidateResult.Success) throw new OperationException(Errors.OtpValidateFailed);
+            if (!otpValidateResult.Success) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
             User user;
             if (request.LoginStrategy == AuthMethod.Cellphone) user = await _userRepository.GetByCellphoneAsync(otpValidateResult.Value);
             else if (request.LoginStrategy == AuthMethod.Email) user = await _userRepository.GetByEmailAsync(otpValidateResult.Value);
-            else throw new OperationException(Errors.LoginStrategyNotSupported);
+            else throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
 
             if (user is null)
             {
-                throw new OperationException(Errors.UserNotExists);
+                throw new OperationException(IdentityErrors.UserNotExists);
                 var userAddRequest = new UserAddRequest();
 
                 if (request.LoginStrategy == AuthMethod.Cellphone)
@@ -136,9 +136,31 @@ public class AuthService : IAuthService
             };
         }
 
-        throw new OperationException(Errors.LoginStrategyNotSupported);
+        throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
     }
 
+    public async Task<AuthLoginResponse> RegisterAsync(AuthRegisterRequest request)
+    {
+        var user = await _userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
+        if (user is not null) throw new OperationException(IdentityErrors.UserExists);
+
+        user = await _userService.AddAsync(new UserAddRequest()
+        {
+            Name = request.Name,
+            Email = request.Email,
+            Username = request.Username,
+            Password = request.Password,
+        });
+        
+        return new AuthLoginResponse()
+        {
+            Token = await _tokenService.CreateAsync(new TokenNewRequest()
+            {
+                User = user,
+            })
+        };
+    }
+    
     public async Task<bool> IsTokenValid(HttpContext context, ClaimsPrincipal claimsPrincipal)
     {
         var tokenId = claimsPrincipal.FindFirst("Id")?.Value;

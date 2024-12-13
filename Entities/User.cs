@@ -35,6 +35,9 @@ public class User : FullEntity
     public string AuthenticatorKey { get; set; }
     public DateTime? AuthenticatorValidateTime { get; set; }
 
+    [StringLength(512)] 
+    public string Thumbnail { get; set; }
+    
     public bool NeedResetPassword { get; set; }
     
     public bool IsActive { get; set; } = true;

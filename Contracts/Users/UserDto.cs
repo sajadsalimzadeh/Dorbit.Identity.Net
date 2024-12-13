@@ -19,6 +19,8 @@ public class UserDto : BaseUserDto
     public string AuthenticatorKey { get; set; }
     public DateTime? AuthenticatorValidateTime { get; set; }
     
+    public string Thumbnail { get; set; }
+    
     public bool NeedResetPassword { get; set; }
     public bool IsActive { get; set; }
     

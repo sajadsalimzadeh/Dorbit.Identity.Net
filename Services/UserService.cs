@@ -47,7 +47,7 @@ public class UserService
     public async Task<User> AddAsync(UserAddRequest request)
     {
         var existsUser = await _userRepository.Set(false).FirstOrDefaultAsync(x => x.Username.ToLower() == request.Username);
-        if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(Errors.UserExists);
+        if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
         var entity = request.MapTo(existsUser ?? new User()
         {
             Salt = Guid.NewGuid().ToString()
@@ -74,7 +74,7 @@ public class UserService
     public async Task<User> RemoveAsync(Guid id)
     {
         var admin = await _userRepository.GetAdminAsync();
-        if (admin.Id == id) throw new OperationException(Errors.CanNotRemoveAdminUser);
+        if (admin.Id == id) throw new OperationException(IdentityErrors.CanNotRemoveAdminUser);
         var transaction = _userRepository.DbContext.BeginTransaction();
         await _privilegeRepository.BulkDeleteAsync(x => x.UserId == id);
         await _tokenRepository.BulkDeleteAsync(x => x.UserId == id);
@@ -96,18 +96,18 @@ public class UserService
         var user = await _userRepository.GetByIdAsync((Guid)_userResolver.User.Id);
 
         if (request.NewPassword != request.RenewPassword)
-            throw new OperationException(Errors.NewPasswordMissMach);
+            throw new OperationException(IdentityErrors.NewPasswordMissMach);
 
 
         if (!new Regex(_configIdentitySecurity.PasswordPattern).IsMatch(request.NewPassword))
-            throw new OperationException(Errors.NewPasswordIsWeak);
+            throw new OperationException(IdentityErrors.NewPasswordIsWeak);
 
         switch (request.Method)
         {
             case AuthMethod.StaticPassword:
             {
                 if (user.PasswordHash != HashUtility.HashPassword(request.Value, user.Salt))
-                    throw new OperationException(Errors.OldPasswordIsInvalid);
+                    throw new OperationException(IdentityErrors.OldPasswordIsInvalid);
                 break;
             }
             case AuthMethod.Cellphone or AuthMethod.Email:
@@ -118,11 +118,11 @@ public class UserService
                     Code = request.Value
                 });
                 if (!validateResult.Success)
-                    throw new OperationException(Errors.OtpIsInvalid);
+                    throw new OperationException(IdentityErrors.OtpIsInvalid);
                 break;
             }
             default:
-                throw new OperationException(Errors.LoginStrategyNotSupported);
+                throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
         }
 
         user.Salt = Guid.NewGuid().ToString();
@@ -135,7 +135,7 @@ public class UserService
     {
         var user = await _userRepository.GetByIdAsync(request.Id);
         var admin = await _userRepository.GetAdminAsync();
-        if (admin.Id == user.Id) throw new OperationException(Errors.CanNotDeActiveAdmin);
+        if (admin.Id == user.Id) throw new OperationException(IdentityErrors.CanNotDeActiveAdmin);
         user.IsActive = false;
         user.Message = request.Message;
         return await _userRepository.UpdateAsync(user);

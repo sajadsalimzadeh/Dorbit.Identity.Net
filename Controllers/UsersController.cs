@@ -82,10 +82,10 @@ public class UsersController : CrudController<User, Guid, UserDto, UserAddReques
 
     [Auth]
     [HttpPatch("Own")]
-    public Task<QueryResult<UserDto>> EditOwnAsync(UserEditRequest dto)
+    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] UserEditOwnRequest request)
     {
-        dto.Id = GetUserId();
-        return _userService.EditAsync(dto).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        request.Id = GetUserId();
+        return _userRepository.PatchAsync(request.Id, request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override Task<QueryResult<UserDto>> Remove(Guid id)

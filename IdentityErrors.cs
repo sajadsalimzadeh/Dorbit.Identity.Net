@@ -1,6 +1,6 @@
 ﻿namespace Dorbit.Identity;
 
-internal enum Errors
+internal enum IdentityErrors
 {
     OtpTryRemainFinished,
     UsernameOrPasswordWrong,

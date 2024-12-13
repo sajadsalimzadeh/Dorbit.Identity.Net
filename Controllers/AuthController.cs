@@ -65,6 +65,14 @@ public class AuthController : BaseController
         return loginResponse.ToQueryResult();
     }
 
+    [HttpPost("Register")]
+    public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
+    {
+        var loginResponse = await _authService.RegisterAsync(request);
+        HandleToken(loginResponse.Token);
+        return loginResponse.ToQueryResult();
+    }
+
     [HttpDelete("Logout")]
     public Task<CommandResult> Logout()
     {

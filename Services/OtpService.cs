@@ -56,13 +56,13 @@ public class OtpService
     public async Task<OtpValidateResponse> ValidateAsync(OtpValidateRequest request)
     {
         var value = await _distributedCache.GetStringAsync(request.Id.ToString());
-        if (value is null) throw new OperationException(Errors.CorrelationIdIsExpired);
+        if (value is null) throw new OperationException(IdentityErrors.CorrelationIdIsExpired);
         
         var otp = await _otpRepository.GetByIdAsync(request.Id) ?? throw new ArgumentNullException("Otp");
         otp.TryRemain--;
         try
         {
-            if (otp.TryRemain <= 0) throw new OperationException(Errors.OtpTryRemainFinished);
+            if (otp.TryRemain <= 0) throw new OperationException(IdentityErrors.OtpTryRemainFinished);
             if (otp.CodeHash == HashUtility.HashOtp(request.Code, otp.Id.ToString()))
             {
                 otp.IsUsed = true;
