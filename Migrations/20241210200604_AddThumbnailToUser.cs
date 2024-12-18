@@ -19,9 +19,9 @@ namespace Dorbit.Identity.Migrations
             migrationBuilder.EnsureSchema(
                 name: "public");
 
-            migrationBuilder.CreateSequence<int>(
-                name: "seq_user_code",
-                schema: "public");
+            // migrationBuilder.CreateSequence<int>(
+            //     name: "seq_user_code",
+            //     schema: "public");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Code",
@@ -51,9 +51,9 @@ namespace Dorbit.Identity.Migrations
                 schema: "identity",
                 table: "Users");
 
-            migrationBuilder.DropSequence(
-                name: "seq_user_code",
-                schema: "public");
+            // migrationBuilder.DropSequence(
+            //     name: "seq_user_code",
+            //     schema: "public");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Code",
