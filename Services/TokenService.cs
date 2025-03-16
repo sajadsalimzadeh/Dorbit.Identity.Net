@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
@@ -71,6 +72,7 @@ public class TokenService
             {
                 { "Id", tokenId.ToString() },
                 { "UserId", request.User.Id.ToString() },
+                { "Username", request.User.Name },
                 { "Name", request.User.Name },
             }
         });

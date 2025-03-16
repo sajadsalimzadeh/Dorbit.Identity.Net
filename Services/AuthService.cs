@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Abstractions;
+using Dorbit.Framework.Contracts.Users;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
@@ -23,6 +28,7 @@ namespace Dorbit.Identity.Services;
 public class AuthService : IAuthService
 {
     private readonly OtpService _otpService;
+    private readonly JwtService _jwtService;
     private readonly TokenService _tokenService;
     private readonly IUserResolver _userResolver;
     private readonly UserService _userService;
@@ -32,6 +38,7 @@ public class AuthService : IAuthService
 
     public AuthService(
         OtpService otpService,
+        JwtService jwtService,
         TokenService tokenService,
         IUserResolver userResolver,
         UserService userService,
@@ -40,6 +47,7 @@ public class AuthService : IAuthService
         PrivilegeService privilegeService)
     {
         _otpService = otpService;
+        _jwtService = jwtService;
         _tokenService = tokenService;
         _userResolver = userResolver;
         _userService = userService;
@@ -151,7 +159,7 @@ public class AuthService : IAuthService
             Username = request.Username,
             Password = request.Password,
         });
-        
+
         return new AuthLoginResponse()
         {
             Token = await _tokenService.CreateAsync(new TokenNewRequest()
@@ -160,7 +168,25 @@ public class AuthService : IAuthService
             })
         };
     }
-    
+
+    public async Task<IUserDto> GetUserByTokenAsync(string token)
+    {
+        if (!await _jwtService.TryValidateTokenAsync(token, out _, out var claims)) throw new AuthenticationException("Token is invalid");
+        
+        var id = claims.FindFirst("UserId")?.Value ?? claims.FindFirst("Id")?.Value;
+        if(!Guid.TryParse(claims.FindFirst("UserId")?.Value, out var userGuid)) throw new Exception("UserId not correct format");
+        var user = await _userRepository.Set().GetByIdAsyncWithCache(userGuid, $"user-{userGuid}", TimeSpan.FromMinutes(1));
+        if (user is null) return default;
+        return new BaseUserDto()
+        {
+            Id = Guid.Parse(id ?? ""),
+            Name = user.Name,
+            Username = user.Username,
+            IsActive = user.IsActive,
+            Claims = claims,
+        };
+    }
+
     public async Task<bool> IsTokenValid(HttpContext context, ClaimsPrincipal claimsPrincipal)
     {
         var tokenId = claimsPrincipal.FindFirst("Id")?.Value;
@@ -175,14 +201,25 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public async Task<IEnumerable<string>> GetAllAccessAsync()
+    {
+        if (_userResolver.User is null) return [];
+        return await GetAllAccessAsync(_userResolver.User.Id);
+    }
+
+    public Task<IEnumerable<string>> GetAllAccessAsync(object userId)
+    {
+        return _privilegeService.GetAllByUserIdAsync(userId);
+    }
+
     public Task<bool> HasAccessAsync(params string[] accesses)
     {
         return HasAccessAsync(_userResolver.User.Id, accesses);
     }
 
-    public async Task<bool> HasAccessAsync(object id, params string[] accesses)
+    public async Task<bool> HasAccessAsync(object userId, params string[] accesses)
     {
-        var allUserAccess = await _privilegeService.GetAllByUserIdAsync(id);
+        var allUserAccess = await GetAllAccessAsync(userId);
         return allUserAccess.Any(accesses.Select(x => x.ToLower()).Contains);
     }
 }

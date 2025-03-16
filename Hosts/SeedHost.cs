@@ -19,11 +19,9 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
 {
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-
-        var userRepository = scope.ServiceProvider.GetService<UserRepository>();
-        var userService = scope.ServiceProvider.GetService<UserService>();
-        var configAdmin = scope.ServiceProvider.GetService<IOptions<ConfigAdmin>>()?.Value;
+        var userRepository = serviceProvider.GetRequiredService<UserRepository>();
+        var userService = serviceProvider.GetRequiredService<UserService>();
+        var configAdmin = serviceProvider.GetRequiredService<IOptions<ConfigAdmin>>()?.Value;
         if (string.IsNullOrEmpty(configAdmin?.Password)) return;
 
         var admin = await userRepository.GetAdminAsync();
@@ -39,8 +37,9 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
                 NeedResetPassword = true
             });
         }
-        var accessRepository = scope.ServiceProvider.GetService<AccessRepository>();
+        var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
+        await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
 
         var privilegeService = serviceProvider.GetService<PrivilegeService>();
 

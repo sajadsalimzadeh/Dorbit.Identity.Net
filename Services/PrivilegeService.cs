@@ -14,16 +14,13 @@ namespace Dorbit.Identity.Services;
 [ServiceRegister]
 public class PrivilegeService
 {
-    private readonly IdentityDbContext _dbContext;
     private readonly PrivilegeRepository _privilegeRepository;
     private readonly AccessRepository _accessRepository;
 
     public PrivilegeService(
-        IdentityDbContext dbContext,
         PrivilegeRepository privilegeRepository,
         AccessRepository accessRepository)
     {
-        _dbContext = dbContext;
         _privilegeRepository = privilegeRepository;
         _accessRepository = accessRepository;
     }
