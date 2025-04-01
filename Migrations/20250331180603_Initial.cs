@@ -14,36 +14,9 @@ namespace Dorbit.Identity.Migrations
             migrationBuilder.EnsureSchema(
                 name: "identity");
 
-            migrationBuilder.CreateTable(
-                name: "Accesses",
-                schema: "identity",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Description = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
-                    ParentId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    ModifierId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModifierName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    DeletionTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    DeleterId = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeleterName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Accesses", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Accesses_Accesses_ParentId",
-                        column: x => x.ParentId,
-                        principalSchema: "identity",
-                        principalTable: "Accesses",
-                        principalColumn: "Id");
-                });
+            migrationBuilder.CreateSequence<int>(
+                name: "seq_user_code",
+                schema: "identity");
 
             migrationBuilder.CreateTable(
                 name: "Otp",
@@ -53,7 +26,7 @@ namespace Dorbit.Identity.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IsUsed = table.Column<bool>(type: "boolean", nullable: false),
                     TryRemain = table.Column<byte>(type: "smallint", nullable: false),
-                    CodeHash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    CodeHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     ExpireAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
@@ -63,35 +36,37 @@ namespace Dorbit.Identity.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tenants",
+                name: "Role",
                 schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Accesses = table.Column<string>(type: "text", nullable: true),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatorId = table.Column<string>(type: "text", nullable: true),
                     CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    ModifierId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ModifierId = table.Column<string>(type: "text", nullable: true),
                     ModifierName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     DeletionTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    DeleterId = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeleterId = table.Column<string>(type: "text", nullable: true),
                     DeleterName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tenants", x => x.Id);
+                    table.PrimaryKey("PK_Role", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Code = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('identity.seq_user_code')"),
+                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     Username = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     Salt = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     PasswordHash = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
@@ -99,63 +74,31 @@ namespace Dorbit.Identity.Migrations
                     CellphoneValidateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Email = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     EmailValidateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    AuthenticatorKey = table.Column<byte[]>(type: "bytea", nullable: true),
+                    AuthenticatorKey = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     AuthenticatorValidateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    IsTwoFactorAuthenticationEnable = table.Column<bool>(type: "boolean", nullable: false),
+                    Thumbnail = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     NeedResetPassword = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    InActiveMessage = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
+                    Message = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     ActiveTokenCount = table.Column<short>(type: "smallint", nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatorId = table.Column<string>(type: "text", nullable: true),
                     CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    ModifierId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ModifierId = table.Column<string>(type: "text", nullable: true),
                     ModifierName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     DeletionTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    DeleterId = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeleterId = table.Column<string>(type: "text", nullable: true),
                     DeleterName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_User", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Privileges",
-                schema: "identity",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    EndTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    Accesses = table.Column<string>(type: "text", nullable: true),
-                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    ModifierId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModifierName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    DeletionTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    DeleterId = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeleterName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Privileges", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Privileges_Users_UserId",
-                        column: x => x.UserId,
-                        principalSchema: "identity",
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tokens",
+                name: "Token",
                 schema: "identity",
                 columns: table => new
                 {
@@ -170,39 +113,72 @@ namespace Dorbit.Identity.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tokens", x => x.Id);
+                    table.PrimaryKey("PK_Token", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tokens_Users_UserId",
+                        name: "FK_Token_User_UserId",
                         column: x => x.UserId,
                         principalSchema: "identity",
-                        principalTable: "Users",
+                        principalTable: "User",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPrivilege",
+                schema: "identity",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    EndTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    Roles = table.Column<string>(type: "text", nullable: true),
+                    Accesses = table.Column<string>(type: "text", nullable: true),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<string>(type: "text", nullable: true),
+                    CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ModifierId = table.Column<string>(type: "text", nullable: true),
+                    ModifierName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeleterId = table.Column<string>(type: "text", nullable: true),
+                    DeleterName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPrivilege", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPrivilege_User_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "identity",
+                        principalTable: "User",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Accesses_ParentId",
+                name: "IX_Otp_CodeHash",
                 schema: "identity",
-                table: "Accesses",
-                column: "ParentId");
+                table: "Otp",
+                column: "CodeHash");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Privileges_UserId",
+                name: "IX_Token_UserId",
                 schema: "identity",
-                table: "Privileges",
-                column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tokens_UserId",
-                schema: "identity",
-                table: "Tokens",
+                table: "Token",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Username",
+                name: "IX_User_Username",
                 schema: "identity",
-                table: "Users",
+                table: "User",
                 column: "Username",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPrivilege_UserId",
+                schema: "identity",
+                table: "UserPrivilege",
+                column: "UserId",
                 unique: true);
         }
 
@@ -210,27 +186,27 @@ namespace Dorbit.Identity.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Accesses",
-                schema: "identity");
-
-            migrationBuilder.DropTable(
                 name: "Otp",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Privileges",
+                name: "Role",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Tenants",
+                name: "Token",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Tokens",
+                name: "UserPrivilege",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Users",
+                name: "User",
+                schema: "identity");
+
+            migrationBuilder.DropSequence(
+                name: "seq_user_code",
                 schema: "identity");
         }
     }

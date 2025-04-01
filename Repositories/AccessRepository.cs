@@ -13,19 +13,12 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class AccessRepository : BaseRepository<Access>
+public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache memoryCache) : BaseRepository<Access>(dbContext)
 {
-    private readonly IMemoryCache _memoryCache;
-
-    public AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache memoryCache) : base(dbContext)
-    {
-        _memoryCache = memoryCache;
-    }
-
     public async Task<List<AccessWithChildrenDto>> GetAllAccessHierarchyWithCache()
     {
         var key = $"{nameof(AccessRepository)}-{nameof(GetAllAccessHierarchyWithCache)}";
-        if (!_memoryCache.TryGetValue(key, out List<AccessWithChildrenDto> result))
+        if (!memoryCache.TryGetValue(key, out List<AccessWithChildrenDto> result))
         {
             var allAccesses = await Set().ToListAsyncWithCache(key, TimeSpan.FromMinutes(1));
             allAccesses.ForEach(x =>

@@ -10,10 +10,8 @@ using Dorbit.Identity.Services;
 namespace Dorbit.Identity.Commands;
 
 [ServiceRegister]
-public class AddUserCommand : Command
+public class AddUserCommand(UserService userService) : Command
 {
-    private readonly UserService _userService;
-
     public override bool IsRoot { get; } = false;
     public override string Message => "Add User";
 
@@ -24,14 +22,9 @@ public class AddUserCommand : Command
         yield return new CommandParameter("Password");
     }
 
-    public AddUserCommand(UserService userService)
-    {
-        _userService = userService;
-    }
-
     public override Task InvokeAsync(ICommandContext context)
     {
-        return _userService.AddAsync(new UserAddRequest()
+        return userService.AddAsync(new UserAddRequest()
         {
             Name = context.Arguments["Name"].ToString(),
             Username = context.Arguments["Username"].ToString(),

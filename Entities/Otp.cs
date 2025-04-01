@@ -1,11 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Entities.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Entities;
 
+[Table(nameof(Otp), Schema = "identity")]
 [Index(nameof(CodeHash))]
 public class Otp : Entity, ICreationTime
 {

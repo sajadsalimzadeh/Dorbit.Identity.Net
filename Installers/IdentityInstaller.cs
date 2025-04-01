@@ -26,16 +26,10 @@ public static class IdentityInstaller
         return services;
     }
 
-    public class Configs
+    public class Configs(IConfiguration configuration)
     {
-        public IConfig<ConfigAdmin> ConfigAdmin { get; set; }
-        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; }
+        public IConfig<ConfigAdmin> ConfigAdmin { get; set; } = configuration.GetConfig<ConfigAdmin>("Admin");
+        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
         public required Action<DbContextOptionsBuilder> DbContextConfiguration { get; set; }
-
-        public Configs(IConfiguration configuration)
-        {
-            ConfigAdmin = configuration.GetConfig<ConfigAdmin>("Admin");
-            ConfigSecurity = configuration.GetConfig<ConfigIdentitySecurity>("Security");
-        }
     }
 }

@@ -6,4 +6,4 @@ using Dorbit.Identity.Entities;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class TokenRepository(IdentityDbContext dbContext) : BaseRepository<Token>(dbContext);
+public class RoleRepository(IdentityDbContext dbContext) : BaseRepository<Role>(dbContext);

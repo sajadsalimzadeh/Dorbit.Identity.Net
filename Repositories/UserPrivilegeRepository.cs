@@ -6,9 +6,4 @@ using Dorbit.Identity.Entities;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class PrivilegeRepository : BaseRepository<Privilege>
-{
-    public PrivilegeRepository(IdentityDbContext dbContext) : base(dbContext)
-    {
-    }
-}
+public class UserPrivilegeRepository(IdentityDbContext dbContext) : BaseRepository<UserPrivilege>(dbContext);

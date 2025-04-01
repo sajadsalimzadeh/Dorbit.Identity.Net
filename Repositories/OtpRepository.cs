@@ -6,9 +6,4 @@ using Dorbit.Identity.Entities;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class OtpRepository : BaseRepository<Otp>
-{
-    public OtpRepository(IdentityDbContext dbContext) : base(dbContext)
-    {
-    }
-}
+public class OtpRepository(IdentityDbContext dbContext) : BaseRepository<Otp>(dbContext);

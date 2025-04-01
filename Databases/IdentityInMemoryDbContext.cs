@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Databases;
 
-public class IdentityInMemoryDbContext : EfDbContext
+public class IdentityInMemoryDbContext(DbContextOptions<IdentityInMemoryDbContext> options, IServiceProvider serviceProvider)
+    : EfDbContext(options, serviceProvider)
 {
-    public IdentityInMemoryDbContext(DbContextOptions<IdentityInMemoryDbContext> options, IServiceProvider serviceProvider) : base(options, serviceProvider)
-    {
-    }
-    
     public DbSet<Access> Accesses { get; set; }
 }

@@ -17,13 +17,12 @@ namespace Dorbit.Identity.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("identity")
                 .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.HasSequence<int>("seq_user_code", "public");
+            modelBuilder.HasSequence<int>("seq_user_code", "identity");
 
             modelBuilder.Entity("Dorbit.Identity.Entities.Otp", b =>
                 {
@@ -54,7 +53,7 @@ namespace Dorbit.Identity.Migrations
                     b.ToTable("Otp", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Entities.Privilege", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,62 +61,6 @@ namespace Dorbit.Identity.Migrations
 
                     b.Property<string>("Accesses")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatorId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatorName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("DeleterId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeleterName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("EndTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("ModificationTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("ModifierId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ModifierName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime?>("StartTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Privileges", "identity");
-                });
-
-            modelBuilder.Entity("Dorbit.Identity.Entities.Tenant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone");
@@ -153,11 +96,13 @@ namespace Dorbit.Identity.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tenants", "identity");
+                    b.ToTable("Role", "identity");
                 });
 
             modelBuilder.Entity("Dorbit.Identity.Entities.Token", b =>
@@ -194,7 +139,7 @@ namespace Dorbit.Identity.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tokens", "identity");
+                    b.ToTable("Token", "identity");
                 });
 
             modelBuilder.Entity("Dorbit.Identity.Entities.User", b =>
@@ -223,7 +168,7 @@ namespace Dorbit.Identity.Migrations
                     b.Property<int>("Code")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValueSql("nextval('public.seq_user_code')");
+                        .HasDefaultValueSql("nextval('identity.seq_user_code')");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone");
@@ -302,10 +247,72 @@ namespace Dorbit.Identity.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", "identity");
+                    b.ToTable("User", "identity");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Entities.Privilege", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.UserPrivilege", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Accesses")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("DeleterId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DeleterName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("ModificationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Roles")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserPrivilege", "identity");
+                });
+
+            modelBuilder.Entity("Dorbit.Identity.Entities.Token", b =>
                 {
                     b.HasOne("Dorbit.Identity.Entities.User", "User")
                         .WithMany()
@@ -316,7 +323,7 @@ namespace Dorbit.Identity.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Dorbit.Identity.Entities.Token", b =>
+            modelBuilder.Entity("Dorbit.Identity.Entities.UserPrivilege", b =>
                 {
                     b.HasOne("Dorbit.Identity.Entities.User", "User")
                         .WithMany()

@@ -19,25 +19,13 @@ using UAParser;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class TokenService
+public class TokenService(
+    JwtService jwtService,
+    IMemoryCache memoryCache,
+    TokenRepository tokenRepository,
+    IOptions<ConfigIdentitySecurity> configSecurityOptions)
 {
-    private readonly TokenRepository _tokenRepository;
-    private readonly JwtService _jwtService;
-    private readonly IMemoryCache _memoryCache;
-    private readonly ConfigIdentitySecurity _configIdentitySecurity;
-
-    public TokenService(
-        JwtService jwtService,
-        IMemoryCache memoryCache,
-        TokenRepository tokenRepository,
-        IOptions<ConfigIdentitySecurity> configSecurityOptions
-    )
-    {
-        _jwtService = jwtService;
-        _memoryCache = memoryCache;
-        _tokenRepository = tokenRepository;
-        _configIdentitySecurity = configSecurityOptions.Value;
-    }
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
     public async Task<TokenResponse> CreateAsync(TokenNewRequest request)
     {
@@ -45,16 +33,16 @@ public class TokenService
         var clientInfo = await uaParser.ParseAsync(request.UserAgent ?? "");
 
         var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
-        var activeTokens = await _tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
+        var activeTokens = await tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
         foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(activeTokens.Count - maxActiveTokenCount + 1))
         {
-            _memoryCache.Remove(activeToken.Id);
+            memoryCache.Remove(activeToken.Id);
             activeToken.State = TokenState.Terminated;
-            await _tokenRepository.UpdateAsync(activeToken);
+            await tokenRepository.UpdateAsync(activeToken);
         }
 
         var tokenId = Guid.NewGuid();
-        var token = await _tokenRepository.InsertAsync(new Token()
+        var token = await tokenRepository.InsertAsync(new Token()
         {
             Id = tokenId,
             UserId = request.User.Id,
@@ -65,7 +53,7 @@ public class TokenService
             State = TokenState.Valid
         });
 
-        var tokenResponse = await _jwtService.CreateTokenAsync(new JwtCreateTokenRequest()
+        var tokenResponse = await jwtService.CreateTokenAsync(new JwtCreateTokenRequest()
         {
             Expires = token.ExpireTime,
             Claims = new Dictionary<string, string>()
@@ -76,7 +64,7 @@ public class TokenService
                 { "Name", request.User.Name },
             }
         });
-        _memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
+        memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
 
         return new TokenResponse()
         {

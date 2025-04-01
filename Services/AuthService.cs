@@ -25,43 +25,23 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class AuthService : IAuthService
+public class AuthService(
+    OtpService otpService,
+    JwtService jwtService,
+    TokenService tokenService,
+    IUserResolver userResolver,
+    UserService userService,
+    UserRepository userRepository,
+    TokenRepository tokenRepository,
+    PrivilegeService privilegeService)
+    : IAuthService
 {
-    private readonly OtpService _otpService;
-    private readonly JwtService _jwtService;
-    private readonly TokenService _tokenService;
-    private readonly IUserResolver _userResolver;
-    private readonly UserService _userService;
-    private readonly UserRepository _userRepository;
-    private readonly TokenRepository _tokenRepository;
-    private readonly PrivilegeService _privilegeService;
-
-    public AuthService(
-        OtpService otpService,
-        JwtService jwtService,
-        TokenService tokenService,
-        IUserResolver userResolver,
-        UserService userService,
-        UserRepository userRepository,
-        TokenRepository tokenRepository,
-        PrivilegeService privilegeService)
-    {
-        _otpService = otpService;
-        _jwtService = jwtService;
-        _tokenService = tokenService;
-        _userResolver = userResolver;
-        _userService = userService;
-        _userRepository = userRepository;
-        _tokenRepository = tokenRepository;
-        _privilegeService = privilegeService;
-    }
-
     public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
     {
         var username = request.Username.ToLower();
         if (request.LoginStrategy == AuthMethod.StaticPassword)
         {
-            var user = await _userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
                        throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
             var hash = HashUtility.HashPassword(request.Value, user.Salt);
@@ -69,7 +49,7 @@ public class AuthService : IAuthService
 
             return new AuthLoginResponse()
             {
-                Token = await _tokenService.CreateAsync(new TokenNewRequest()
+                Token = await tokenService.CreateAsync(new TokenNewRequest()
                 {
                     User = user,
                     UserAgent = request.UserAgent,
@@ -79,7 +59,7 @@ public class AuthService : IAuthService
 
         if (request.LoginStrategy == AuthMethod.Cellphone || request.LoginStrategy == AuthMethod.Email)
         {
-            var otp = await _otpService.SendOtp(new AuthSendOtpRequest()
+            var otp = await otpService.SendOtp(new AuthSendOtpRequest()
             {
                 Value = username,
                 Method = request.LoginStrategy
@@ -103,7 +83,7 @@ public class AuthService : IAuthService
     {
         if (request.LoginStrategy == AuthMethod.Cellphone || request.LoginStrategy == AuthMethod.Email)
         {
-            var otpValidateResult = await _otpService.ValidateAsync(new OtpValidateRequest()
+            var otpValidateResult = await otpService.ValidateAsync(new OtpValidateRequest()
             {
                 Id = request.OtpId,
                 Code = request.Code
@@ -111,8 +91,8 @@ public class AuthService : IAuthService
             if (!otpValidateResult.Success) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
             User user;
-            if (request.LoginStrategy == AuthMethod.Cellphone) user = await _userRepository.GetByCellphoneAsync(otpValidateResult.Value);
-            else if (request.LoginStrategy == AuthMethod.Email) user = await _userRepository.GetByEmailAsync(otpValidateResult.Value);
+            if (request.LoginStrategy == AuthMethod.Cellphone) user = await userRepository.GetByCellphoneAsync(otpValidateResult.Value);
+            else if (request.LoginStrategy == AuthMethod.Email) user = await userRepository.GetByEmailAsync(otpValidateResult.Value);
             else throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
 
             if (user is null)
@@ -131,12 +111,12 @@ public class AuthService : IAuthService
                     userAddRequest.ValidateTypes = UserValidateTypes.Email;
                 }
 
-                user = await _userService.AddAsync(userAddRequest);
+                user = await userService.AddAsync(userAddRequest);
             }
 
             return new AuthLoginResponse()
             {
-                Token = await _tokenService.CreateAsync(new TokenNewRequest()
+                Token = await tokenService.CreateAsync(new TokenNewRequest()
                 {
                     User = user,
                     UserAgent = request.UserAgent
@@ -149,10 +129,10 @@ public class AuthService : IAuthService
 
     public async Task<AuthLoginResponse> RegisterAsync(AuthRegisterRequest request)
     {
-        var user = await _userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
+        var user = await userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
         if (user is not null) throw new OperationException(IdentityErrors.UserExists);
 
-        user = await _userService.AddAsync(new UserAddRequest()
+        user = await userService.AddAsync(new UserAddRequest()
         {
             Name = request.Name,
             Email = request.Email,
@@ -162,7 +142,7 @@ public class AuthService : IAuthService
 
         return new AuthLoginResponse()
         {
-            Token = await _tokenService.CreateAsync(new TokenNewRequest()
+            Token = await tokenService.CreateAsync(new TokenNewRequest()
             {
                 User = user,
             })
@@ -171,11 +151,11 @@ public class AuthService : IAuthService
 
     public async Task<IUserDto> GetUserByTokenAsync(string token)
     {
-        if (!await _jwtService.TryValidateTokenAsync(token, out _, out var claims)) throw new AuthenticationException("Token is invalid");
+        if (!await jwtService.TryValidateTokenAsync(token, out _, out var claims)) throw new AuthenticationException("Token is invalid");
         
         var id = claims.FindFirst("UserId")?.Value ?? claims.FindFirst("Id")?.Value;
         if(!Guid.TryParse(claims.FindFirst("UserId")?.Value, out var userGuid)) throw new Exception("UserId not correct format");
-        var user = await _userRepository.Set().GetByIdAsyncWithCache(userGuid, $"user-{userGuid}", TimeSpan.FromMinutes(1));
+        var user = await userRepository.Set().GetByIdAsyncWithCache(userGuid, $"user-{userGuid}", TimeSpan.FromMinutes(1));
         if (user is null) return default;
         return new BaseUserDto()
         {
@@ -194,7 +174,7 @@ public class AuthService : IAuthService
         if (!context.Request.Cookies.TryGetValue("CSRF", out var csrf)) return false;
         if (!Guid.TryParse(csrf, out var csrfGuid)) return false;
         if (csrfGuid != tokenGuid) return false;
-        var token = await _tokenRepository.Set()
+        var token = await tokenRepository.Set()
             .WithCacheAsync(set => set.FirstOrDefaultAsync(x => x.Id == tokenGuid), tokenId, TimeSpan.FromMinutes(1));
         if (token is null) return false;
         if (token.State != TokenState.Valid) return false;
@@ -203,18 +183,18 @@ public class AuthService : IAuthService
 
     public async Task<IEnumerable<string>> GetAllAccessAsync()
     {
-        if (_userResolver.User is null) return [];
-        return await GetAllAccessAsync(_userResolver.User.Id);
+        if (userResolver.User is null) return [];
+        return await GetAllAccessAsync(userResolver.User.Id);
     }
 
     public Task<IEnumerable<string>> GetAllAccessAsync(object userId)
     {
-        return _privilegeService.GetAllByUserIdAsync(userId);
+        return privilegeService.GetAllByUserIdAsync(userId);
     }
 
     public Task<bool> HasAccessAsync(params string[] accesses)
     {
-        return HasAccessAsync(_userResolver.User.Id, accesses);
+        return HasAccessAsync(userResolver.User.Id, accesses);
     }
 
     public async Task<bool> HasAccessAsync(object userId, params string[] accesses)

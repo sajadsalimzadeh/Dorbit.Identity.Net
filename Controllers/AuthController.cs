@@ -16,24 +16,14 @@ using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Controllers;
 
-public class AuthController : BaseController
+public class AuthController(
+    AuthService authService,
+    UserRepository userRepository,
+    PrivilegeService privilegeService,
+    IOptions<ConfigIdentitySecurity> configSecurityOptions)
+    : BaseController
 {
-    private readonly AuthService _authService;
-    private readonly UserRepository _userRepository;
-    private readonly PrivilegeService _privilegeService;
-    private readonly ConfigIdentitySecurity _configIdentitySecurity;
-
-    public AuthController(
-        AuthService authService, 
-        UserRepository userRepository, 
-        PrivilegeService privilegeService,
-        IOptions<ConfigIdentitySecurity> configSecurityOptions)
-    {
-        _authService = authService;
-        _userRepository = userRepository;
-        _privilegeService = privilegeService;
-        _configIdentitySecurity = configSecurityOptions.Value;
-    }
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
     private void HandleToken(TokenResponse tokenResponse)
     {
@@ -52,7 +42,7 @@ public class AuthController : BaseController
     [HttpPost("Login")]
     public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginRequest request)
     {
-        var loginResponse = await _authService.LoginAsync(request);
+        var loginResponse = await authService.LoginAsync(request);
         HandleToken(loginResponse.Token);
         return loginResponse.ToQueryResult();
     }
@@ -60,7 +50,7 @@ public class AuthController : BaseController
     [HttpPost("LoginWithCode")]
     public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithCodeRequest request)
     {
-        var loginResponse = await _authService.LoginWithCodeAsync(request);
+        var loginResponse = await authService.LoginWithCodeAsync(request);
         HandleToken(loginResponse.Token);
         return loginResponse.ToQueryResult();
     }
@@ -68,7 +58,7 @@ public class AuthController : BaseController
     [HttpPost("Register")]
     public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
     {
-        var loginResponse = await _authService.RegisterAsync(request);
+        var loginResponse = await authService.RegisterAsync(request);
         HandleToken(loginResponse.Token);
         return loginResponse.ToQueryResult();
     }
@@ -89,9 +79,9 @@ public class AuthController : BaseController
     [HttpGet("IsLogin"), Auth]
     public async Task<QueryResult<UserDto>> IsLogin()
     {
-        var user = await _userRepository.GetByIdAsync(GetUserId<Guid>());
+        var user = await userRepository.GetByIdAsync(GetUserId<Guid>());
         var dto = user.MapTo<UserDto>();
-        dto.Accesses = await _privilegeService.GetAllByUserIdAsync(user.Id);
+        dto.Accesses = await privilegeService.GetAllByUserIdAsync(user.Id);
         return dto.ToQueryResult();
     }
 }

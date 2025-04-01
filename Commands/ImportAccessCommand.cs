@@ -13,21 +13,14 @@ using Dorbit.Identity.Repositories;
 namespace Dorbit.Identity.Commands;
 
 [ServiceRegister]
-public class ImportAccessCommand : Command
+public class ImportAccessCommand(AccessRepository accessRepository) : Command
 {
-    private readonly AccessRepository _accessRepository;
-
     public override bool IsRoot { get; } = false;
     public override string Message => "Sync Policies";
 
-    public ImportAccessCommand(AccessRepository accessRepository)
-    {
-        _accessRepository = accessRepository;
-    }
-
     public override Task InvokeAsync(ICommandContext context)
     {
-        var dbPolicies = _accessRepository.Set(false).ToList();
+        var dbPolicies = accessRepository.Set(false).ToList();
 
         async Task UpdatePolicies(IEnumerable<AccessImportRequest> items, Guid? parentId = null)
         {
@@ -37,7 +30,7 @@ public class ImportAccessCommand : Command
                 var access = dbPolicies.FirstOrDefault(x => x.Name == item.Name);
                 if (access is null)
                 {
-                    access = await _accessRepository.InsertAsync(new Access()
+                    access = await accessRepository.InsertAsync(new Access()
                     {
                         Name = item.Name,
                         ParentId = parentId
@@ -50,7 +43,7 @@ public class ImportAccessCommand : Command
                     access.IsDeleted = false;
                     access.DeletionTime = null;
                     if (access.Name == "admin") access.ParentId = null;
-                    await _accessRepository.UpdateAsync(access);
+                    await accessRepository.UpdateAsync(access);
                 }
                     
                 await UpdatePolicies(item.Children, access.Id);

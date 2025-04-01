@@ -6,6 +6,7 @@ using Dorbit.Identity.Contracts;
 
 namespace Dorbit.Identity.Entities;
 
+[Table(nameof(Token), Schema = "identity")]
 public class Token : Entity
 {
     public Guid UserId { get; set; }

@@ -12,15 +12,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class UserRepository : BaseRepository<User>
+public class UserRepository(IdentityDbContext dbContext) : BaseRepository<User>(dbContext)
 {
-    private readonly IdentityDbContext _dbContext;
-
-    public UserRepository(IdentityDbContext dbContext) : base(dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public Task<User> GetByUsernameAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Username == value);
@@ -41,10 +34,10 @@ public class UserRepository : BaseRepository<User>
         return Set().FirstOrDefaultAsync(x => x.Username.ToLower() == "admin");
     }
 
-    public Task<List<Privilege>> GetAllUserPrivileges(Guid id)
+    public Task<List<UserPrivilege>> GetAllUserPrivileges(Guid id)
     {
         var now = DateTime.UtcNow;
-        return _dbContext.DbSet<Privilege>()
+        return dbContext.DbSet<UserPrivilege>()
             .Where(x => x.UserId == id && x.StartTime < now && x.EndTime > now)
             .ToListAsyncWithCache($"{nameof(GetAllUserPrivileges)}-{id}", TimeSpan.FromMinutes(5));
     }

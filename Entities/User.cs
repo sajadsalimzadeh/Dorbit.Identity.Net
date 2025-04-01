@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Entities;
 
+[Table(nameof(User), Schema = "identity")]
 [Index(nameof(Username), IsUnique = true)]
 public class User : FullEntity
 {
-    [Sequence("seq_user_code")] public int Code { get; set; }
+    [Sequence("seq_user_code", Schema = "identity")] public int Code { get; set; }
     
     [StringLength(128)] 
     public string Name { get; set; }

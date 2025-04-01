@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Entities;
 
+[Table(nameof(UserPrivilege), Schema = "identity")]
 [Index(nameof(UserId), IsUnique = true)]
-public class Privilege : FullEntity
+public class UserPrivilege : FullEntity
 {
     public Guid UserId { get; set; }
     public DateTime? StartTime { get; set; }
@@ -16,6 +17,9 @@ public class Privilege : FullEntity
 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }
+    
+    [JsonField]
+    public List<string> Roles { get; set; }
     
     [JsonField]
     public List<string> Accesses { get; set; }

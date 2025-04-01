@@ -19,31 +19,19 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class OtpService
+public class OtpService(
+    OtpRepository otpRepository,
+    MessageManager messageManager,
+    IDistributedCache distributedCache,
+    IOptions<ConfigIdentitySecurity> configSecurityOptions)
 {
-    private readonly OtpRepository _otpRepository;
-    private readonly MessageManager _messageManager;
-    private readonly IDistributedCache _distributedCache;
-    private readonly ConfigIdentitySecurity _configIdentitySecurity;
-
-    public OtpService(
-        OtpRepository otpRepository,
-        MessageManager messageManager,
-        IDistributedCache distributedCache,
-        IOptions<ConfigIdentitySecurity> configSecurityOptions
-    )
-    {
-        _otpRepository = otpRepository;
-        _messageManager = messageManager;
-        _distributedCache = distributedCache;
-        _configIdentitySecurity = configSecurityOptions.Value;
-    }
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
     public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)
     {
         code = new Random().NextNumber(request.Length);
         var id = Guid.NewGuid();
-        return _otpRepository.InsertAsync(new Otp()
+        return otpRepository.InsertAsync(new Otp()
         {
             Id = id,
             TryRemain = request.TryRemain,
@@ -55,10 +43,10 @@ public class OtpService
 
     public async Task<OtpValidateResponse> ValidateAsync(OtpValidateRequest request)
     {
-        var value = await _distributedCache.GetStringAsync(request.Id.ToString());
+        var value = await distributedCache.GetStringAsync(request.Id.ToString());
         if (value is null) throw new OperationException(IdentityErrors.CorrelationIdIsExpired);
         
-        var otp = await _otpRepository.GetByIdAsync(request.Id) ?? throw new ArgumentNullException("Otp");
+        var otp = await otpRepository.GetByIdAsync(request.Id) ?? throw new ArgumentNullException("Otp");
         otp.TryRemain--;
         try
         {
@@ -81,7 +69,7 @@ public class OtpService
         }
         finally
         {
-            await _otpRepository.UpdateAsync(otp);
+            await otpRepository.UpdateAsync(otp);
         }
     }
 
@@ -95,7 +83,7 @@ public class OtpService
         }, out var code);
         if (request.Method == AuthMethod.Cellphone)
         {
-            await _messageManager.SendAsync(new MessageSmsRequest()
+            await messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Value,
                 TemplateType = MessageTemplateType.Otp,
@@ -104,7 +92,7 @@ public class OtpService
         }
         else if (request.Method == AuthMethod.Email)
         {
-            await _messageManager.SendAsync(new MessageEmailRequest()
+            await messageManager.SendAsync(new MessageEmailRequest()
             {
                 To = request.Value,
                 Subject = "Login one time password code",
@@ -113,7 +101,7 @@ public class OtpService
             });
         }
 
-        await _distributedCache.SetStringAsync(otp.Id.ToString(), request.Value,
+        await distributedCache.SetStringAsync(otp.Id.ToString(), request.Value,
             new DistributedCacheEntryOptions()
             {
                 AbsoluteExpirationRelativeToNow = otpLifetime
