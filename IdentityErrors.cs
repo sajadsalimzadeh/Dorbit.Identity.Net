@@ -4,7 +4,7 @@ internal enum IdentityErrors
 {
     OtpTryRemainFinished,
     UsernameOrPasswordWrong,
-    LoginStrategyNotSupported,
+    OtpTypeNotSupported,
     OtpValidateFailed,
     CorrelationIdIsExpired,
     OldPasswordIsInvalid,
@@ -15,5 +15,6 @@ internal enum IdentityErrors
     CanNotRemoveAdminUser,
     OtpIsInvalid,
     UserNotExists,
-    UserExists
+    UserExists,
+    OtpIsUsed
 }

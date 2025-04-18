@@ -34,14 +34,14 @@ public class UserService(
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
         var entity = request.MapTo(existsUser ?? new User()
         {
-            Salt = Guid.NewGuid().ToString()
+            PasswordSalt = Guid.NewGuid().ToString()
         });
         entity.Username = entity.Username.ToLower();
-        entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.Salt);
+        entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
-            entity.CellphoneValidateTime = DateTime.Now;
-        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailValidateTime = DateTime.Now;
+            entity.PhoneNumberConfirmTime = DateTime.Now;
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
             entity.AuthenticatorValidateTime = DateTime.Now;
 
@@ -70,49 +70,9 @@ public class UserService(
     public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
-        user.PasswordHash = HashUtility.HashPassword(request.Password, user.Salt);
+        user.PasswordHash = HashUtility.HashPassword(request.Password, user.PasswordSalt);
         await userRepository.UpdateAsync(user);
         return user;
-    }
-
-    public async Task ChangePasswordAsync(UserChangePasswordRequest request)
-    {
-        var user = await userRepository.GetByIdAsync((Guid)userResolver.User.Id);
-
-        if (request.NewPassword != request.RenewPassword)
-            throw new OperationException(IdentityErrors.NewPasswordMissMach);
-
-
-        if (!new Regex(_configIdentitySecurity.PasswordPattern).IsMatch(request.NewPassword))
-            throw new OperationException(IdentityErrors.NewPasswordIsWeak);
-
-        switch (request.Method)
-        {
-            case AuthMethod.StaticPassword:
-            {
-                if (user.PasswordHash != HashUtility.HashPassword(request.Value, user.Salt))
-                    throw new OperationException(IdentityErrors.OldPasswordIsInvalid);
-                break;
-            }
-            case AuthMethod.Cellphone or AuthMethod.Email:
-            {
-                var validateResult = await otpService.ValidateAsync(new OtpValidateRequest()
-                {
-                    Id = request.OtpId,
-                    Code = request.Value
-                });
-                if (!validateResult.Success)
-                    throw new OperationException(IdentityErrors.OtpIsInvalid);
-                break;
-            }
-            default:
-                throw new OperationException(IdentityErrors.LoginStrategyNotSupported);
-        }
-
-        user.Salt = Guid.NewGuid().ToString();
-        user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.Salt);
-
-        await userRepository.UpdateAsync(user);
     }
 
     public async Task<User> DeActiveAsync(UserDeActiveRequest request)

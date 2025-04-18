@@ -19,9 +19,9 @@ public class UserRepository(IdentityDbContext dbContext) : BaseRepository<User>(
         return Set().FirstOrDefaultAsync(x => x.Username == value);
     }
     
-    public Task<User> GetByCellphoneAsync(string value)
+    public Task<User> GetByPhoneNumberAsync(string value)
     {
-        return Set().FirstOrDefaultAsync(x => x.Cellphone == value);
+        return Set().FirstOrDefaultAsync(x => x.PhoneNumber == value);
     }
     
     public Task<User> GetByEmailAsync(string value)
@@ -38,7 +38,7 @@ public class UserRepository(IdentityDbContext dbContext) : BaseRepository<User>(
     {
         var now = DateTime.UtcNow;
         return dbContext.DbSet<UserPrivilege>()
-            .Where(x => x.UserId == id && x.StartTime < now && x.EndTime > now)
+            .Where(x => x.UserId == id && x.From < now && x.To > now)
             .ToListAsyncWithCache($"{nameof(GetAllUserPrivileges)}-{id}", TimeSpan.FromMinutes(5));
     }
 }

@@ -13,6 +13,7 @@ using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 
@@ -41,31 +42,21 @@ public class OtpService(
         });
     }
 
-    public async Task<OtpValidateResponse> ValidateAsync(OtpValidateRequest request)
+    public async Task<bool> ValidateAsync(OtpValidateRequest request)
     {
-        var value = await distributedCache.GetStringAsync(request.Id.ToString());
-        if (value is null) throw new OperationException(IdentityErrors.CorrelationIdIsExpired);
-        
-        var otp = await otpRepository.GetByIdAsync(request.Id) ?? throw new ArgumentNullException("Otp");
+        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver) ?? throw new NullReferenceException();
         otp.TryRemain--;
         try
         {
             if (otp.TryRemain <= 0) throw new OperationException(IdentityErrors.OtpTryRemainFinished);
+            if (otp.IsUsed) throw new OperationException(IdentityErrors.OtpIsUsed);
             if (otp.CodeHash == HashUtility.HashOtp(request.Code, otp.Id.ToString()))
             {
                 otp.IsUsed = true;
-                return new OtpValidateResponse()
-                {
-                    Success = true,
-                    Value = value
-                };
+                return false;
             }
 
-            return new OtpValidateResponse()
-            {
-                Success = false,
-                Value = value
-            };
+            return false;
         }
         finally
         {
@@ -73,40 +64,32 @@ public class OtpService(
         }
     }
 
-    public async Task<Otp> SendOtp(AuthSendOtpRequest request)
+    public async Task SendAsync(AuthSendOtpRequest request)
     {
-        var otpLifetime = TimeSpan.FromSeconds(_configIdentitySecurity.OtpTimeoutInSec);
-        var otp = await CreateAsync(new OtpCreateRequest()
+        var otpLifetime = TimeSpan.FromSeconds(configSecurityOptions.Value.OtpTimeoutInSec);
+        await CreateAsync(new OtpCreateRequest()
         {
             Duration = otpLifetime,
             Length = 5
         }, out var code);
-        if (request.Method == AuthMethod.Cellphone)
+        if (request.Type == OtpType.PhoneNumber)
         {
             await messageManager.SendAsync(new MessageSmsRequest()
             {
-                To = request.Value,
+                To = request.Receiver,
                 TemplateType = MessageTemplateType.Otp,
                 Args = [code]
             });
         }
-        else if (request.Method == AuthMethod.Email)
+        else if (request.Type == OtpType.Email)
         {
             await messageManager.SendAsync(new MessageEmailRequest()
             {
-                To = request.Value,
+                To = request.Receiver,
                 Subject = "Login one time password code",
                 Body = "Code: {0}",
                 Args = [code]
             });
         }
-
-        await distributedCache.SetStringAsync(otp.Id.ToString(), request.Value,
-            new DistributedCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = otpLifetime
-            });
-
-        return otp;
     }
 }

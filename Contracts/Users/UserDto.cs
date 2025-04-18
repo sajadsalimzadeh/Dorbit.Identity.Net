@@ -7,7 +7,6 @@ namespace Dorbit.Identity.Contracts.Users;
 public class UserDto : BaseUserDto
 {
     public int Code { get; set; }
-    
     public bool HasPassword { get; set; }
     
     public string Cellphone { get; set; }
@@ -26,7 +25,9 @@ public class UserDto : BaseUserDto
     
     public string Message { get; set; }
     
-    public short ActiveTokenCount { get; set; }
+    public short MaxTokenCount { get; set; }
+
+    public DateTime CreationTime { get; set; }
     
     public IEnumerable<string> Accesses { get; set; }
 }

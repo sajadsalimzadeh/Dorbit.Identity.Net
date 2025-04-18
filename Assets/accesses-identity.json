@@ -18,6 +18,9 @@
                 "Name": "User-Active"
               },
               {
+                "Name": "User-Tokens"
+              },
+              {
                 "Name": "User-Message"
               },
               {

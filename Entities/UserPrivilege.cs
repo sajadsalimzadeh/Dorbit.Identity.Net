@@ -9,11 +9,13 @@ namespace Dorbit.Identity.Entities;
 
 [Table(nameof(UserPrivilege), Schema = "identity")]
 [Index(nameof(UserId), IsUnique = true)]
+[Index(nameof(TenantId), IsUnique = true)]
 public class UserPrivilege : FullEntity
 {
     public Guid UserId { get; set; }
-    public DateTime? StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
+    public Guid? TenantId { get; set; }
+    public DateTime? From { get; set; }
+    public DateTime? To { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }

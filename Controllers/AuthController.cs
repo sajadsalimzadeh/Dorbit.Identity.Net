@@ -25,11 +25,11 @@ public class AuthController(
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
-    private void HandleToken(TokenResponse tokenResponse)
+    private void HandleToken(AuthLoginResponse loginResponse)
     {
-        if (tokenResponse is not null)
+        if (loginResponse is not null)
         {
-            Response.Cookies.Append("CSRF", tokenResponse.Csrf.ToString(), new CookieOptions()
+            Response.Cookies.Append(nameof(TokenClaimTypes.CsrfToken), loginResponse.CsrfToken, new CookieOptions()
             {
                 Expires = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
                 HttpOnly = true,
@@ -40,18 +40,22 @@ public class AuthController(
     }
 
     [HttpPost("Login")]
-    public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginRequest request)
+    public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginWithStaticPasswordRequest withStaticPasswordRequest)
     {
-        var loginResponse = await authService.LoginAsync(request);
-        HandleToken(loginResponse.Token);
+        if(HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
+        {
+            withStaticPasswordRequest.UserAgent = userAgent;
+        }
+        var loginResponse = await authService.LoginWithStaticPasswordAsync(withStaticPasswordRequest);
+        HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }
 
     [HttpPost("LoginWithCode")]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithCodeRequest request)
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithOtpRequest request)
     {
-        var loginResponse = await authService.LoginWithCodeAsync(request);
-        HandleToken(loginResponse.Token);
+        var loginResponse = await authService.LoginWithOtpAsync(request);
+        HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }
 
@@ -59,7 +63,7 @@ public class AuthController(
     public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
     {
         var loginResponse = await authService.RegisterAsync(request);
-        HandleToken(loginResponse.Token);
+        HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }
 

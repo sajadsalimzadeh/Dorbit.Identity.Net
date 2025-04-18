@@ -6,7 +6,9 @@ using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
+using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Privileges;
+using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -20,7 +22,9 @@ namespace Dorbit.Identity.Controllers;
 public class UsersController(
     UserService userService,
     UserRepository userRepository,
+    AuthService authService,
     UserPrivilegeRepository userPrivilegeRepository,
+    TokenRepository tokenRepository,
     PrivilegeService privilegeService)
     : CrudController<User, Guid, UserDto, UserAddRequest, UserEditRequest>
 {
@@ -81,10 +85,17 @@ public class UsersController(
         return userService.RemoveAsync(id).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    [HttpPost("Own/ChangePassword"), Auth]
-    public async Task<CommandResult> ChangePasswordAsync([FromBody] UserChangePasswordRequest request)
+    [HttpPost("Own/ChangePasswordByPassword"), Auth]
+    public async Task<CommandResult> ChangePasswordByPasswordAsync([FromBody] AuthChangePasswordByPasswordRequest request)
     {
-        await userService.ChangePasswordAsync(request);
+        await authService.ChangePasswordByPasswordAsync(request);
+        return Succeed();
+    }
+
+    [HttpPost("Own/ChangePasswordByOtp"), Auth]
+    public async Task<CommandResult> ChangePasswordByOtpAsync([FromBody] AuthChangePasswordByOtpRequest request)
+    {
+        await authService.ChangePasswordByOtpAsync(request);
         return Succeed();
     }
 
@@ -97,10 +108,9 @@ public class UsersController(
     }
 
     [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
-    public async Task<QueryResult<List<string>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
+    public Task<QueryResult<List<UserPrivilege>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
     {
-        var privilege = await userPrivilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == id);
-        return (privilege?.Accesses ?? new List<string>()).ToQueryResult();
+        return userPrivilegeRepository.Set().Where(x => x.UserId == id).ToListAsync().ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/Privileges"), Auth("Privilege")]
@@ -120,6 +130,17 @@ public class UsersController(
     public async Task<QueryResult<UserDto>> ActiveAsync([FromRoute] UserActiveRequest request)
     {
         return (await userService.ActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
+    }
+
+    [HttpGet("{id:guid}/Tokens"), Auth("User-Tokens")]
+    public Task<QueryResult<List<TokenDto>>> GetAllTokensAsync([FromRoute] Guid id)
+    {
+        return tokenRepository.Set()
+            .Where(x => x.UserId == id)
+            .OrderByDescending(x => x.CreationTime)
+            .ToListAsync()
+            .MapToAsync<Token, TokenDto>()
+            .ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/Message"), Auth("User-Message")]

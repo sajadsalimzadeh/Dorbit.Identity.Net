@@ -1,7 +1,9 @@
-﻿namespace Dorbit.Identity.Contracts.Auth;
+﻿using Dorbit.Identity.Contracts.Otps;
+
+namespace Dorbit.Identity.Contracts.Auth;
 
 public class AuthSendOtpRequest
 {
-    public string Value { get; set; }
-    public AuthMethod Method { get; set; }
+    public OtpType Type { get; set; }
+    public string Receiver { get; set; }
 }

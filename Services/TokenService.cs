@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Jwts;
+using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -27,12 +29,12 @@ public class TokenService(
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
-    public async Task<TokenResponse> CreateAsync(TokenNewRequest request)
+    public async Task<AuthLoginResponse> CreateAsync(TokenCreateRequest request)
     {
         var uaParser = await Parser.GetDefaultAsync();
         var clientInfo = await uaParser.ParseAsync(request.UserAgent ?? "");
 
-        var maxActiveTokenCount = Math.Min(request.User.ActiveTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
+        var maxActiveTokenCount = Math.Min(request.User.MaxTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
         var activeTokens = await tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
         foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(activeTokens.Count - maxActiveTokenCount + 1))
         {
@@ -41,35 +43,59 @@ public class TokenService(
             await tokenRepository.UpdateAsync(activeToken);
         }
 
+        var isTwoFactorAuthenticated = false;
+        var isNeddTwoFactorAuthentication = request.User.IsTwoFactorAuthenticationEnabled;
+        if (request.AccessToken.IsNotNullOrEmpty())
+        {
+            if (jwtService.TryValidateToken(request.AccessToken, out _, out var preClaimsPrincipal))
+            {
+                var needTwoFactorAuthenticationClaim =
+                    preClaimsPrincipal.Claims.FirstOrDefault(x => x.Type == nameof(TokenClaimTypes.NeedTwoFactorAuthentication));
+
+                if (needTwoFactorAuthenticationClaim is not null && bool.TryParse(needTwoFactorAuthenticationClaim.Value, out var isNeedTwoFactorAuthentication) && isNeedTwoFactorAuthentication)
+                {
+                    isNeddTwoFactorAuthentication = false;
+                    isTwoFactorAuthenticated = true;
+                }
+            }
+        }
         var tokenId = Guid.NewGuid();
         var token = await tokenRepository.InsertAsync(new Token()
         {
             Id = tokenId,
             UserId = request.User.Id,
-            Os = clientInfo.OS.Family,
-            Platform = clientInfo.Device.Family,
-            Application = clientInfo.Browser.Family,
             ExpireTime = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
-            State = TokenState.Valid
+            State = TokenState.Valid,
+            TokenInfo = new TokenInfo()
+            {
+                Device = new ClientInfoVersion(clientInfo.Device.Family, clientInfo.Device.Brand, clientInfo.Device.Model),
+                Os = new ClientInfoVersion(clientInfo.OS.Family, clientInfo.OS.Major, clientInfo.OS.Minor, clientInfo.OS.Patch),
+                Browser = new ClientInfoVersion(clientInfo.Browser.Family, clientInfo.Browser.Major, clientInfo.Browser.Minor, clientInfo.Browser.Patch),
+            }
         });
 
-        var tokenResponse = await jwtService.CreateTokenAsync(new JwtCreateTokenRequest()
+        var claims = new Dictionary<string, string>()
+        {
+            { nameof(TokenClaimTypes.Id), tokenId.ToString() },
+            { nameof(TokenClaimTypes.UserId), request.User.Id.ToString() },
+            { nameof(TokenClaimTypes.CsrfToken), request.CsrfToken },
+        };
+        
+        if(isNeddTwoFactorAuthentication) claims.Add(nameof(TokenClaimTypes.NeedTwoFactorAuthentication), "True");
+        if(isTwoFactorAuthenticated) claims.Add(nameof(TokenClaimTypes.TwoFactorAuthenticated), "True");
+
+        var accessToken = jwtService.CreateToken(new JwtCreateTokenRequest()
         {
             Expires = token.ExpireTime,
-            Claims = new Dictionary<string, string>()
-            {
-                { "Id", tokenId.ToString() },
-                { "UserId", request.User.Id.ToString() },
-                { "Username", request.User.Name },
-                { "Name", request.User.Name },
-            }
+            Claims = claims
         });
         memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));
 
-        return new TokenResponse()
+        return new AuthLoginResponse()
         {
-            Csrf = token.Id,
-            Key = tokenResponse.Key,
+            AccessToken = accessToken,
+            CsrfToken = request.CsrfToken,
+            IsNeedAuthentication = isNeddTwoFactorAuthentication,
         };
     }
 }

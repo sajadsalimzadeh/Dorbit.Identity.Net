@@ -80,7 +80,8 @@ namespace Dorbit.Identity.Migrations
                     NeedResetPassword = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     Message = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
-                    ActiveTokenCount = table.Column<short>(type: "smallint", nullable: false),
+                    Profile = table.Column<string>(type: "character varying(4096)", maxLength: 4096, nullable: true),
+                    MaxTokenCount = table.Column<short>(type: "smallint", nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreatorId = table.Column<string>(type: "text", nullable: true),
                     CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -109,7 +110,10 @@ namespace Dorbit.Identity.Migrations
                     Application = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     Accesses = table.Column<string>(type: "text", nullable: true),
                     ExpireTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    State = table.Column<int>(type: "integer", nullable: false)
+                    State = table.Column<int>(type: "integer", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<string>(type: "text", nullable: true),
+                    CreatorName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -129,8 +133,8 @@ namespace Dorbit.Identity.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    EndTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    From = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    To = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Roles = table.Column<string>(type: "text", nullable: true),
                     Accesses = table.Column<string>(type: "text", nullable: true),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),

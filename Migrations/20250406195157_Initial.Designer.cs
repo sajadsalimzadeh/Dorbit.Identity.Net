@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dorbit.Identity.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20250331180603_Initial")]
+    [Migration("20250406195157_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -121,6 +121,16 @@ namespace Dorbit.Identity.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<DateTime>("ExpireTime")
                         .HasColumnType("timestamp without time zone");
 
@@ -150,9 +160,6 @@ namespace Dorbit.Identity.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<short>("ActiveTokenCount")
-                        .HasColumnType("smallint");
 
                     b.Property<string>("AuthenticatorKey")
                         .HasMaxLength(1024)
@@ -206,6 +213,9 @@ namespace Dorbit.Identity.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<short>("MaxTokenCount")
+                        .HasColumnType("smallint");
+
                     b.Property<string>("Message")
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
@@ -230,6 +240,10 @@ namespace Dorbit.Identity.Migrations
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Profile")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<string>("Salt")
                         .IsRequired()
@@ -282,7 +296,7 @@ namespace Dorbit.Identity.Migrations
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("EndTime")
+                    b.Property<DateTime?>("From")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsDeleted")
@@ -301,7 +315,7 @@ namespace Dorbit.Identity.Migrations
                     b.Property<string>("Roles")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("StartTime")
+                    b.Property<DateTime?>("To")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid>("UserId")

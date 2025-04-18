@@ -8,12 +8,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Entities;
 
 [Table(nameof(Otp), Schema = "identity")]
-[Index(nameof(CodeHash))]
+[Index(nameof(Receiver))]
 public class Otp : Entity, ICreationTime
 {
+    [MaxLength(64)]
+    public string Receiver { get; set; }
     public bool IsUsed { get; set; }
     public byte TryRemain { get; set; }
-    [MaxLength(64)] public string CodeHash { get; set; }
+    [MaxLength(64)] 
+    public string CodeHash { get; set; }
     public DateTime ExpireAt { get; set; }
     public DateTime CreationTime { get; set; }
 }

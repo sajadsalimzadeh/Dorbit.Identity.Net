@@ -1,8 +1,13 @@
-﻿namespace Dorbit.Identity.Contracts.Tokens;
+﻿using System;
+
+namespace Dorbit.Identity.Contracts.Tokens;
 
 public class TokenDto
 {
-    public long Id { get; set; }
-    public long UserId { get; set; }
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public DateTime ExpireTime { get; set; }
     public TokenState State { get; set; }
+    public TokenInfo TokenInfo { get; set; }
+    public DateTime CreationTime { get; set; }
 }

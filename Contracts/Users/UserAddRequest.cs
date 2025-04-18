@@ -10,7 +10,7 @@ public class UserAddRequest
     public string AuthenticatorKey { get; set; }
     public bool NeedResetPassword { get; set; }
 
-    public short ActiveTokenCount { get; set; } = 1;
+    public short MaxTokenCount { get; set; } = 1;
 
     public UserValidateTypes ValidateTypes { get; set; }
 }
