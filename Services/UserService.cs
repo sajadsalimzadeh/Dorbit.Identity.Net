@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services.Abstractions;
 using Dorbit.Identity.Configs;
-using Dorbit.Identity.Contracts;
-using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -40,19 +37,13 @@ public class UserService(
         entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
-            entity.PhoneNumberConfirmTime = DateTime.Now;
+            entity.CellphoneConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
             entity.AuthenticatorValidateTime = DateTime.Now;
 
         entity.IsDeleted = false;
         return await userRepository.SaveAsync(entity);
-    }
-
-    public async Task<User> EditAsync(UserEditRequest request)
-    {
-        var entity = await userRepository.GetByIdAsync(request.Id);
-        return await userRepository.UpdateAsync(request.MapTo(entity));
     }
 
     public async Task<User> RemoveAsync(Guid id)

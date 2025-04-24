@@ -33,10 +33,10 @@ public class Profiles : Profile
         CreateMap<User, BaseUserDto>();
         CreateMap<BaseUserDto, UserDto>();
         CreateMap<UserAddRequest, User>()
-            .ForMember(x => x.PhoneNumber, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
+            .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
         CreateMap<UserEditRequest, User>()
-            .ForMember(x => x.PhoneNumber, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
+            .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using Dorbit.Framework.Entities.Abstractions;
-
-namespace Dorbit.Identity.Contracts.Users;
+﻿namespace Dorbit.Identity.Contracts.Users;
 
 public class UserEditRequest : UserEditOwnRequest
 {

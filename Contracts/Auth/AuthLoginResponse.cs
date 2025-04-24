@@ -1,7 +1,4 @@
-﻿using System;
-using Dorbit.Identity.Contracts.Tokens;
-
-namespace Dorbit.Identity.Contracts.Auth;
+﻿namespace Dorbit.Identity.Contracts.Auth;
 
 public class AuthLoginResponse
 {

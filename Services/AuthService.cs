@@ -56,7 +56,7 @@ public class AuthService(
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)
     {
-        if (request.Type == OtpType.PhoneNumber)
+        if (request.Type == OtpType.Cellphone)
         {
             var otpValidateResult = await otpService.ValidateAsync(new OtpValidateRequest()
             {
@@ -66,7 +66,7 @@ public class AuthService(
             if (!otpValidateResult) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
             User user;
-            if (request.Type == OtpType.PhoneNumber) user = await userRepository.GetByPhoneNumberAsync(request.Receiver);
+            if (request.Type == OtpType.Cellphone) user = await userRepository.GetByCellphoneAsync(request.Receiver);
             else if (request.Type == OtpType.Email) user = await userRepository.GetByEmailAsync(request.Receiver);
             else throw new OperationException(IdentityErrors.OtpTypeNotSupported);
 

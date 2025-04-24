@@ -5,23 +5,23 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
-using Dorbit.Identity.Databases;
+using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class UserRepository(IdentityDbContext dbContext) : BaseRepository<User>(dbContext)
+public class UserRepository(IIdentityDbContext dbContext) : BaseRepository<User>(dbContext)
 {
     public Task<User> GetByUsernameAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Username == value);
     }
     
-    public Task<User> GetByPhoneNumberAsync(string value)
+    public Task<User> GetByCellphoneAsync(string value)
     {
-        return Set().FirstOrDefaultAsync(x => x.PhoneNumber == value);
+        return Set().FirstOrDefaultAsync(x => x.Cellphone == value);
     }
     
     public Task<User> GetByEmailAsync(string value)

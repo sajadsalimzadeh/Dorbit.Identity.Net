@@ -1,5 +1,4 @@
-﻿using System;
-using Dorbit.Framework.Configs.Abstractions;
+﻿using Dorbit.Framework.Configs.Abstractions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Databases;
@@ -13,7 +12,6 @@ public static class IdentityInstaller
 {
     public static IServiceCollection AddDorbitIdentity(this IServiceCollection services, Configs configs)
     {
-        services.AddDbContext<IdentityDbContext>(configs.DbContextConfiguration);
         services.AddDbContext<IdentityInMemoryDbContext>(o => o.UseInMemoryDatabase("IdentityInMemoryDb"));
         
         services.AddAutoMapper(typeof(IdentityInstaller).Assembly);
@@ -30,6 +28,5 @@ public static class IdentityInstaller
     {
         public IConfig<ConfigAdmin> ConfigAdmin { get; set; } = configuration.GetConfig<ConfigAdmin>("Admin");
         public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
-        public required Action<DbContextOptionsBuilder> DbContextConfiguration { get; set; }
     }
 }

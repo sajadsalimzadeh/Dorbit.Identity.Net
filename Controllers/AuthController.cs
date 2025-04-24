@@ -70,13 +70,7 @@ public class AuthController(
     [HttpDelete("Logout")]
     public Task<CommandResult> Logout()
     {
-        Response.Cookies.Append("CSRF", "", new CookieOptions()
-        {
-            Expires = DateTime.UtcNow.AddMinutes(-30),
-            HttpOnly = true,
-            Secure = false,
-            Path = "/"
-        });
+        Response.Cookies.Delete(nameof(TokenClaimTypes.CsrfToken));
         return Task.FromResult(new CommandResult(UserResolver.User is not null));
     }
 

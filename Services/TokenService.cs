@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;

@@ -1,5 +1,4 @@
-﻿using System;
-using Dorbit.Identity.Contracts.Otps;
+﻿using Dorbit.Identity.Contracts.Otps;
 
 namespace Dorbit.Identity.Contracts.Auth;
 

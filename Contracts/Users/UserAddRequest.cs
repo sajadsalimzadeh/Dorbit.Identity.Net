@@ -1,4 +1,6 @@
-﻿namespace Dorbit.Identity.Contracts.Users;
+﻿using System.Collections.Generic;
+
+namespace Dorbit.Identity.Contracts.Users;
 
 public class UserAddRequest
 {
@@ -13,4 +15,5 @@ public class UserAddRequest
     public short MaxTokenCount { get; set; } = 1;
 
     public UserValidateTypes ValidateTypes { get; set; }
+    public List<string> WhiteListIps { get; set; }
 }
