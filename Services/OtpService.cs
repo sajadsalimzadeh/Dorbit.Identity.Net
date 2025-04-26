@@ -13,7 +13,6 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Services;
@@ -22,7 +21,7 @@ namespace Dorbit.Identity.Services;
 public class OtpService(
     OtpRepository otpRepository,
     MessageManager messageManager,
-    IDistributedCache distributedCache,
+    SettingService settingService,
     IOptions<ConfigIdentitySecurity> configSecurityOptions)
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
@@ -76,7 +75,7 @@ public class OtpService(
             await messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Receiver,
-                TemplateType = MessageTemplateType.Otp,
+                TemplateType = settingService.Get(IdentitySettings.OtpTemplate, "otp"),
                 Args = [code]
             });
         }

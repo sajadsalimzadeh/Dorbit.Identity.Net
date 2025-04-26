@@ -66,12 +66,12 @@ public class UserService(
         return user;
     }
 
-    public async Task<User> DeActiveAsync(UserDeActiveRequest request)
+    public async Task<User> InActiveAsync(UserDeActiveRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.Id);
         var admin = await userRepository.GetAdminAsync();
         if (admin.Id == user.Id) throw new OperationException(IdentityErrors.CanNotDeActiveAdmin);
-        user.IsActive = false;
+        user.Status = UserStatus.InActive;
         user.Message = request.Message;
         return await userRepository.UpdateAsync(user);
     }
@@ -79,7 +79,7 @@ public class UserService(
     public async Task<User> ActiveAsync(UserActiveRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.Id);
-        user.IsActive = true;
+        user.Status = UserStatus.Active;
         user.Message = request.Message;
         return await userRepository.UpdateAsync(user);
     }

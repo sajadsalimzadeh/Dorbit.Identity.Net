@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
+using Dorbit.Framework.Utils.Json;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Tokens;
-using Innofactor.EfCoreJsonValueConverter;
 
 namespace Dorbit.Identity.Entities;
 

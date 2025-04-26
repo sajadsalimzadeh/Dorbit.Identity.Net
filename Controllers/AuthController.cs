@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Controllers;
 
 public class AuthController(
-    AuthService authService,
+    IdentityService identityService,
     UserRepository userRepository,
     PrivilegeService privilegeService,
     IOptions<ConfigIdentitySecurity> configSecurityOptions)
@@ -46,7 +46,7 @@ public class AuthController(
         {
             withStaticPasswordRequest.UserAgent = userAgent;
         }
-        var loginResponse = await authService.LoginWithStaticPasswordAsync(withStaticPasswordRequest);
+        var loginResponse = await identityService.LoginWithStaticPasswordAsync(withStaticPasswordRequest);
         HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }
@@ -54,7 +54,7 @@ public class AuthController(
     [HttpPost("LoginWithCode")]
     public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithOtpRequest request)
     {
-        var loginResponse = await authService.LoginWithOtpAsync(request);
+        var loginResponse = await identityService.LoginWithOtpAsync(request);
         HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }
@@ -62,7 +62,7 @@ public class AuthController(
     [HttpPost("Register")]
     public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
     {
-        var loginResponse = await authService.RegisterAsync(request);
+        var loginResponse = await identityService.RegisterAsync(request);
         HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
     }

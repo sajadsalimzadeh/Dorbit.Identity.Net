@@ -6,7 +6,8 @@ using System.Security.Claims;
 using System.Text.Json;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Entities;
-using Innofactor.EfCoreJsonValueConverter;
+using Dorbit.Framework.Utils.Json;
+using Dorbit.Identity.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Entities;
@@ -58,7 +59,7 @@ public class User : FullEntity
     public List<string> WhiteListIps { get; set; }
 
     public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
-    public bool IsActive { get; set; } = true;
+    public UserStatus Status { get; set; } = UserStatus.Active;
 
     [MaxLength(1024)]
     public string Message { get; set; }

@@ -22,7 +22,7 @@ namespace Dorbit.Identity.Controllers;
 public class UsersController(
     UserService userService,
     UserRepository userRepository,
-    AuthService authService,
+    IdentityService identityService,
     UserPrivilegeRepository userPrivilegeRepository,
     TokenRepository tokenRepository,
     PrivilegeService privilegeService)
@@ -82,14 +82,14 @@ public class UsersController(
     [HttpPost("Own/ChangePasswordByPassword"), Auth]
     public async Task<CommandResult> ChangePasswordByPasswordAsync([FromBody] AuthChangePasswordByPasswordRequest request)
     {
-        await authService.ChangePasswordByPasswordAsync(request);
+        await identityService.ChangePasswordByPasswordAsync(request);
         return Succeed();
     }
 
     [HttpPost("Own/ChangePasswordByOtp"), Auth]
     public async Task<CommandResult> ChangePasswordByOtpAsync([FromBody] AuthChangePasswordByOtpRequest request)
     {
-        await authService.ChangePasswordByOtpAsync(request);
+        await identityService.ChangePasswordByOtpAsync(request);
         return Succeed();
     }
 
@@ -117,7 +117,7 @@ public class UsersController(
     [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]
     public async Task<QueryResult<UserDto>> DeActiveAsync([FromRoute] UserDeActiveRequest request)
     {
-        return (await userService.DeActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
+        return (await userService.InActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
 
     [HttpPost("{id:guid}/Active"), Auth("User-Active")]

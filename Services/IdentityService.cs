@@ -6,7 +6,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Abstractions;
-using Dorbit.Framework.Contracts.Users;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
@@ -25,7 +24,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class AuthService(
+public class IdentityService(
     OtpService otpService,
     JwtService jwtService,
     TokenService tokenService,
@@ -34,8 +33,12 @@ public class AuthService(
     UserRepository userRepository,
     TokenRepository tokenRepository,
     PrivilegeService privilegeService)
-    : IAuthService
+    : IIdentityService, IUserResolver
 {
+
+    public IUserDto User { get; set; }
+    public ClaimsPrincipal Claims { get; set; }
+    
     public async Task<AuthLoginResponse> LoginWithStaticPasswordAsync(AuthLoginWithStaticPasswordRequest request)
     {
         var username = request.Username.ToLower();
@@ -117,16 +120,16 @@ public class AuthService(
         
         var user = await userRepository.Set().GetByIdAsyncWithCache(userGuid, $"user-{userGuid}", TimeSpan.FromMinutes(1));
         if (user is null) return default;
-        return new BaseUserDto()
+        return new UserDto()
         {
             Id = userGuid,
             Name = user.Name,
             Username = user.Username,
-            IsActive = user.IsActive,
+            Status = user.Status,
             Claims = claims,
         };
     }
-    
+
     public async Task ChangePasswordByPasswordAsync(AuthChangePasswordByPasswordRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.UserId);
@@ -157,7 +160,7 @@ public class AuthService(
         await userRepository.UpdateAsync(user);
     }
 
-    public async Task<bool> IsTokenValid(HttpContext context, ClaimsPrincipal claimsPrincipal)
+    public async Task<bool> ValidateAsync(HttpContext context, ClaimsPrincipal claimsPrincipal)
     {
         var tokenCsrf = claimsPrincipal.FindFirst(nameof(TokenClaimTypes.CsrfToken))?.Value;
         if (!context.Request.Cookies.TryGetValue(nameof(TokenClaimTypes.CsrfToken), out var userCsrf)) return false;
@@ -169,6 +172,9 @@ public class AuthService(
         if(tokenIdClaim is null)
             throw new AuthenticationException("Token claim id not found");
         
+        if(!claimsPrincipal.FindFirst(nameof(TokenClaimTypes.UserId)).TryGetGuid(out var userId))
+            throw new AuthenticationException("Token claim user id not found");
+        
         if (!Guid.TryParse(tokenIdClaim.Value, out var tokeGuid))
             throw new AuthenticationException("Token claim id invalid");
         
@@ -177,13 +183,19 @@ public class AuthService(
             throw new AuthenticationException("Token not found");
         
         if (token.State != TokenState.Valid) return false;
+
+        var user = await userRepository.GetByIdAsyncWithCache(userId, TimeSpan.FromMinutes(1));
+
+        User = user.MapTo<UserDto>();
+        Claims = claimsPrincipal;
+        
         return true;
     }
 
     public async Task<IEnumerable<string>> GetAllAccessAsync()
     {
         if (userResolver.User is null) return [];
-        return await GetAllAccessAsync(userResolver.User.Id);
+        return await GetAllAccessAsync(userResolver.User.GetId());
     }
 
     public Task<IEnumerable<string>> GetAllAccessAsync(object userId)
@@ -193,7 +205,7 @@ public class AuthService(
 
     public Task<bool> HasAccessAsync(string access)
     {
-        return HasAccessAsync(userResolver.User.Id, access);
+        return HasAccessAsync(userResolver.User.GetId(), access);
     }
 
     public async Task<bool> HasAccessAsync(object userId, string access)

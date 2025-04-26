@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dorbit.Framework.Contracts.Users;
+using System.Security.Claims;
+using Dorbit.Framework.Contracts.Abstractions;
 
 namespace Dorbit.Identity.Contracts.Users;
 
-public class UserDto : BaseUserDto
+public class UserDto : IUserDto
 {
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Username { get; set; }
+    
     public int Code { get; set; }
     public bool HasPassword { get; set; }
     
@@ -21,7 +26,7 @@ public class UserDto : BaseUserDto
     public string Thumbnail { get; set; }
     
     public bool NeedResetPassword { get; set; }
-    public bool IsActive { get; set; }
+    public UserStatus Status { get; set; }
     
     public string Message { get; set; }
     
@@ -30,4 +35,21 @@ public class UserDto : BaseUserDto
     public DateTime CreationTime { get; set; }
     
     public IEnumerable<string> Accesses { get; set; }
+
+    public ClaimsPrincipal Claims { get; set; }
+    
+    public object GetId()
+    {
+        return Id;
+    }
+
+    public string GetUsername()
+    {
+        return Username;
+    }
+
+    bool IUserDto.IsActive()
+    {
+        throw new NotImplementedException();
+    }
 }

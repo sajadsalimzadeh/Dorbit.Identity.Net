@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Entities;
-using Innofactor.EfCoreJsonValueConverter;
+using Dorbit.Framework.Utils.Json;
 
 namespace Dorbit.Identity.Entities;
 
