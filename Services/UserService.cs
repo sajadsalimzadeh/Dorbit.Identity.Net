@@ -4,6 +4,7 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
@@ -16,8 +17,6 @@ namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class UserService(
-    OtpService otpService,
-    IUserResolver userResolver,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     UserPrivilegeRepository userPrivilegeRepository,
@@ -25,6 +24,11 @@ public class UserService(
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
+    public static string HashPassword(string password, string salt)
+    {
+        return Hash.Sha1(salt + password + salt);
+    }
+    
     public async Task<User> AddAsync(UserAddRequest request)
     {
         var existsUser = await userRepository.Set(false).FirstOrDefaultAsync(x => x.Username.ToLower() == request.Username);
@@ -34,7 +38,7 @@ public class UserService(
             PasswordSalt = Guid.NewGuid().ToString()
         });
         entity.Username = entity.Username.ToLower();
-        entity.PasswordHash = HashUtility.HashPassword(request.Password, entity.PasswordSalt);
+        entity.PasswordHash = HashPassword(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
             entity.CellphoneConfirmTime = DateTime.Now;
@@ -61,7 +65,7 @@ public class UserService(
     public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
-        user.PasswordHash = HashUtility.HashPassword(request.Password, user.PasswordSalt);
+        user.PasswordHash = HashPassword(request.Password, user.PasswordSalt);
         await userRepository.UpdateAsync(user);
         return user;
     }

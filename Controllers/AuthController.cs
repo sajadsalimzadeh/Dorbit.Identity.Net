@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Dorbit.Framework.Contracts.Abstractions;
+using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
@@ -18,8 +21,6 @@ namespace Dorbit.Identity.Controllers;
 
 public class AuthController(
     IdentityService identityService,
-    UserRepository userRepository,
-    PrivilegeService privilegeService,
     IOptions<ConfigIdentitySecurity> configSecurityOptions)
     : BaseController
 {
@@ -42,10 +43,11 @@ public class AuthController(
     [HttpPost("Login")]
     public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginWithStaticPasswordRequest withStaticPasswordRequest)
     {
-        if(HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
+        if (HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
         {
             withStaticPasswordRequest.UserAgent = userAgent;
         }
+
         var loginResponse = await identityService.LoginWithStaticPasswordAsync(withStaticPasswordRequest);
         HandleToken(loginResponse);
         return loginResponse.ToQueryResult();
@@ -75,11 +77,8 @@ public class AuthController(
     }
 
     [HttpGet("IsLogin"), Auth]
-    public async Task<QueryResult<UserDto>> IsLogin()
+    public QueryResult<IdentityDto> IsLogin()
     {
-        var user = await userRepository.GetByIdAsync(GetUserId<Guid>());
-        var dto = user.MapTo<UserDto>();
-        dto.Accesses = await privilegeService.GetAllByUserIdAsync(user.Id);
-        return dto.ToQueryResult();
+        return identityService.Identity.ToQueryResult();
     }
 }

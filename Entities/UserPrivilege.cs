@@ -16,13 +16,14 @@ public class UserPrivilege : FullEntity
     public Guid? TenantId { get; set; }
     public DateTime? From { get; set; }
     public DateTime? To { get; set; }
+    public bool IsAdmin { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }
     
     [JsonField]
-    public List<string> Roles { get; set; }
+    public List<Guid> RoleIds { get; set; }
     
     [JsonField]
-    public List<string> Accesses { get; set; }
+    public List<string> Accessibility { get; set; }
 }

@@ -6,7 +6,8 @@ namespace Dorbit.Identity.Contracts.Privileges;
 public class PrivilegeSaveRequest
 {
     public Guid UserId { get; set; }
-    public DateTime? StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
-    public List<string> Accesses { get; set; }
+    public DateTime? From { get; set; }
+    public DateTime? To { get; set; }
+    public bool IsAdmin { get; set; }
+    public List<string> Accessibility { get; set; }
 }

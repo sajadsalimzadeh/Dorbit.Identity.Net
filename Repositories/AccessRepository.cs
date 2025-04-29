@@ -15,10 +15,10 @@ namespace Dorbit.Identity.Repositories;
 [ServiceRegister]
 public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache memoryCache) : BaseRepository<Access>(dbContext)
 {
-    public async Task<List<AccessWithChildrenDto>> GetAllAccessHierarchyWithCache()
+    public async Task<HashSet<string>> GetTotalAccessibilityAsync(List<string> accessibility)
     {
-        var key = $"{nameof(AccessRepository)}-{nameof(GetAllAccessHierarchyWithCache)}";
-        if (!memoryCache.TryGetValue(key, out List<AccessWithChildrenDto> result))
+        var key = $"{nameof(AccessRepository)}-{nameof(GetTotalAccessibilityAsync)}";
+        var accessDictionary = await memoryCache.GetValueWithLockAsync(key, async () =>
         {
             var allAccesses = await Set().ToListAsyncWithCache(key, TimeSpan.FromMinutes(1));
             allAccesses.ForEach(x =>
@@ -29,26 +29,33 @@ public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache 
 
             void FindAllChildren(Access access, AccessWithChildrenDto accessWithChildren)
             {
-                if (accessWithChildren.Children.Contains(access.Name)) return;
-                accessWithChildren.Children.Add(access.Name);
+                if (!accessWithChildren.Children.Add(access.Name.ToLower())) return;
                 foreach (var childAccess in allAccesses.Where(x => x.ParentId == access.Id || x.Parent?.Name == access.Name))
                 {
                     FindAllChildren(childAccess, accessWithChildren);
                 }
             }
 
-            result = new List<AccessWithChildrenDto>();
-            foreach (var access in allAccesses)
+            var result = new Dictionary<string, HashSet<string>>();
+            foreach (var access in allAccesses.DistinctBy(x => x.Name))
             {
-                var accessWithChildren = new AccessWithChildrenDto()
-                {
-                    Name = access.Name.ToLower()
-                };
+                var accessWithChildren = new AccessWithChildrenDto();
                 FindAllChildren(access, accessWithChildren);
-                result.Add(accessWithChildren);
+                result.Add(access.Name.ToLower(), accessWithChildren.Children);
+            }
+
+            return result;
+        }, TimeSpan.FromMinutes(10));
+
+        var allAccessibility = new List<string>();
+        foreach (var access in accessibility)
+        {
+            if (accessDictionary.TryGetValue(access, out var accesses))
+            {
+                allAccessibility.AddRange(accesses);
             }
         }
 
-        return result;
+        return allAccessibility.Distinct().ToHashSet();
     }
 }

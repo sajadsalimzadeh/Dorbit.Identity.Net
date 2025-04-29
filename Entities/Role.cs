@@ -13,5 +13,5 @@ public class Role : FullEntity
     public string Name { get; set; }
     
     [JsonField]
-    public List<string> Accesses { get; set; }
+    public List<string> Accessibility { get; set; }
 }

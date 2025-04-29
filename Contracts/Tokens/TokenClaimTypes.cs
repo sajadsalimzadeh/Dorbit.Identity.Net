@@ -3,7 +3,6 @@
 public enum TokenClaimTypes
 {
     Id,
-    UserId,
     CsrfToken,
     NeedTwoFactorAuthentication,
     TwoFactorAuthenticated,

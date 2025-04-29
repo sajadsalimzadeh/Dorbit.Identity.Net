@@ -26,6 +26,11 @@ public class OtpService(
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
+    private static string HashOtp(string password, string salt)
+    {
+        return Hash.Sha1(password + salt);
+    }
+    
     public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)
     {
         code = new Random().NextNumber(request.Length);
@@ -34,7 +39,7 @@ public class OtpService(
         {
             Id = id,
             TryRemain = request.TryRemain,
-            CodeHash = Hash.Sha1(code, id.ToString()),
+            CodeHash = HashOtp(code, id.ToString()),
             ExpireAt = DateTime.UtcNow.Add(request.Duration),
             IsUsed = false
         });
@@ -48,7 +53,7 @@ public class OtpService(
         {
             if (otp.TryRemain <= 0) throw new OperationException(IdentityErrors.OtpTryRemainFinished);
             if (otp.IsUsed) throw new OperationException(IdentityErrors.OtpIsUsed);
-            if (otp.CodeHash == HashUtility.HashOtp(request.Code, otp.Id.ToString()))
+            if (otp.CodeHash == HashOtp(request.Code, otp.Id.ToString()))
             {
                 otp.IsUsed = true;
                 return false;

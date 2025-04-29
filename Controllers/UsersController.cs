@@ -42,16 +42,6 @@ public class UsersController(
         if (!string.IsNullOrEmpty(request.Search)) query = query.Where(x => x.Name.Contains(request.Search) || x.Username.Contains(request.Search));
         if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
         var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserDto>>();
-        foreach (var userDto in users)
-        {
-            var userId = (Guid)userDto.Id;
-            var allAccesses = await userPrivilegeRepository.Set()
-                .Where(x => x.UserId == userId)
-                .Select(x => x.Accesses)
-                .ToListAsyncWithCache($"Privileges-Accesses-{userDto.Id}", TimeSpan.FromSeconds(5));
-            userDto.Accesses = allAccesses.SelectMany(x => x);
-        }
-
         return users.ToQueryResult();
     }
 

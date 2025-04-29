@@ -34,7 +34,7 @@ public class UserDto : IUserDto
 
     public DateTime CreationTime { get; set; }
     
-    public IEnumerable<string> Accesses { get; set; }
+    public List<string> Accessibility { get; set; }
 
     public ClaimsPrincipal Claims { get; set; }
     
@@ -48,8 +48,8 @@ public class UserDto : IUserDto
         return Username;
     }
 
-    bool IUserDto.IsActive()
+    public bool IsActive()
     {
-        throw new NotImplementedException();
+        return Status == UserStatus.Active;
     }
 }

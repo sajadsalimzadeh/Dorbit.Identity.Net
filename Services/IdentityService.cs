@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Contracts.Abstractions;
+using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
@@ -17,8 +18,6 @@ using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
-using Dorbit.Identity.Utilities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Services;
@@ -28,24 +27,25 @@ public class IdentityService(
     OtpService otpService,
     JwtService jwtService,
     TokenService tokenService,
-    IUserResolver userResolver,
     UserService userService,
+    RoleRepository roleRepository,
     UserRepository userRepository,
     TokenRepository tokenRepository,
-    PrivilegeService privilegeService)
+    AccessRepository accessRepository,
+    UserPrivilegeRepository userPrivilegeRepository
+)
     : IIdentityService, IUserResolver
 {
-
+    public IdentityDto Identity { get; private set; }
     public IUserDto User { get; set; }
-    public ClaimsPrincipal Claims { get; set; }
-    
+
     public async Task<AuthLoginResponse> LoginWithStaticPasswordAsync(AuthLoginWithStaticPasswordRequest request)
     {
         var username = request.Username.ToLower();
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
                    throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
-        var hash = HashUtility.HashPassword(request.Password, user.PasswordSalt);
+        var hash = UserService.HashPassword(request.Password, user.PasswordSalt);
         if (user.PasswordHash != hash) throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
         var csrfToken = Guid.NewGuid().ToString();
@@ -111,34 +111,15 @@ public class IdentityService(
         });
     }
 
-    public async Task<IUserDto> GetUserByTokenAsync(string token)
-    {
-        if (!jwtService.TryValidateToken(token, out _, out var claims)) throw new AuthenticationException("Token is invalid");
-
-        if (!Guid.TryParse(claims.FindFirst(nameof(TokenClaimTypes.UserId))?.Value, out var userGuid)) 
-            throw new Exception("UserId not correct format");
-        
-        var user = await userRepository.Set().GetByIdAsyncWithCache(userGuid, $"user-{userGuid}", TimeSpan.FromMinutes(1));
-        if (user is null) return default;
-        return new UserDto()
-        {
-            Id = userGuid,
-            Name = user.Name,
-            Username = user.Username,
-            Status = user.Status,
-            Claims = claims,
-        };
-    }
-
     public async Task ChangePasswordByPasswordAsync(AuthChangePasswordByPasswordRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.UserId);
 
-        if (user.PasswordHash != HashUtility.HashPassword(request.Password, user.PasswordSalt))
+        if (user.PasswordHash != UserService.HashPassword(request.Password, user.PasswordSalt))
             throw new OperationException(IdentityErrors.OldPasswordIsInvalid);
-        
+
         user.PasswordSalt = Guid.NewGuid().ToString();
-        user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.PasswordSalt);
+        user.PasswordHash = UserService.HashPassword(request.NewPassword, user.PasswordSalt);
 
         await userRepository.UpdateAsync(user);
     }
@@ -153,64 +134,67 @@ public class IdentityService(
         });
         if (!validateResult)
             throw new OperationException(IdentityErrors.OtpIsInvalid);
-        
+
         user.PasswordSalt = Guid.NewGuid().ToString();
-        user.PasswordHash = HashUtility.HashPassword(request.NewPassword, user.PasswordSalt);
+        user.PasswordHash = UserService.HashPassword(request.NewPassword, user.PasswordSalt);
 
         await userRepository.UpdateAsync(user);
     }
 
-    public async Task<bool> ValidateAsync(HttpContext context, ClaimsPrincipal claimsPrincipal)
+    public async Task<bool> ValidateAsync(IdentityValidateRequest request)
     {
-        var tokenCsrf = claimsPrincipal.FindFirst(nameof(TokenClaimTypes.CsrfToken))?.Value;
-        if (!context.Request.Cookies.TryGetValue(nameof(TokenClaimTypes.CsrfToken), out var userCsrf)) return false;
-        
-        if (userCsrf != tokenCsrf)
+        if (!jwtService.TryValidateToken(request.AccessToken, out _, out var claimsPrincipal))
+            throw new AuthenticationException("Invalid access token");
+
+        if (!claimsPrincipal.Claims.TryGetString(nameof(TokenClaimTypes.CsrfToken), out var csrfToken))
+            throw new AuthenticationException("Csrf token not fount");
+
+        if (request.CsrfToken != csrfToken)
             throw new AuthenticationException("Csrf token not match");
 
-        var tokenIdClaim = claimsPrincipal.FindFirst(nameof(TokenClaimTypes.Id));
-        if(tokenIdClaim is null)
+        if (!claimsPrincipal.Claims.TryGetGuid(nameof(TokenClaimTypes.Id), out var tokenId))
             throw new AuthenticationException("Token claim id not found");
-        
-        if(!claimsPrincipal.FindFirst(nameof(TokenClaimTypes.UserId)).TryGetGuid(out var userId))
-            throw new AuthenticationException("Token claim user id not found");
-        
-        if (!Guid.TryParse(tokenIdClaim.Value, out var tokeGuid))
-            throw new AuthenticationException("Token claim id invalid");
-        
-        var token = await tokenRepository.Set().FirstOrDefaultAsyncWithCache(x => x.Id == tokeGuid, tokeGuid.ToString(), TimeSpan.FromMinutes(2));
+
+        var token = await tokenRepository.Set()
+            .Include(x => x.User)
+            .FirstOrDefaultAsyncWithCache(x => x.Id == tokenId, tokenId.ToString(), TimeSpan.FromMinutes(1));
         if (token is null)
             throw new AuthenticationException("Token not found");
-        
+
         if (token.State != TokenState.Valid) return false;
 
-        var user = await userRepository.GetByIdAsyncWithCache(userId, TimeSpan.FromMinutes(1));
+        var now = DateTime.UtcNow;
+        var userPrivileges = await userPrivilegeRepository.Set().Where(x =>
+            x.UserId == token.UserId &&
+            (x.From == null || x.From > now) &&
+            (x.To == null || x.To < now)
+        ).ToListAsyncWithCache($"Identity--{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
 
-        User = user.MapTo<UserDto>();
-        Claims = claimsPrincipal;
-        
+        var roles = await roleRepository.Set().ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(5));
+
+        Identity = new IdentityDto
+        {
+            User = User = token.User.MapTo<UserDto>()
+        };
+        var allAccessibility = new List<string>();
+        foreach (var userPrivilege in userPrivileges)
+        {
+            if (userPrivilege.IsAdmin)
+            {
+                Identity.IsAdmin = true;
+                break;
+            }
+
+            var privilegeRoles = roles.Where(x => userPrivilege.RoleIds.Contains(x.Id)).ToList();
+            allAccessibility.AddRange(privilegeRoles.Where(x => x.Accessibility != null).SelectMany(x => x.Accessibility));
+            if (userPrivilege.Accessibility is not null)
+            {
+                allAccessibility.AddRange(userPrivilege.Accessibility);
+            }
+        }
+
+        Identity.Accessibility = await accessRepository.GetTotalAccessibilityAsync(allAccessibility);
+
         return true;
-    }
-
-    public async Task<IEnumerable<string>> GetAllAccessAsync()
-    {
-        if (userResolver.User is null) return [];
-        return await GetAllAccessAsync(userResolver.User.GetId());
-    }
-
-    public Task<IEnumerable<string>> GetAllAccessAsync(object userId)
-    {
-        return privilegeService.GetAllByUserIdAsync(userId);
-    }
-
-    public Task<bool> HasAccessAsync(string access)
-    {
-        return HasAccessAsync(userResolver.User.GetId(), access);
-    }
-
-    public async Task<bool> HasAccessAsync(object userId, string access)
-    {
-        var allUserAccess = await GetAllAccessAsync(userId);
-        return allUserAccess.Any(access.Contains);
     }
 }
