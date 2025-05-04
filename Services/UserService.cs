@@ -50,16 +50,15 @@ public class UserService(
         return await userRepository.SaveAsync(entity);
     }
 
-    public async Task<User> RemoveAsync(Guid id)
+    public async Task RemoveAsync(Guid id)
     {
         var admin = await userRepository.GetAdminAsync();
         if (admin.Id == id) throw new OperationException(IdentityErrors.CanNotRemoveAdminUser);
         var transaction = userRepository.DbContext.BeginTransaction();
         await userPrivilegeRepository.BulkDeleteAsync(x => x.UserId == id);
         await tokenRepository.BulkDeleteAsync(x => x.UserId == id);
-        var dto = await userRepository.DeleteAsync(id);
+        await userRepository.DeleteAsync(id);
         await transaction.CommitAsync();
-        return dto;
     }
 
     public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
