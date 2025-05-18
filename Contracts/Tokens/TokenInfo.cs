@@ -11,18 +11,10 @@ public class TokenInfo
 }
 
 [NotMapped]
-public class ClientInfoVersion
+public class ClientInfoVersion(string family = null, string major = null, string minor = null, string patch = null)
 {
-    public string Family { get; set; }
-    public string Major { get; set; }
-    public string Minor { get; set; }
-    public string Patch { get; set; }
-
-    public ClientInfoVersion(string family = null, string major = null, string minor = null, string patch = null)
-    {
-        Family = family;
-        Major = major;
-        Minor = minor;
-        Patch = patch;
-    }
+    public string Family { get; set; } = family;
+    public string Major { get; set; } = major;
+    public string Minor { get; set; } = minor;
+    public string Patch { get; set; } = patch;
 }

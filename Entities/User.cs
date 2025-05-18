@@ -64,19 +64,6 @@ public class User : FullEntity
     [MaxLength(1024)]
     public string Message { get; set; }
 
-    [MaxLength(4096)]
-    public string Profile { get; private set; }
-
     [NotMapped]
     public ClaimsPrincipal Claims { get; set; }
-
-    public T GetProfile<T>()
-    {
-        return Profile is not null ? JsonSerializer.Deserialize<T>(Profile) : default;
-    }
-
-    public void SetProfile<T>(T value)
-    {
-        Profile = value is not null ? JsonSerializer.Serialize(value) : null;
-    }
 }

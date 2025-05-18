@@ -10,6 +10,7 @@ using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
@@ -52,11 +53,6 @@ public class UsersController(
         return userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
-    {
-        return userService.AddAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
-    }
-
     [Auth]
     [HttpPatch("Own")]
     public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] UserEditOwnRequest request)
@@ -64,9 +60,10 @@ public class UsersController(
         return userRepository.PatchAsync(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override Task<QueryResult<UserDto>> Remove(Guid id)
+    public override async Task<CommandResult> Remove(Guid id)
     {
-        return userService.RemoveAsync(id).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        await userService.RemoveAsync(id);
+        return Succeed();
     }
 
     [HttpPost("Own/ChangePasswordByPassword"), Auth]
@@ -84,11 +81,11 @@ public class UsersController(
     }
 
     [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
-    public async Task<QueryResult<UserDto>> ResetPasswordAsync([FromRoute] Guid id, [FromBody] UserResetPasswordRequest request)
+    public async Task<CommandResult> ResetPasswordAsync([FromRoute] Guid id, [FromBody] UserResetPasswordRequest request)
     {
         request.Id = id;
         var user = await userService.ResetPasswordAsync(request);
-        return user.MapTo<UserDto>().ToQueryResult();
+        return Succeed();
     }
 
     [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
@@ -105,13 +102,13 @@ public class UsersController(
     }
 
     [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]
-    public async Task<QueryResult<UserDto>> DeActiveAsync([FromRoute] UserDeActiveRequest request)
+    public async Task<CommandResult> DeActiveAsync([FromRoute] UserDeActiveRequest request)
     {
         return (await userService.InActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
 
     [HttpPost("{id:guid}/Active"), Auth("User-Active")]
-    public async Task<QueryResult<UserDto>> ActiveAsync([FromRoute] UserActiveRequest request)
+    public async Task<CommandResult> ActiveAsync([FromRoute] UserActiveRequest request)
     {
         return (await userService.ActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
     }
