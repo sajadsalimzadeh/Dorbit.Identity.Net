@@ -7,6 +7,4 @@ public class UserEditOwnRequest
     public string Name { get; set; }
     public string Email { get; set; }
     public string Cellphone { get; set; }
-
-    public JsonElement Profile { get; set; }
 }
