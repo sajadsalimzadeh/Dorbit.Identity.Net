@@ -32,16 +32,23 @@ public class AuthController(
         {
             Response.Cookies.Append(nameof(TokenClaimTypes.CsrfToken), loginResponse.CsrfToken, new CookieOptions()
             {
-                Expires = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
+                Path = "/",
+                Secure = true,
                 HttpOnly = true,
-                Secure = false,
-                Path = "/"
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
             });
         }
     }
 
-    [HttpPost("Login")]
-    public async Task<QueryResult<AuthLoginResponse>> Login([FromBody] AuthLoginWithStaticPasswordRequest withStaticPasswordRequest)
+    [HttpGet, Auth]
+    public QueryResult<IdentityDto> GetLoginInfo()
+    {
+        return identityService.Identity.ToQueryResult();
+    }
+
+    [HttpPost("LoginWithPassword"), Captcha]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithPasswordAsync([FromBody] AuthLoginWithStaticPasswordRequest withStaticPasswordRequest)
     {
         if (HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
         {
@@ -53,8 +60,8 @@ public class AuthController(
         return loginResponse.ToQueryResult();
     }
 
-    [HttpPost("LoginWithCode")]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithCode([FromBody] AuthLoginWithOtpRequest request)
+    [HttpPost("LoginWithOtp")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithOtpAsync([FromBody] AuthLoginWithOtpRequest request)
     {
         var loginResponse = await identityService.LoginWithOtpAsync(request);
         HandleToken(loginResponse);
@@ -74,11 +81,5 @@ public class AuthController(
     {
         Response.Cookies.Delete(nameof(TokenClaimTypes.CsrfToken));
         return Task.FromResult(new CommandResult(UserResolver.User is not null));
-    }
-
-    [HttpGet("IsLogin"), Auth]
-    public QueryResult<IdentityDto> IsLogin()
-    {
-        return identityService.Identity.ToQueryResult();
     }
 }

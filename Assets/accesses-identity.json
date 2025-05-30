@@ -1,64 +1,43 @@
 ﻿[
   {
-    "Name": "AllAccess",
+    "Name": "Identity",
     "Children": [
       {
-        "Name": "Identity",
+        "Name": "User",
         "Children": [
           {
-            "Name": "User",
-            "Children": [
-              {
-                "Name": "User-Read"
-              },
-              {
-                "Name": "User-DeActive"
-              },
-              {
-                "Name": "User-Active"
-              },
-              {
-                "Name": "User-Tokens"
-              },
-              {
-                "Name": "User-Message"
-              },
-              {
-                "Name": "User-ResetPassword"
-              }
-            ]
+            "Name": "User-Read"
           },
           {
-            "Name": "Access",
-            "Children": [
-              {
-                "Name": "Access-Read"
-              }
-            ]
+            "Name": "User-DeActive"
           },
           {
-            "Name": "Privilege",
-            "Children": [
-              {
-                "Name": "Privilege-Read"
-              }
-            ]
+            "Name": "User-Active"
+          },
+          {
+            "Name": "User-Tokens"
+          },
+          {
+            "Name": "User-Message"
+          },
+          {
+            "Name": "User-ResetPassword"
           }
         ]
-      }
-    ]
-  },
-  {
-    "Name": "Roles",
-    "Children": [
+      },
       {
-        "Name": "Admin",
+        "Name": "Access",
         "Children": [
           {
-            "Name": "AllAccess"
-          },
+            "Name": "Access-Read"
+          }
+        ]
+      },
+      {
+        "Name": "Privilege",
+        "Children": [
           {
-            "Name": "Developer"
+            "Name": "Privilege-Read"
           }
         ]
       }

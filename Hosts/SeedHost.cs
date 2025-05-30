@@ -49,6 +49,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
             {
                 UserId = admin.Id,
                 IsAdmin = true,
+                Accessibility = ["AllAccess"]
             });
         }
     }

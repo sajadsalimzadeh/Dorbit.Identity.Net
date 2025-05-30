@@ -8,6 +8,7 @@ using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Contracts.Accesses;
 using Dorbit.Identity.Databases;
 using Dorbit.Identity.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Dorbit.Identity.Repositories;
@@ -20,7 +21,7 @@ public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache 
         var key = $"{nameof(AccessRepository)}-{nameof(GetTotalAccessibilityAsync)}";
         var accessDictionary = await memoryCache.GetValueWithLockAsync(key, async () =>
         {
-            var allAccesses = await Set().ToListAsyncWithCache(key, TimeSpan.FromMinutes(1));
+            var allAccesses = await Set().ToListAsync();
             allAccesses.ForEach(x =>
             {
                 x.Name = x.Name.ToLower();
