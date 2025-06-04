@@ -32,6 +32,7 @@ public class TokenService(
     {
         var uaParser = UserAgentParser.GetDefault();
         var clientInfo = uaParser.Parse(request.UserAgent ?? "");
+        var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
 
         var maxActiveTokenCount = Math.Min(request.User.MaxTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
         var activeTokens = await tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
@@ -46,7 +47,7 @@ public class TokenService(
         var isNeddTwoFactorAuthentication = request.User.IsTwoFactorAuthenticationEnabled;
         if (request.AccessToken.IsNotNullOrEmpty())
         {
-            if (jwtService.TryValidateToken(request.AccessToken, out _, out var preClaimsPrincipal))
+            if (jwtService.TryValidateToken(request.AccessToken, secret, out _, out var preClaimsPrincipal))
             {
                 var needTwoFactorAuthenticationClaim =
                     preClaimsPrincipal.Claims.FirstOrDefault(x => x.Type == nameof(TokenClaimTypes.NeedTwoFactorAuthentication));
@@ -84,9 +85,8 @@ public class TokenService(
         if (isNeddTwoFactorAuthentication) claims.Add(nameof(TokenClaimTypes.NeedTwoFactorAuthentication), "True");
         if (isTwoFactorAuthenticated) claims.Add(nameof(TokenClaimTypes.TwoFactorAuthenticated), "True");
 
-        var accessToken = jwtService.CreateToken(new JwtCreateTokenRequest()
+        var accessToken = jwtService.CreateToken(new JwtCreateTokenRequest(secret, request.CsrfToken, token.ExpireTime)
         {
-            Expires = token.ExpireTime,
             Claims = claims
         });
         memoryCache.Set(token.Id, token, TimeSpan.FromMinutes(1));

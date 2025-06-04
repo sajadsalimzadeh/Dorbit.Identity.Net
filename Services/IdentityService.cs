@@ -11,6 +11,7 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Otps;
@@ -19,6 +20,7 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Services;
 
@@ -32,12 +34,15 @@ public class IdentityService(
     UserRepository userRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
-    UserPrivilegeRepository userPrivilegeRepository
+    UserPrivilegeRepository userPrivilegeRepository,
+    IOptions<ConfigIdentitySecurity> configIdentitySecurity
 )
     : IIdentityService, IUserResolver
 {
     public IdentityDto Identity { get; private set; }
     public IUserDto User { get; set; }
+
+    private ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
 
     public async Task<AuthLoginResponse> LoginWithStaticPasswordAsync(AuthLoginWithStaticPasswordRequest request)
     {
@@ -143,7 +148,8 @@ public class IdentityService(
 
     public async Task<bool> ValidateAsync(IdentityValidateRequest request)
     {
-        if (!jwtService.TryValidateToken(request.AccessToken, out _, out var claimsPrincipal))
+        var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
+        if (!jwtService.TryValidateToken(request.AccessToken, secret, out _, out var claimsPrincipal))
             throw new AuthenticationException("Invalid access token");
 
         if (!claimsPrincipal.Claims.TryGetString(nameof(TokenClaimTypes.CsrfToken), out var csrfToken))
@@ -170,7 +176,8 @@ public class IdentityService(
             (x.To == null || x.To < now)
         ).ToListAsyncWithCache($"Identity--{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
 
-        var roles = await roleRepository.Set().ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(5));
+        var roles = await roleRepository.Set()
+            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(5));
 
         Identity = new IdentityDto
         {
@@ -186,7 +193,8 @@ public class IdentityService(
             }
 
             var privilegeRoles = roles.Where(x => userPrivilege.RoleIds.Contains(x.Id)).ToList();
-            allAccessibility.AddRange(privilegeRoles.Where(x => x.Accessibility != null).SelectMany(x => x.Accessibility));
+            allAccessibility.AddRange(privilegeRoles.Where(x => x.Accessibility != null)
+                .SelectMany(x => x.Accessibility));
             if (userPrivilege.Accessibility is not null)
             {
                 allAccessibility.AddRange(userPrivilege.Accessibility);

@@ -24,8 +24,6 @@ public class OtpService(
     SettingService settingService,
     IOptions<ConfigIdentitySecurity> configSecurityOptions)
 {
-    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
-
     private static string HashOtp(string password, string salt)
     {
         return Hash.Sha1(password + salt);
