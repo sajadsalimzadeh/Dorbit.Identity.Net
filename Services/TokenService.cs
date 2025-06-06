@@ -79,6 +79,7 @@ public class TokenService(
         var claims = new Dictionary<string, string>()
         {
             { nameof(TokenClaimTypes.Id), tokenId.ToString() },
+            { nameof(TokenClaimTypes.UserId), request.User.Id.ToString() },
             { nameof(TokenClaimTypes.CsrfToken), request.CsrfToken },
         };
 
