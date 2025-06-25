@@ -42,7 +42,7 @@ public class IdentityService(
     public IdentityDto Identity { get; private set; }
     public IUserDto User { get; set; }
 
-    private ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
 
     public async Task<AuthLoginResponse> LoginWithStaticPasswordAsync(AuthLoginWithStaticPasswordRequest request)
     {
