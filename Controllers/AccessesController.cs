@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
 
+[Route("Identity/[controller]")]
 public class AccessesController(AccessRepository accessRepository) : BaseController
 {
     [HttpGet, Auth("Access-Read")]

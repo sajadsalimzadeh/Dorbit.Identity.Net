@@ -10,7 +10,6 @@ using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
-using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
@@ -20,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Controllers;
 
 [Auth("User")]
+[Route("Identity/[controller]")]
 public class UsersController(
     UserService userService,
     UserRepository userRepository,

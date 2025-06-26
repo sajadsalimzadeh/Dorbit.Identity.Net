@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dorbit.Identity.Controllers;
 
+[Route("Identity/[controller]")]
 public class OtpsController(OtpService otpService) : BaseController
 {
     [HttpPost]

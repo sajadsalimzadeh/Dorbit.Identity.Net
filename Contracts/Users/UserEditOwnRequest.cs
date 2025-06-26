@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Dorbit.Identity.Contracts.Users;
+﻿namespace Dorbit.Identity.Contracts.Users;
 
 public class UserEditOwnRequest
 {

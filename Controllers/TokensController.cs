@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
 
+[Route("Identity/[controller]")]
 public class TokensController(TokenRepository tokenRepository) : BaseController
 {
     [HttpPost("{id:guid}/Terminate"), Auth("Tokens-Terminate")]

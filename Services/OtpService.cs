@@ -11,7 +11,7 @@ using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
-using Dorbit.Identity.Utilities;
+using Dorbit.Identity.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -75,10 +75,14 @@ public class OtpService(
         }, out var code);
         if (request.Type == OtpType.Cellphone)
         {
+            var settingIdentityOtp = settingService.Get(new SettingIdentityOtp()
+            {
+                TemplateCode = "otp"
+            });
             await messageManager.SendAsync(new MessageSmsRequest()
             {
                 To = request.Receiver,
-                TemplateType = settingService.Get(IdentitySettings.OtpTemplate, "otp"),
+                TemplateType = settingIdentityOtp.TemplateCode,
                 Args = [code]
             });
         }

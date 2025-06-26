@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
-using System.Text.Json;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;

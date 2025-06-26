@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Dorbit.Framework.Contracts.Abstractions;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
@@ -10,8 +8,6 @@ using Dorbit.Framework.Filters;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
-using Dorbit.Identity.Contracts.Users;
-using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +15,7 @@ using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Controllers;
 
+[Route("Identity/[controller]")]
 public class AuthController(
     IdentityService identityService,
     IOptions<ConfigIdentitySecurity> configSecurityOptions)

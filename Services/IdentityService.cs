@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
-using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Contracts.Abstractions;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Exceptions;

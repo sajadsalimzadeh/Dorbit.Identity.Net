@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Hosts;
 
-[ServiceRegister(Lifetime = ServiceLifetime.Singleton)]
+[ServiceRegister(Lifetime = ServiceLifetime.Singleton, Order = -10)]
 public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvider)
 {
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
