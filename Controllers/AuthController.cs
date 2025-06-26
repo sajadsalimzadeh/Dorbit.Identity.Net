@@ -39,9 +39,15 @@ public class AuthController(
     }
 
     [HttpGet, Auth]
-    public QueryResult<IdentityDto> GetLoginInfo()
+    public QueryResult<AuthIdentityDto> GetLoginInfo()
     {
-        return identityService.Identity.ToQueryResult();
+        var identity = identityService.Identity;
+        return new AuthIdentityDto()
+        {
+            IsAdmin = identity.IsAdmin,
+            Accessibility = identity.Accessibility,
+            User = identity.User.MapTo(new UserDto()),
+        }.ToQueryResult();
     }
 
     [HttpPost("LoginWithPassword"), Captcha]
