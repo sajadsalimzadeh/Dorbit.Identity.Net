@@ -8,6 +8,7 @@ using Dorbit.Framework.Filters;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
+using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
