@@ -145,7 +145,7 @@ public class IdentityService(
         await userRepository.UpdateAsync(user);
     }
 
-    public async Task<bool> ValidateAsync(IdentityValidateRequest request)
+    public async Task<IdentityDto> ValidateAsync(IdentityValidateRequest request)
     {
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
         if (!jwtService.TryValidateToken(request.AccessToken, secret, out _, out var claimsPrincipal))
@@ -166,7 +166,7 @@ public class IdentityService(
         if (token is null)
             throw new AuthenticationException("Token not found");
 
-        if (token.State != TokenState.Valid) return false;
+        if (token.State != TokenState.Valid) return null;
 
         var now = DateTime.UtcNow;
         var userPrivileges = await userPrivilegeRepository.Set().Where(x =>
@@ -202,6 +202,6 @@ public class IdentityService(
 
         Identity.Accessibility = await accessRepository.GetTotalAccessibilityAsync(allAccessibility);
 
-        return true;
+        return Identity;
     }
 }
