@@ -36,12 +36,13 @@ public class UserDto : IUserDto
     public DateTime CreationTime { get; set; }
     
     public List<string> Accessibility { get; set; }
+    public List<string> FirebaseTokens { get; set; }
 
     public ClaimsPrincipal Claims { get; set; }
     
     public IEntity Profile { get; set; }
     
-    public object GetId()
+    public Guid GetId()
     {
         return Id;
     }
@@ -54,5 +55,10 @@ public class UserDto : IUserDto
     public bool IsActive()
     {
         return Status == UserStatus.Active;
+    }
+
+    public List<string> GetFirebaseTokens()
+    {
+        return FirebaseTokens;
     }
 }

@@ -56,6 +56,9 @@ public class User : FullEntity
 
     [JsonField]
     public List<string> WhiteListIps { get; set; }
+    
+    [JsonField]
+    public List<string> FirebaseTokens { get; set; }
 
     public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
     public UserStatus Status { get; set; } = UserStatus.Active;

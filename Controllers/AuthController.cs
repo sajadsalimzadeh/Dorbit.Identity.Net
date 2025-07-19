@@ -9,6 +9,7 @@ using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,9 @@ namespace Dorbit.Identity.Controllers;
 [Route("Identity/[controller]")]
 public class AuthController(
     IdentityService identityService,
-    IOptions<ConfigIdentitySecurity> configSecurityOptions)
+    UserRepository userRepository,
+    IOptions<ConfigIdentitySecurity> configSecurityOptions
+    )
     : BaseController
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
@@ -40,9 +43,22 @@ public class AuthController(
     }
 
     [HttpGet, Auth]
-    public QueryResult<AuthIdentityDto> GetLoginInfo()
+    public async Task<QueryResult<AuthIdentityDto>> GetLoginInfo([FromQuery] string firebaseToken)
     {
         var identity = identityService.Identity;
+
+        if (firebaseToken.IsNotNullOrEmpty())
+        {
+            var firebaseTokens = identity.User.GetFirebaseTokens();
+            if (!firebaseTokens.Contains(firebaseToken))
+            {
+                var userId = identity.User.GetId();
+                var user = await userRepository.GetByIdAsync(userId);
+                user.FirebaseTokens.Add(firebaseToken);
+                await userRepository.UpdateAsync(user);
+            }
+        }
+
         return new AuthIdentityDto()
         {
             IsAdmin = identity.IsAdmin,
