@@ -117,8 +117,16 @@ public class UserService(
                 {
                     var payload = JsonSerializer.Serialize(new
                     {
-                        title = "اعلان جدید!",
-                        body = "این پیام از سمت سرور C# فرستاده شده."
+                        notification = new
+                        {
+                            title = "سلام!",
+                            body = "شما یک پیام جدید دارید",
+                            icon = "/assets/icons/icon-72x72.png",
+                            data = new
+                            {
+                                url = "https://example.com"
+                            }
+                        }
                     });
 
                     await webPushClient.SendNotificationAsync(new PushSubscription(webPushToken.Endpoint, webPushToken.P256DH, webPushToken.Auth), payload);
