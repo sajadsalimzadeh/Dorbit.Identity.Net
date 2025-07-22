@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
@@ -12,10 +12,10 @@ using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
-using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
+using WebPush;
 
 namespace Dorbit.Identity.Services;
 
@@ -24,7 +24,7 @@ public class UserService(
     ILogger logger,
     UserRepository userRepository,
     TokenRepository tokenRepository,
-    FirebaseService firebaseService,
+    IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
     public static string HashPassword(string password, string salt)
@@ -99,22 +99,35 @@ public class UserService(
 
     public async Task SendNotificationAsync(List<User> users, UserSendNotificationRequest request)
     {
-        var messages = new List<Message>();
+        var webPushClient = new WebPushClient();
+
+        webPushClient.SetVapidDetails(
+            subject: "mailto:salimzadehsajad@gmail.com",
+            publicKey: configIdentitySecurity.Value.WebPush.PrivateKey,
+            privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
+        );
+
+
         foreach (var user in users)
         {
-            if (user.FirebaseTokens is null) continue;
-            messages.AddRange(user.FirebaseTokens.Select(firebaseToken => new Message()
+            if (user.WebPushSubscriptions is null) continue;
+            foreach (var webPushToken in user.WebPushSubscriptions)
             {
-                Token = firebaseToken,
-                Data = request.Data,
-                Notification = new Notification()
+                try
                 {
-                    Title = request.Title, 
-                    Body = request.Body
-                }
-            }));
-        }
+                    var payload = JsonSerializer.Serialize(new
+                    {
+                        title = "اعلان جدید!",
+                        body = "این پیام از سمت سرور C# فرستاده شده."
+                    });
 
-        await firebaseService.SendAsync(messages);
+                    await webPushClient.SendNotificationAsync(new PushSubscription(webPushToken.Endpoint, webPushToken.P256DH, webPushToken.Auth), payload);
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }
+        }
     }
 }

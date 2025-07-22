@@ -15,10 +15,10 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
-using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using WebPush;
 
 namespace Dorbit.Identity.Controllers;
 
@@ -30,7 +30,6 @@ public class UsersController(
     UserRepository userRepository,
     IdentityService identityService,
     TokenRepository tokenRepository,
-    FirebaseService firebaseService,
     PrivilegeService privilegeService,
     UserPrivilegeRepository userPrivilegeRepository)
     : CrudController<User, Guid, UserDto, UserAddRequest, UserEditRequest>
@@ -136,15 +135,14 @@ public class UsersController(
         return Succeed();
     }
 
-    [HttpPost("Own/FirebaseToken"), Auth]
-    public async Task<CommandResult> SetOwnFirebaseTokenAsync([FromBody] UserSetFirebaseTokenRequest request)
+    [HttpPost("Own/WebPushSubscribe"), Auth]
+    public async Task<CommandResult> SetOwnFirebaseTokenAsync([FromBody] UserWebPushSubscription request)
     {
-        if (request.Token.IsNullOrEmpty()) throw new ArgumentNullException();
         var user = await userRepository.GetByIdAsync(GetUserId());
-        user.FirebaseTokens ??= [];
-        if (!user.FirebaseTokens.Contains(request.Token))
+        user.WebPushSubscriptions ??= [];
+        if (user.WebPushSubscriptions.All(x => x.Auth != request.Auth))
         {
-            user.FirebaseTokens.Add(request.Token);
+            user.WebPushSubscriptions.Add(request);
             await userRepository.UpdateAsync(user);
         }
 
