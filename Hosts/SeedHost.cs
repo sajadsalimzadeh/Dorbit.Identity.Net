@@ -35,6 +35,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
                 Cellphone = configAdmin.Cellphone,
                 Email = configAdmin.Email,
                 NeedResetPassword = true,
+                MaxTokenCount = 3
             });
         }
         var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
