@@ -135,12 +135,12 @@ public class UsersController(
         return Succeed();
     }
 
-    [HttpPost("Own/WebPushSubscribe"), Auth]
+    [HttpPost("Own/WebPushSubscription"), Auth]
     public async Task<CommandResult> SetOwnFirebaseTokenAsync([FromBody] UserWebPushSubscription request)
     {
         var user = await userRepository.GetByIdAsync(GetUserId());
         user.WebPushSubscriptions ??= [];
-        if (user.WebPushSubscriptions.All(x => x.Auth != request.Auth))
+        if (user.WebPushSubscriptions.All(x => x.Endpoint != request.Endpoint))
         {
             user.WebPushSubscriptions.Add(request);
             await userRepository.UpdateAsync(user);
