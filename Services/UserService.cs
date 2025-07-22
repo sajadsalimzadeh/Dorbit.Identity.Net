@@ -1,32 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
+using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class UserService(
+    ILogger logger,
     UserRepository userRepository,
     TokenRepository tokenRepository,
-    UserPrivilegeRepository userPrivilegeRepository,
-    IOptions<ConfigIdentitySecurity> configSecurityOptions)
+    FirebaseService firebaseService,
+    UserPrivilegeRepository userPrivilegeRepository)
 {
-    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
-
     public static string HashPassword(string password, string salt)
     {
         return Hash.Sha1(salt + password + salt);
     }
-    
+
     public async Task<User> AddAsync(UserAddRequest request)
     {
         var existsUser = await userRepository.Set(false).FirstOrDefaultAsync(x => x.Username.ToLower() == request.Username);
@@ -90,5 +95,26 @@ public class UserService(
         var user = await userRepository.GetByIdAsync(request.Id);
         user.Message = request.Message;
         return await userRepository.UpdateAsync(user);
+    }
+
+    public async Task SendNotificationAsync(List<User> users, UserSendNotificationRequest request)
+    {
+        var messages = new List<Message>();
+        foreach (var user in users)
+        {
+            if (user.FirebaseTokens is null) continue;
+            messages.AddRange(user.FirebaseTokens.Select(firebaseToken => new Message()
+            {
+                Token = firebaseToken,
+                Data = request.Data,
+                Notification = new Notification()
+                {
+                    Title = request.Title, 
+                    Body = request.Body
+                }
+            }));
+        }
+
+        await firebaseService.SendAsync(messages);
     }
 }

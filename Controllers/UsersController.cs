@@ -6,6 +6,8 @@ using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
+using Dorbit.Framework.Services;
+using Dorbit.Framework.Utils.Queries;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
@@ -13,20 +15,24 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Dorbit.Identity.Controllers;
 
 [Auth("User")]
 [Route("Identity/[controller]")]
 public class UsersController(
+    ILogger logger,
     UserService userService,
     UserRepository userRepository,
     IdentityService identityService,
-    UserPrivilegeRepository userPrivilegeRepository,
     TokenRepository tokenRepository,
-    PrivilegeService privilegeService)
+    FirebaseService firebaseService,
+    PrivilegeService privilegeService,
+    UserPrivilegeRepository userPrivilegeRepository)
     : CrudController<User, Guid, UserDto, UserAddRequest, UserEditRequest>
 {
     [Auth("User-Read")]
@@ -44,40 +50,6 @@ public class UsersController(
         if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
         var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserDto>>();
         return users.ToQueryResult();
-    }
-
-    [Auth]
-    [HttpGet("Own")]
-    public Task<QueryResult<UserDto>> GetOwnAsync()
-    {
-        return userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
-    }
-
-    [Auth]
-    [HttpPatch("Own")]
-    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] UserEditOwnRequest request)
-    {
-        return userRepository.PatchAsync(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
-    }
-
-    public override async Task<CommandResult> Remove(Guid id)
-    {
-        await userService.RemoveAsync(id);
-        return Succeed();
-    }
-
-    [HttpPost("Own/ChangePasswordByPassword"), Auth]
-    public async Task<CommandResult> ChangePasswordByPasswordAsync([FromBody] AuthChangePasswordByPasswordRequest request)
-    {
-        await identityService.ChangePasswordByPasswordAsync(request);
-        return Succeed();
-    }
-
-    [HttpPost("Own/ChangePasswordByOtp"), Auth]
-    public async Task<CommandResult> ChangePasswordByOtpAsync([FromBody] AuthChangePasswordByOtpRequest request)
-    {
-        await identityService.ChangePasswordByOtpAsync(request);
-        return Succeed();
     }
 
     [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
@@ -128,5 +100,70 @@ public class UsersController(
     public async Task<QueryResult<UserDto>> SetMessageAsync(UserMessageRequest request)
     {
         return (await userService.SetMessageAsync(request)).MapTo<UserDto>().ToQueryResult();
+    }
+
+    [Auth]
+    [HttpGet("Own")]
+    public Task<QueryResult<UserDto>> GetOwnAsync()
+    {
+        return userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
+    }
+
+    [Auth]
+    [HttpPatch("Own")]
+    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] UserEditOwnRequest request)
+    {
+        return userRepository.PatchAsync(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
+    }
+
+    public override async Task<CommandResult> Remove(Guid id)
+    {
+        await userService.RemoveAsync(id);
+        return Succeed();
+    }
+
+    [HttpPost("Own/ChangePasswordByPassword"), Auth]
+    public async Task<CommandResult> ChangePasswordByPasswordAsync([FromBody] AuthChangePasswordByPasswordRequest request)
+    {
+        await identityService.ChangePasswordByPasswordAsync(request);
+        return Succeed();
+    }
+
+    [HttpPost("Own/ChangePasswordByOtp"), Auth]
+    public async Task<CommandResult> ChangePasswordByOtpAsync([FromBody] AuthChangePasswordByOtpRequest request)
+    {
+        await identityService.ChangePasswordByOtpAsync(request);
+        return Succeed();
+    }
+
+    [HttpPost("Own/FirebaseToken"), Auth]
+    public async Task<CommandResult> SetOwnFirebaseTokenAsync([FromBody] UserSetFirebaseTokenRequest request)
+    {
+        if (request.Token.IsNullOrEmpty()) throw new ArgumentNullException();
+        var user = await userRepository.GetByIdAsync(GetUserId());
+        user.FirebaseTokens ??= [];
+        if (!user.FirebaseTokens.Contains(request.Token))
+        {
+            user.FirebaseTokens.Add(request.Token);
+            await userRepository.UpdateAsync(user);
+        }
+
+        return Succeed();
+    }
+
+    [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
+    public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] UserSendNotificationRequest request)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        await userService.SendNotificationAsync([user], request);
+        return Succeed();
+    }
+    
+    [HttpPost("odata/Notifications"), Auth("User-Notification")]
+    public async Task<CommandResult> SendMessageAsync([FromBody] UserSendNotificationRequest request)
+    {
+        var users = await userRepository.Set().Apply(QueryOptions).ToListAsync();
+        await userService.SendNotificationAsync(users, request);
+        return Succeed();
     }
 }

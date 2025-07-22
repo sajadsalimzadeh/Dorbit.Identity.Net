@@ -43,22 +43,9 @@ public class AuthController(
     }
 
     [HttpGet, Auth]
-    public async Task<QueryResult<AuthIdentityDto>> GetLoginInfo([FromQuery] string firebaseToken)
+    public QueryResult<AuthIdentityDto> GetLoginInfo()
     {
         var identity = identityService.Identity;
-
-        if (firebaseToken.IsNotNullOrEmpty())
-        {
-            var firebaseTokens = identity.User.GetFirebaseTokens();
-            if (!firebaseTokens.Contains(firebaseToken))
-            {
-                var userId = identity.User.GetId();
-                var user = await userRepository.GetByIdAsync(userId);
-                user.FirebaseTokens.Add(firebaseToken);
-                await userRepository.UpdateAsync(user);
-            }
-        }
-
         return new AuthIdentityDto()
         {
             IsAdmin = identity.IsAdmin,
