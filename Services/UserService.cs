@@ -103,7 +103,7 @@ public class UserService(
 
         webPushClient.SetVapidDetails(
             subject: "mailto:salimzadehsajad@gmail.com",
-            publicKey: configIdentitySecurity.Value.WebPush.PrivateKey,
+            publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
             privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
         );
 
