@@ -18,69 +18,49 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Controllers;
 
 [Route("Identity/[controller]")]
-public class AuthController(
-    IdentityService identityService,
-    UserRepository userRepository,
-    IOptions<ConfigIdentitySecurity> configSecurityOptions
-    )
-    : BaseController
+public class AuthController(IdentityService identityService) : BaseController
 {
-    private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
-
-    private void HandleToken(AuthLoginResponse loginResponse)
-    {
-        if (loginResponse is not null)
-        {
-            Response.Cookies.Append(nameof(TokenClaimTypes.CsrfToken), loginResponse.CsrfToken, new CookieOptions()
-            {
-                Path = "/",
-                Secure = true,
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
-            });
-        }
-    }
-
     [HttpGet, Auth]
     public QueryResult<AuthIdentityDto> GetLoginInfo()
     {
         var identity = identityService.Identity;
         return new AuthIdentityDto()
         {
-            IsAdmin = identity.IsAdmin,
+            IsFullAccess = identity.IsFullAccess,
             Accessibility = identity.Accessibility,
             User = identity.User.MapTo(new UserDto()),
         }.ToQueryResult();
     }
 
     [HttpPost("LoginWithPassword"), Captcha]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithPasswordAsync([FromBody] AuthLoginWithStaticPasswordRequest withStaticPasswordRequest)
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithPasswordAsync([FromBody] AuthLoginWithPasswordRequest request)
     {
-        if (HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
-        {
-            withStaticPasswordRequest.UserAgent = userAgent;
-        }
-
-        var loginResponse = await identityService.LoginWithStaticPasswordAsync(withStaticPasswordRequest);
-        HandleToken(loginResponse);
-        return loginResponse.ToQueryResult();
+        request.FillByRequest(Request);
+        var loginResponse = await identityService.LoginWithPasswordAsync(request);
+        return loginResponse.SetCookie(Response).ToQueryResult();
+    }
+    
+    [HttpPost("LoginWithGoogle")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithGoogleAsync([FromBody] AuthLoginWithGoogleRequest request)
+    {
+        request.FillByRequest(Request);
+        var loginResponse = await identityService.LoginWithGoogleAsync(request);
+        return loginResponse.SetCookie(Response).ToQueryResult();
     }
 
     [HttpPost("LoginWithOtp")]
     public async Task<QueryResult<AuthLoginResponse>> LoginWithOtpAsync([FromBody] AuthLoginWithOtpRequest request)
     {
+        request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithOtpAsync(request);
-        HandleToken(loginResponse);
-        return loginResponse.ToQueryResult();
+        return loginResponse.SetCookie(Response).ToQueryResult();
     }
 
     [HttpPost("Register")]
     public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
     {
         var loginResponse = await identityService.RegisterAsync(request);
-        HandleToken(loginResponse);
-        return loginResponse.ToQueryResult();
+        return loginResponse.SetCookie(Response).ToQueryResult();
     }
 
     [HttpDelete("Logout")]

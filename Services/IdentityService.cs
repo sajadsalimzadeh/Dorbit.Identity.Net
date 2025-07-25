@@ -18,6 +18,7 @@ using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -43,7 +44,7 @@ public class IdentityService(
 
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
 
-    public async Task<AuthLoginResponse> LoginWithStaticPasswordAsync(AuthLoginWithStaticPasswordRequest request)
+    public async Task<AuthLoginResponse> LoginWithPasswordAsync(AuthLoginWithPasswordRequest request)
     {
         var username = request.Username.ToLower();
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
@@ -52,13 +53,41 @@ public class IdentityService(
         var hash = UserService.HashPassword(request.Password, user.PasswordSalt);
         if (user.PasswordHash != hash) throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
-        var csrfToken = Guid.NewGuid().ToString();
         return await tokenService.CreateAsync(new TokenCreateRequest()
         {
             User = user,
-            CsrfToken = csrfToken,
+            CsrfToken = Guid.NewGuid().ToString(),
             UserAgent = request.UserAgent,
         });
+    }
+
+    public async Task<AuthLoginResponse> LoginWithGoogleAsync(AuthLoginWithGoogleRequest request)
+    {
+        try
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == payload.Email);
+            if (user is null)
+            {
+                user = await userService.AddAsync(new UserAddRequest()
+                {
+                    Username = payload.Email,
+                    Name = payload.Name,
+                    Email = payload.Email,
+                });
+            }
+
+            return await tokenService.CreateAsync(new TokenCreateRequest()
+            {
+                User = user,
+                CsrfToken = Guid.NewGuid().ToString(),
+                UserAgent = request.UserAgent,
+            });
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException("Authorization failed");
+        }
     }
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)
@@ -187,7 +216,7 @@ public class IdentityService(
         {
             if (userPrivilege.IsAdmin)
             {
-                Identity.IsAdmin = true;
+                Identity.IsFullAccess = true;
                 break;
             }
 
@@ -200,7 +229,9 @@ public class IdentityService(
             }
         }
 
-        Identity.Accessibility = await accessRepository.GetTotalAccessibilityAsync(allAccessibility);
+        Identity.Claims = token.User.Claims;
+        Identity.Accessibility = allAccessibility;
+        Identity.DeepAccessibility = await accessRepository.GetTotalAccessibilityAsync(allAccessibility);
 
         return Identity;
     }

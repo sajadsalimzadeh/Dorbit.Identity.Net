@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Jwts;
@@ -76,15 +77,13 @@ public class TokenService(
             }
         });
 
-        var claims = new Dictionary<string, string>()
-        {
-            { nameof(TokenClaimTypes.Id), tokenId.ToString() },
-            { nameof(TokenClaimTypes.UserId), request.User.Id.ToString() },
-            { nameof(TokenClaimTypes.CsrfToken), request.CsrfToken },
-        };
+        var claims = new ClaimsIdentity();
+        claims.AddClaim(new Claim(nameof(TokenClaimTypes.Id), tokenId.ToString()));
+        claims.AddClaim(new Claim(nameof(TokenClaimTypes.UserId), request.User.Id.ToString()));
+        claims.AddClaim(new Claim(nameof(TokenClaimTypes.CsrfToken), request.CsrfToken));
 
-        if (isNeddTwoFactorAuthentication) claims.Add(nameof(TokenClaimTypes.NeedTwoFactorAuthentication), "True");
-        if (isTwoFactorAuthenticated) claims.Add(nameof(TokenClaimTypes.TwoFactorAuthenticated), "True");
+        if (isNeddTwoFactorAuthentication) claims.AddClaim(new Claim(nameof(TokenClaimTypes.NeedTwoFactorAuthentication), "True"));
+        if (isTwoFactorAuthenticated) claims.AddClaim(new Claim(nameof(TokenClaimTypes.TwoFactorAuthenticated), "True"));
 
         var accessToken = jwtService.CreateToken(new JwtCreateTokenRequest(secret, request.CsrfToken, token.ExpireTime)
         {
@@ -97,6 +96,7 @@ public class TokenService(
             AccessToken = accessToken,
             CsrfToken = request.CsrfToken,
             IsNeedAuthentication = isNeddTwoFactorAuthentication,
+            TimeoutInSecond = _configIdentitySecurity.TimeoutInSecond
         };
     }
 }

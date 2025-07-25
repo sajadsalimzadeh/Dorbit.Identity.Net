@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Commands;
@@ -44,12 +45,15 @@ public class CreateTokenCommand(JwtService jwtService, IOptions<ConfigIdentitySe
         else if (lifetime.EndsWith("y")) expires = expires.AddYears(lifetimeValue);
 
         var csrfToken = Guid.NewGuid().ToString();
-        var request = new JwtCreateTokenRequest(csrfToken, configIdentitySecret.Value.Secret.GetDecryptedValue(), expires)
+        var request = new JwtCreateTokenRequest(csrfToken, configIdentitySecret.Value.Secret.GetDecryptedValue(), expires);
+        request.Claims = new ClaimsIdentity();
+        foreach (var access in accesses)
         {
-            Claims = accesses.ToDictionary(x => "access", x => x)
-        };
-        request.Claims.Add("Id", context.GetArgAsString("Id"));
-        request.Claims.Add("Name", context.GetArgAsString("Name"));
+            request.Claims.AddClaim(new Claim("access", access));
+        }
+        request.Claims.AddClaim(new Claim("Id", context.GetArgAsString("Id")));
+        request.Claims.AddClaim(new Claim("Name", context.GetArgAsString("Name")));
+        
         var accessToken = jwtService.CreateToken(request);
         context.Log($"CsrfToken: {csrfToken}\n");
         context.Log($"AccessToken: {accessToken}\n");

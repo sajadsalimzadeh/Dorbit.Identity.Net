@@ -54,19 +54,20 @@ public class User : FullEntity
     // Security
     public short MaxTokenCount { get; set; } = 1;
     public DateTime? LockoutEndTime { get; set; }
+    public double Wallet { get; set; }
 
     [JsonField]
     public List<string> WhiteListIps { get; set; }
     
     [JsonField]
     public List<UserWebPushSubscription> WebPushSubscriptions { get; set; }
+    
+    [JsonField]
+    public Dictionary<string, string> Claims { get; set; }
 
     public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
     public UserStatus Status { get; set; } = UserStatus.Active;
 
     [MaxLength(1024)]
     public string Message { get; set; }
-
-    [NotMapped]
-    public ClaimsPrincipal Claims { get; set; }
 }

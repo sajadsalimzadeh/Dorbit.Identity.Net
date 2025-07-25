@@ -21,7 +21,6 @@ namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class UserService(
-    ILogger logger,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
@@ -41,6 +40,7 @@ public class UserService(
             PasswordSalt = Guid.NewGuid().ToString()
         });
         entity.Username = entity.Username.ToLower();
+        request.Password ??= new Random().NextString(12);
         entity.PasswordHash = HashPassword(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
