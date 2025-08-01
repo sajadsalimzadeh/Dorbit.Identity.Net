@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Claims;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;
 using Dorbit.Identity.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
-using WebPush;
 
 namespace Dorbit.Identity.Entities;
 

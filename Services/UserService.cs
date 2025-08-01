@@ -14,7 +14,6 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Serilog;
 using WebPush;
 
 namespace Dorbit.Identity.Services;
@@ -97,7 +96,7 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task SendNotificationAsync(List<User> users, UserSendNotificationRequest request)
+    public async Task PushNotificationAsync(List<User> users, UserSendNotificationRequest request)
     {
         var webPushClient = new WebPushClient();
 

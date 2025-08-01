@@ -18,7 +18,6 @@ using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using WebPush;
 
 namespace Dorbit.Identity.Controllers;
 
@@ -153,7 +152,7 @@ public class UsersController(
     public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] UserSendNotificationRequest request)
     {
         var user = await userRepository.GetByIdAsync(id);
-        await userService.SendNotificationAsync([user], request);
+        await userService.PushNotificationAsync([user], request);
         return Succeed();
     }
     
@@ -161,7 +160,7 @@ public class UsersController(
     public async Task<CommandResult> SendMessageAsync([FromBody] UserSendNotificationRequest request)
     {
         var users = await userRepository.Set().Apply(QueryOptions).ToListAsync();
-        await userService.SendNotificationAsync(users, request);
+        await userService.PushNotificationAsync(users, request);
         return Succeed();
     }
 }
