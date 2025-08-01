@@ -115,7 +115,7 @@ public class UsersController(
         return userRepository.PatchAsync(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
-    public override async Task<CommandResult> Remove(Guid id)
+    public override async Task<CommandResult> DeleteAsync(Guid id)
     {
         await userService.RemoveAsync(id);
         return Succeed();
