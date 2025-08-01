@@ -177,14 +177,23 @@ public class IdentityService(
     public async Task<IdentityDto> ValidateAsync(IdentityValidateRequest request)
     {
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
+        if (request.AccessToken.IsNullOrEmpty())
+            throw new AuthenticationException("Access token not set");
+
         if (!jwtService.TryValidateToken(request.AccessToken, secret, out _, out var claimsPrincipal))
             throw new AuthenticationException("Invalid access token");
 
         if (!claimsPrincipal.Claims.TryGetString(nameof(TokenClaimTypes.CsrfToken), out var csrfToken))
             throw new AuthenticationException("Csrf token not fount");
 
-        if (request.CsrfToken != csrfToken)
-            throw new AuthenticationException("Csrf token not match");
+        if (!_configIdentitySecurity.IgnoreCsrfTokenValidation)
+        {
+            if (request.CsrfToken.IsNullOrEmpty())
+                throw new AuthenticationException("Csrf token not set");
+
+            if (request.CsrfToken != csrfToken)
+                throw new AuthenticationException("Csrf token not match");
+        }
 
         if (!claimsPrincipal.Claims.TryGetGuid(nameof(TokenClaimTypes.Id), out var tokenId))
             throw new AuthenticationException("Token claim id not found");
