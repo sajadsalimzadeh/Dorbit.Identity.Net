@@ -39,8 +39,7 @@ public class UsersController(
         return base.SelectAsync();
     }
 
-    [Auth("User-Read")]
-    [HttpGet("Search")]
+    [HttpGet("Search"), Auth("User-Read")]
     public async Task<QueryResult<List<UserDto>>> SelectAsync([FromQuery] UserSearchRequest request)
     {
         var query = userRepository.Set();
@@ -48,6 +47,11 @@ public class UsersController(
         if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
         var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserDto>>();
         return users.ToQueryResult();
+    }
+
+    public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
+    {
+        return userService.AddAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
