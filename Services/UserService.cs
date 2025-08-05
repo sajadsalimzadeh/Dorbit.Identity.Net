@@ -9,6 +9,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
+using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -96,7 +97,7 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task PushNotificationAsync(List<User> users, UserSendNotificationRequest request)
+    public async Task PushNotificationAsync(List<User> users, NotificationDto dto)
     {
         var webPushClient = new WebPushClient();
 
@@ -105,8 +106,7 @@ public class UserService(
             publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
             privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
         );
-
-
+        
         foreach (var user in users)
         {
             if (user.WebPushSubscriptions is null) continue;

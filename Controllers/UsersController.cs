@@ -8,6 +8,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Queries;
+using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
@@ -153,18 +154,18 @@ public class UsersController(
     }
 
     [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
-    public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] UserSendNotificationRequest request)
+    public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] NotificationDto notification)
     {
         var user = await userRepository.GetByIdAsync(id);
-        await userService.PushNotificationAsync([user], request);
+        await userService.PushNotificationAsync([user], notification);
         return Succeed();
     }
     
-    [HttpPost("odata/Notifications"), Auth("User-Notification")]
+    [HttpPost("Notifications"), Auth("User-Notification")]
     public async Task<CommandResult> SendMessageAsync([FromBody] UserSendNotificationRequest request)
     {
-        var users = await userRepository.Set().Apply(QueryOptions).ToListAsync();
-        await userService.PushNotificationAsync(users, request);
+        var users = await userRepository.Set().Where(x => request.UserIds.Contains(x.Id)).ToListAsync();
+        await userService.PushNotificationAsync(users, request.Notification);
         return Succeed();
     }
 }
