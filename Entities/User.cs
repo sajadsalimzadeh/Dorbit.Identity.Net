@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;
+using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,7 +63,7 @@ public class User : FullEntity
     public List<UserWebPushSubscription> WebPushSubscriptions { get; set; }
     
     [JsonField]
-    public Dictionary<string, string> Claims { get; set; }
+    public List<ClaimDto> Claims { get; set; }
 
     public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
     public UserStatus Status { get; set; } = UserStatus.Active;

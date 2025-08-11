@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using Dorbit.Framework.Contracts.Abstractions;
+using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Entities.Abstractions;
 
 namespace Dorbit.Identity.Contracts.Users;
@@ -37,8 +38,7 @@ public class UserDto : IUserDto
     
     public List<string> Accessibility { get; set; }
     public List<string> FirebaseTokens { get; set; }
-
-    public ClaimsPrincipal Claims { get; set; }
+    public List<ClaimDto> Claims { get; set; }
     
     public IEntity Profile { get; set; }
     
