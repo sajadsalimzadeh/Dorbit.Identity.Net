@@ -26,7 +26,7 @@ public class OtpService(
 {
     private static string HashOtp(string password, string salt)
     {
-        return Hash.Sha1(password + salt);
+        return HashUtil.Sha1(password + salt);
     }
     
     public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)

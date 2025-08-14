@@ -28,7 +28,7 @@ public class UserService(
 {
     public static string HashPassword(string password, string salt)
     {
-        return Hash.Sha1(salt + password + salt);
+        return HashUtil.PasswordV2(password, salt);
     }
 
     public async Task<User> AddAsync(UserAddRequest request)
