@@ -33,12 +33,10 @@ public class User : FullEntity
 
     [StringLength(20)]
     public string Cellphone { get; set; }
-
     public DateTime? CellphoneConfirmTime { get; set; }
 
     [StringLength(64)]
     public string Email { get; set; }
-
     public DateTime? EmailConfirmTime { get; set; }
 
     [StringLength(1024)]

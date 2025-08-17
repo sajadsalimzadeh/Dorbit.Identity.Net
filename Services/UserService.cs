@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
@@ -21,6 +22,7 @@ namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class UserService(
+    OtpService otpService,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
@@ -136,5 +138,20 @@ public class UserService(
                 }
             }
         }
+    }
+
+    public async Task VerifyCodeAsync(Guid id)
+    {
+        
+        var user = await userRepository.GetByIdAsync(id);
+        user.EmailConfirmTime = DateTime.UtcNow;
+        await userRepository.UpdateAsync(user);
+    }
+    
+    public async Task ConfirmCellphoneAsync(Guid id)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        user.CellphoneConfirmTime = DateTime.UtcNow;
+        await userRepository.UpdateAsync(user);
     }
 }
