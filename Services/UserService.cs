@@ -11,6 +11,7 @@ using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -49,7 +50,7 @@ public class UserService(
             entity.CellphoneConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
-            entity.AuthenticatorValidateTime = DateTime.Now;
+            entity.AuthenticatorConfirmTime = DateTime.Now;
 
         entity.IsDeleted = false;
         return await userRepository.SaveAsync(entity);
@@ -108,7 +109,7 @@ public class UserService(
             publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
             privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
         );
-        
+
         foreach (var user in users)
         {
             if (user.WebPushSubscriptions is null) continue;
@@ -140,18 +141,24 @@ public class UserService(
         }
     }
 
-    public async Task VerifyCodeAsync(Guid id)
-    {
-        
-        var user = await userRepository.GetByIdAsync(id);
-        user.EmailConfirmTime = DateTime.UtcNow;
-        await userRepository.UpdateAsync(user);
-    }
-    
-    public async Task ConfirmCellphoneAsync(Guid id)
+    public async Task VerifyCodeAsync(Guid id, UserVerifyRequest request)
     {
         var user = await userRepository.GetByIdAsync(id);
-        user.CellphoneConfirmTime = DateTime.UtcNow;
-        await userRepository.UpdateAsync(user);
+        if (request.Type == OtpType.Email)
+        {
+            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Email, Code = request.Code }))
+            {
+                user.EmailConfirmTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
+            }
+        }
+        else if (request.Type == OtpType.Cellphone)
+        {
+            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Cellphone, Code = request.Code }))
+            {
+                user.CellphoneConfirmTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
+            }
+        }
     }
 }

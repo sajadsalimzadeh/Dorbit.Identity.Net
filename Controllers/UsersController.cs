@@ -10,6 +10,7 @@ using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Queries;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
+using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
@@ -25,7 +26,6 @@ namespace Dorbit.Identity.Controllers;
 [Auth("User")]
 [Route("Identity/[controller]")]
 public class UsersController(
-    ILogger logger,
     UserService userService,
     UserRepository userRepository,
     IdentityService identityService,
@@ -136,6 +136,13 @@ public class UsersController(
     public async Task<CommandResult> ChangePasswordByOtpAsync([FromBody] AuthChangePasswordByOtpRequest request)
     {
         await identityService.ChangePasswordByOtpAsync(request);
+        return Succeed();
+    }
+
+    [HttpPost("Own/Verify"), Auth]
+    public async Task<CommandResult> VerifyAsync([FromBody] UserVerifyRequest request)
+    {
+        await userService.VerifyCodeAsync(GetUserId(), request);
         return Succeed();
     }
 

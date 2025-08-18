@@ -42,7 +42,7 @@ public class User : FullEntity
     [StringLength(1024)]
     public string AuthenticatorKey { get; set; }
 
-    public DateTime? AuthenticatorValidateTime { get; set; }
+    public DateTime? AuthenticatorConfirmTime { get; set; }
 
     [StringLength(512)]
     public string ThumbnailFilename { get; set; }
