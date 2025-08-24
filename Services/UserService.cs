@@ -100,6 +100,15 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
+    public async Task PushNotificationAsync(List<Guid> userIds, NotificationDto dto)
+    {
+        var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
+        {
+            WebPushSubscriptions = x.WebPushSubscriptions
+        }).ToListAsync();
+        await PushNotificationAsync(users, dto);
+    }
+
     public async Task PushNotificationAsync(List<User> users, NotificationDto dto)
     {
         var webPushClient = new WebPushClient();
@@ -121,12 +130,12 @@ public class UserService(
                     {
                         notification = new
                         {
-                            title = "سلام!",
-                            body = "شما یک پیام جدید دارید",
-                            icon = "/assets/icons/icon-72x72.png",
+                            title = dto.Title,
+                            body = dto.Body,
+                            icon = dto.Icon,
                             data = new
                             {
-                                url = "https://example.com"
+                                url = dto.Url
                             }
                         }
                     });
