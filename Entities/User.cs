@@ -33,18 +33,16 @@ public class User : FullEntity
 
     [StringLength(20)]
     public string Cellphone { get; set; }
-
     public DateTime? CellphoneConfirmTime { get; set; }
 
     [StringLength(64)]
     public string Email { get; set; }
-
     public DateTime? EmailConfirmTime { get; set; }
 
     [StringLength(1024)]
     public string AuthenticatorKey { get; set; }
 
-    public DateTime? AuthenticatorValidateTime { get; set; }
+    public DateTime? AuthenticatorConfirmTime { get; set; }
 
     [StringLength(512)]
     public string ThumbnailFilename { get; set; }

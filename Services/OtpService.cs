@@ -36,6 +36,7 @@ public class OtpService(
         return otpRepository.InsertAsync(new Otp()
         {
             Id = id,
+            Receiver = request.Receiver,
             TryRemain = request.TryRemain,
             CodeHash = HashOtp(code, id.ToString()),
             ExpireAt = DateTime.UtcNow.Add(request.Duration),
@@ -45,7 +46,8 @@ public class OtpService(
 
     public async Task<bool> ValidateAsync(OtpValidateRequest request)
     {
-        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver) ?? throw new NullReferenceException();
+        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver) ?? 
+                  throw new OperationException(IdentityErrors.EntityNotFound);
         otp.TryRemain--;
         try
         {
@@ -54,7 +56,7 @@ public class OtpService(
             if (otp.CodeHash == HashOtp(request.Code, otp.Id.ToString()))
             {
                 otp.IsUsed = true;
-                return false;
+                return true;
             }
 
             return false;
@@ -70,6 +72,7 @@ public class OtpService(
         var otpLifetime = TimeSpan.FromSeconds(configSecurityOptions.Value.OtpTimeoutInSec);
         await CreateAsync(new OtpCreateRequest()
         {
+            Receiver = request.Receiver,
             Duration = otpLifetime,
             Length = 5
         }, out var code);
@@ -91,7 +94,7 @@ public class OtpService(
             await messageManager.SendAsync(new MessageEmailRequest()
             {
                 To = request.Receiver,
-                Subject = "Login one time password code",
+                Subject = "Code",
                 Body = "Code: {0}",
                 Args = [code]
             });

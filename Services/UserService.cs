@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -21,6 +23,7 @@ namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class UserService(
+    OtpService otpService,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
@@ -47,7 +50,7 @@ public class UserService(
             entity.CellphoneConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
-            entity.AuthenticatorValidateTime = DateTime.Now;
+            entity.AuthenticatorConfirmTime = DateTime.Now;
 
         entity.IsDeleted = false;
         return await userRepository.SaveAsync(entity);
@@ -97,6 +100,15 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
+    public async Task PushNotificationAsync(List<Guid> userIds, NotificationDto dto)
+    {
+        var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
+        {
+            WebPushSubscriptions = x.WebPushSubscriptions
+        }).ToListAsync();
+        await PushNotificationAsync(users, dto);
+    }
+
     public async Task PushNotificationAsync(List<User> users, NotificationDto dto)
     {
         var webPushClient = new WebPushClient();
@@ -106,7 +118,7 @@ public class UserService(
             publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
             privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
         );
-        
+
         foreach (var user in users)
         {
             if (user.WebPushSubscriptions is null) continue;
@@ -118,12 +130,12 @@ public class UserService(
                     {
                         notification = new
                         {
-                            title = "سلام!",
-                            body = "شما یک پیام جدید دارید",
-                            icon = "/assets/icons/icon-72x72.png",
+                            title = dto.Title,
+                            body = dto.Body,
+                            icon = dto.Icon,
                             data = new
                             {
-                                url = "https://example.com"
+                                url = dto.Url
                             }
                         }
                     });
@@ -134,6 +146,27 @@ public class UserService(
                 {
                     // ignored
                 }
+            }
+        }
+    }
+
+    public async Task VerifyCodeAsync(Guid id, UserVerifyRequest request)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        if (request.Type == OtpType.Email)
+        {
+            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Email, Code = request.Code }))
+            {
+                user.EmailConfirmTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
+            }
+        }
+        else if (request.Type == OtpType.Cellphone)
+        {
+            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Cellphone, Code = request.Code }))
+            {
+                user.CellphoneConfirmTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
             }
         }
     }
