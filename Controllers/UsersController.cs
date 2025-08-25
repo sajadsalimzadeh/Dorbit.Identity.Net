@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
+using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Framework.Services;
@@ -64,16 +65,26 @@ public class UsersController(
     }
 
     [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
-    public Task<QueryResult<List<UserPrivilege>>> GetAllAccessByUserIdAsync([FromRoute] Guid id)
+    public Task<QueryResult<List<UserPrivilege>>> GetAllPrivilegeAsync([FromRoute] Guid id)
     {
         return userPrivilegeRepository.Set().Where(x => x.UserId == id).ToListAsync().ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/Privileges"), Auth("Privilege")]
-    public async Task<QueryResult<PrivilegeDto>> SaveUserAccessAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
+    public async Task<QueryResult<PrivilegeDto>> SaveUserPrivilegeAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
         return (await privilegeService.SaveAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
+    }
+
+    [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("Privilege")]
+    public async Task<CommandResult> DeleteUserPrivilegeAsync([FromRoute] Guid id, [FromBody] Guid privilegeId)
+    {
+        var userPrivilege = await userPrivilegeRepository.GetByIdAsync(privilegeId);
+        if (userPrivilege.UserId != id)
+            throw new OperationException(IdentityErrors.ParametersNotMatch);
+        
+        return (await userPrivilegeRepository.DeleteAsync(userPrivilege)).ToQueryResult();
     }
 
     [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]

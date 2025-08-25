@@ -211,7 +211,7 @@ public class IdentityService(
             x.UserId == token.UserId &&
             (x.From == null || x.From > now) &&
             (x.To == null || x.To < now)
-        ).ToListAsyncWithCache($"Identity--{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
+        ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
 
         var roles = await roleRepository.Set()
             .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(5));

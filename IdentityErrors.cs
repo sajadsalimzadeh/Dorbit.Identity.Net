@@ -16,5 +16,6 @@ public enum IdentityErrors
     OtpIsInvalid,
     UserNotExists,
     UserExists,
-    OtpIsUsed
+    OtpIsUsed,
+    ParametersNotMatch
 }
