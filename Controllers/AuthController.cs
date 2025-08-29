@@ -18,18 +18,25 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Controllers;
 
 [Route("Identity/[controller]")]
-public class AuthController(IdentityService identityService) : BaseController
+public class AuthController(IdentityService identityService, IOptions<ConfigIdentitySecurity> configIdentitySecurity) : BaseController
 {
     [HttpGet, Auth]
     public QueryResult<AuthIdentityDto> GetLoginInfo()
     {
         var identity = identityService.Identity;
-        return new AuthIdentityDto()
+        var result = new AuthIdentityDto()
         {
             IsFullAccess = identity.IsFullAccess,
             Accessibility = identity.Accessibility,
             User = identity.User.MapTo(new UserDto()),
-        }.ToQueryResult();
+        };
+        if (identity.User is UserDto user)
+        {
+            result.IsEmailVerificationRequired = !user.EmailVerificationTime.HasValue && configIdentitySecurity.Value.IsEmailVerificationRequired;
+            result.IsCellphoneVerificationRequired = !user.CellphoneVerificationTime.HasValue && configIdentitySecurity.Value.IsCellphoneVerificationRequired;
+        }
+
+        return result.ToQueryResult();
     }
 
     [HttpPost("LoginWithPassword"), Captcha]

@@ -28,32 +28,45 @@ public class OtpService(
     {
         return HashUtil.Sha1(password + salt);
     }
-    
-    public Task<Otp> CreateAsync(OtpCreateRequest request, out string code)
+
+    public async Task<Otp> CreateAsync(OtpCreateRequest request)
     {
-        code = new Random().NextNumber(request.Length);
-        var id = Guid.NewGuid();
-        return otpRepository.InsertAsync(new Otp()
+        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver);
+        var code = "0123456789".Random(request.Length);
+        if (otp is null)
         {
-            Id = id,
-            Receiver = request.Receiver,
-            TryRemain = request.TryRemain,
-            CodeHash = HashOtp(code, id.ToString()),
-            ExpireAt = DateTime.UtcNow.Add(request.Duration),
-            IsUsed = false
-        });
+            otp = await otpRepository.InsertAsync(new Otp()
+            {
+                Code = code,
+                Type = request.Type,
+                Receiver = request.Receiver,
+                TryRemain = request.TryRemain,
+                ExpireAt = DateTime.UtcNow.Add(request.Duration),
+                IsUsed = false
+            });
+        }
+        else
+        {
+            otp.Code = code;
+            otp.TryRemain = 5;
+            otp.Type = request.Type;
+            otp.IsUsed = false;
+            await otpRepository.UpdateAsync(otp);
+        }
+
+        return otp;
     }
 
     public async Task<bool> ValidateAsync(OtpValidateRequest request)
     {
-        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver) ?? 
+        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver && x.Type == request.Type) ??
                   throw new OperationException(IdentityErrors.EntityNotFound);
         otp.TryRemain--;
         try
         {
             if (otp.TryRemain <= 0) throw new OperationException(IdentityErrors.OtpTryRemainFinished);
             if (otp.IsUsed) throw new OperationException(IdentityErrors.OtpIsUsed);
-            if (otp.CodeHash == HashOtp(request.Code, otp.Id.ToString()))
+            if (otp.Code == request.Code)
             {
                 otp.IsUsed = true;
                 return true;
@@ -70,12 +83,13 @@ public class OtpService(
     public async Task SendAsync(AuthSendOtpRequest request)
     {
         var otpLifetime = TimeSpan.FromSeconds(configSecurityOptions.Value.OtpTimeoutInSec);
-        await CreateAsync(new OtpCreateRequest()
+        var otp = await CreateAsync(new OtpCreateRequest()
         {
             Receiver = request.Receiver,
+            Type = request.Type,
             Duration = otpLifetime,
             Length = 5
-        }, out var code);
+        });
         if (request.Type == OtpType.Cellphone)
         {
             var settingIdentityOtp = settingService.Get(new SettingIdentityOtp()
@@ -86,7 +100,7 @@ public class OtpService(
             {
                 To = request.Receiver,
                 TemplateType = settingIdentityOtp.TemplateCode,
-                Args = [code]
+                Args = [otp.Code]
             });
         }
         else if (request.Type == OtpType.Email)
@@ -96,7 +110,7 @@ public class OtpService(
                 To = request.Receiver,
                 Subject = "Code",
                 Body = "Code: {0}",
-                Args = [code]
+                Args = [otp.Code]
             });
         }
     }

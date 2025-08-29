@@ -74,7 +74,16 @@ public class IdentityService(
                     Username = payload.Email,
                     Name = payload.Name,
                     Email = payload.Email,
+                    ValidateTypes = UserValidateTypes.Email
                 });
+            }
+            else
+            {
+                if (!user.EmailVerificationTime.HasValue)
+                {
+                    user.EmailVerificationTime = DateTime.UtcNow;
+                    await userRepository.UpdateAsync(user);
+                }
             }
 
             return await tokenService.CreateAsync(new TokenCreateRequest()
@@ -111,6 +120,17 @@ public class IdentityService(
                 throw new OperationException(IdentityErrors.UserNotExists);
             }
 
+            if (request.Type == OtpType.Cellphone && !user.CellphoneVerificationTime.HasValue)
+            {
+                user.CellphoneVerificationTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
+            }
+            else if (request.Type == OtpType.Email && !user.EmailVerificationTime.HasValue)
+            {
+                user.EmailVerificationTime = DateTime.UtcNow;
+                await userRepository.UpdateAsync(user);
+            }
+
             var csrfToken = Guid.NewGuid().ToString();
             return await tokenService.CreateAsync(new TokenCreateRequest()
             {
@@ -125,6 +145,9 @@ public class IdentityService(
 
     public async Task<AuthLoginResponse> RegisterAsync(AuthRegisterRequest request)
     {
+        var validateResult = await otpService.ValidateAsync(request.OtpValidation);
+        if (!validateResult) throw new OperationException(IdentityErrors.OtpIsInvalid);
+        
         var user = await userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
         if (user is not null) throw new OperationException(IdentityErrors.UserExists);
 
@@ -198,9 +221,7 @@ public class IdentityService(
         if (!claimsPrincipal.Claims.TryGetGuid(nameof(TokenClaimTypes.Id), out var tokenId))
             throw new AuthenticationException("Token claim id not found");
 
-        var token = await tokenRepository.Set()
-            .Include(x => x.User)
-            .FirstOrDefaultAsyncWithCache(x => x.Id == tokenId, tokenId.ToString(), TimeSpan.FromMinutes(1));
+        var token = await tokenRepository.Set().Include(x => x.User).GetByIdAsync(tokenId);
         if (token is null)
             throw new AuthenticationException("Token not found");
 
@@ -218,7 +239,7 @@ public class IdentityService(
 
         Identity = new IdentityDto
         {
-            User = User = token.User.MapTo<UserDto>()
+            User = User = token.User.MapTo<UserDto>(),
         };
         var allAccessibility = new List<string>();
         foreach (var userPrivilege in userPrivileges)

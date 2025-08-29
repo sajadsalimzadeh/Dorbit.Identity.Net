@@ -47,10 +47,13 @@ public class UserService(
         entity.PasswordHash = HashPassword(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
-            entity.CellphoneConfirmTime = DateTime.Now;
-        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
+            entity.CellphoneVerificationTime = DateTime.UtcNow;
+        
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) 
+            entity.EmailVerificationTime = DateTime.UtcNow;
+        
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
-            entity.AuthenticatorConfirmTime = DateTime.Now;
+            entity.AuthenticatorVerificationTime = DateTime.UtcNow;
 
         entity.IsDeleted = false;
         return await userRepository.SaveAsync(entity);
@@ -153,21 +156,22 @@ public class UserService(
     public async Task VerifyCodeAsync(Guid id, UserVerifyRequest request)
     {
         var user = await userRepository.GetByIdAsync(id);
-        if (request.Type == OtpType.Email)
+
+
+        if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
-            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Email, Code = request.Code }))
+            if (request.Type == OtpType.Email)
             {
-                user.EmailConfirmTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                user.Email = request.Receiver;
+                user.EmailVerificationTime = DateTime.UtcNow;
             }
-        }
-        else if (request.Type == OtpType.Cellphone)
-        {
-            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Cellphone, Code = request.Code }))
+            else if (request.Type == OtpType.Cellphone)
             {
-                user.CellphoneConfirmTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                user.Cellphone = request.Receiver;
+                user.CellphoneVerificationTime = DateTime.UtcNow;
             }
+
+            await userRepository.UpdateAsync(user);
         }
     }
 }
