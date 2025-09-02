@@ -29,10 +29,6 @@ public class UserService(
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
-    public static string HashPassword(string password, string salt)
-    {
-        return HashUtil.PasswordV2(password, salt);
-    }
 
     public async Task<User> AddAsync(UserAddRequest request)
     {
@@ -44,7 +40,7 @@ public class UserService(
         });
         entity.Username = entity.Username.ToLower();
         request.Password ??= new Random().NextString(12);
-        entity.PasswordHash = HashPassword(request.Password, entity.PasswordSalt);
+        entity.PasswordHash = HashUtil.PasswordV2(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
             entity.CellphoneVerificationTime = DateTime.UtcNow;
@@ -73,7 +69,7 @@ public class UserService(
     public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
-        user.PasswordHash = HashPassword(request.Password, user.PasswordSalt);
+        user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
         await userRepository.UpdateAsync(user);
         return user;
     }
@@ -158,7 +154,7 @@ public class UserService(
         var user = await userRepository.GetByIdAsync(id);
 
 
-        if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
+        if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
             if (request.Type == OtpType.Email)
             {

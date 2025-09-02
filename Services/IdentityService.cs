@@ -10,6 +10,7 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
@@ -50,7 +51,7 @@ public class IdentityService(
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
                    throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
-        var hash = UserService.HashPassword(request.Password, user.PasswordSalt);
+        var hash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
         if (user.PasswordHash != hash) throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
         return await tokenService.CreateAsync(new TokenCreateRequest()
@@ -103,7 +104,7 @@ public class IdentityService(
     {
         if (request.Type == OtpType.Cellphone)
         {
-            var otpValidateResult = await otpService.ValidateAsync(new OtpValidateRequest()
+            var otpValidateResult = await otpService.ValidateAsync(new OtpValidationRequest()
             {
                 Receiver = request.Receiver,
                 Code = request.Code
@@ -171,11 +172,11 @@ public class IdentityService(
     {
         var user = await userRepository.GetByIdAsync(request.UserId);
 
-        if (user.PasswordHash != UserService.HashPassword(request.Password, user.PasswordSalt))
+        if (user.PasswordHash != HashUtil.PasswordV2(request.Password, user.PasswordSalt))
             throw new OperationException(IdentityErrors.OldPasswordIsInvalid);
 
         user.PasswordSalt = Guid.NewGuid().ToString();
-        user.PasswordHash = UserService.HashPassword(request.NewPassword, user.PasswordSalt);
+        user.PasswordHash = HashUtil.PasswordV2(request.NewPassword, user.PasswordSalt);
 
         await userRepository.UpdateAsync(user);
     }
@@ -183,18 +184,35 @@ public class IdentityService(
     public async Task ChangePasswordByOtpAsync(AuthChangePasswordByOtpRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.UserId);
-        var validateResult = await otpService.ValidateAsync(new OtpValidateRequest()
-        {
-            Receiver = request.Receiver,
-            Code = request.Code
-        });
+        var validateResult = await otpService.ValidateAsync(request.OtpValidation);
         if (!validateResult)
             throw new OperationException(IdentityErrors.OtpIsInvalid);
 
         user.PasswordSalt = Guid.NewGuid().ToString();
-        user.PasswordHash = UserService.HashPassword(request.NewPassword, user.PasswordSalt);
+        user.PasswordHash = HashUtil.PasswordV2(request.NewPassword, user.PasswordSalt);
 
         await userRepository.UpdateAsync(user);
+    }
+
+    public async Task<AuthLoginResponse> ForgetPasswordAsync(AuthForgetPasswordRequest request)
+    {
+        var validateResult = await otpService.ValidateAsync(request.OtpValidation);
+        if (!validateResult)
+            throw new OperationException(IdentityErrors.OtpIsInvalid);
+
+        var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.OtpValidation.Receiver);
+        if (user is null)
+            throw new OperationException(IdentityErrors.UserNotExists);
+
+        user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
+        await userRepository.UpdateAsync(user);
+        
+        var csrfToken = Guid.NewGuid().ToString();
+        return await tokenService.CreateAsync(new TokenCreateRequest()
+        {
+            User = user,
+            CsrfToken = csrfToken
+        });
     }
 
     public async Task<IdentityDto> ValidateAsync(IdentityValidateRequest request)

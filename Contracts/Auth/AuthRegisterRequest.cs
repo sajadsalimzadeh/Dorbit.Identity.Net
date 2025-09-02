@@ -16,5 +16,5 @@ public class AuthRegisterRequest
     [MaxLength(32), Required]
     public string Password { get; set; }
 
-    public OtpValidateRequest OtpValidation { get; set; }
+    public OtpValidationRequest OtpValidation { get; set; }
 }

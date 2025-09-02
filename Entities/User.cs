@@ -6,7 +6,6 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;
-using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
 

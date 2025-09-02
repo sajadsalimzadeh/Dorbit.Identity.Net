@@ -57,7 +57,7 @@ public class OtpService(
         return otp;
     }
 
-    public async Task<bool> ValidateAsync(OtpValidateRequest request)
+    public async Task<bool> ValidateAsync(OtpValidationRequest request)
     {
         var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver && x.Type == request.Type) ??
                   throw new OperationException(IdentityErrors.EntityNotFound);
