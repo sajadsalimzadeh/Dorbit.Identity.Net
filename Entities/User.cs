@@ -6,7 +6,6 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;
-using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,32 +18,33 @@ public class User : FullEntity
     [Sequence("seq_user_code", Schema = "identity")]
     public int Code { get; set; }
 
-    [StringLength(128)]
+    [MaxLength(128)]
     public string Name { get; set; }
 
-    [StringLength(32), Required]
+    [MaxLength(32), Required]
     public string Username { get; set; }
 
-    [StringLength(128), Required]
+    [MaxLength(128), Required]
     public string PasswordSalt { get; set; }
 
-    [StringLength(128)]
+    [MaxLength(128)]
     public string PasswordHash { get; set; }
 
-    [StringLength(20)]
+    [MaxLength(20)]
     public string Cellphone { get; set; }
-    public DateTime? CellphoneConfirmTime { get; set; }
+    [MaxLength(8)]
+    public string CellphoneCountryCode { get; set; }
+    public DateTime? CellphoneVerificationTime { get; set; }
 
-    [StringLength(64)]
+    [MaxLength(64)]
     public string Email { get; set; }
-    public DateTime? EmailConfirmTime { get; set; }
+    public DateTime? EmailVerificationTime { get; set; }
 
-    [StringLength(1024)]
+    [MaxLength(1024)]
     public string AuthenticatorKey { get; set; }
+    public DateTime? AuthenticatorVerificationTime { get; set; }
 
-    public DateTime? AuthenticatorConfirmTime { get; set; }
-
-    [StringLength(512)]
+    [MaxLength(512)]
     public string ThumbnailFilename { get; set; }
 
     public bool NeedResetPassword { get; set; }

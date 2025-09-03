@@ -1,4 +1,6 @@
-﻿using Dorbit.Framework.Contracts.Cryptograpy;
+﻿using System.Collections.Generic;
+using Dorbit.Framework.Contracts.Cryptograpy;
+using Dorbit.Identity.Contracts.Otps;
 
 namespace Dorbit.Identity.Configs;
 
@@ -13,6 +15,8 @@ public class ConfigIdentitySecurity
     public string Issuer { get; set; }
     public string Audience { get; set; }
     public ConfigIdentitySecurityWebPush WebPush { get; set; }
+    public bool IsCellphoneVerificationRequired { get; set; }
+    public bool IsEmailVerificationRequired { get; set; }
 }
 
 public class ConfigIdentitySecurityWebPush

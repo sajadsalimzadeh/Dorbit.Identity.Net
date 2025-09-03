@@ -33,7 +33,7 @@ public class UsersController(
     TokenRepository tokenRepository,
     PrivilegeService privilegeService,
     UserPrivilegeRepository userPrivilegeRepository)
-    : CrudController<User, Guid, UserDto, UserAddRequest, UserEditRequest>
+    : CrudController<User, Guid, UserDto, UserAddRequest>
 {
     [Auth("User-Read")]
     public override Task<PagedListResult<UserDto>> SelectAsync()

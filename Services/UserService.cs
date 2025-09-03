@@ -29,10 +29,6 @@ public class UserService(
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
-    public static string HashPassword(string password, string salt)
-    {
-        return HashUtil.PasswordV2(password, salt);
-    }
 
     public async Task<User> AddAsync(UserAddRequest request)
     {
@@ -44,13 +40,16 @@ public class UserService(
         });
         entity.Username = entity.Username.ToLower();
         request.Password ??= new Random().NextString(12);
-        entity.PasswordHash = HashPassword(request.Password, entity.PasswordSalt);
+        entity.PasswordHash = HashUtil.PasswordV2(request.Password, entity.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
-            entity.CellphoneConfirmTime = DateTime.Now;
-        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) entity.EmailConfirmTime = DateTime.Now;
+            entity.CellphoneVerificationTime = DateTime.UtcNow;
+        
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) 
+            entity.EmailVerificationTime = DateTime.UtcNow;
+        
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
-            entity.AuthenticatorConfirmTime = DateTime.Now;
+            entity.AuthenticatorVerificationTime = DateTime.UtcNow;
 
         entity.IsDeleted = false;
         return await userRepository.SaveAsync(entity);
@@ -70,7 +69,7 @@ public class UserService(
     public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
-        user.PasswordHash = HashPassword(request.Password, user.PasswordSalt);
+        user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
         await userRepository.UpdateAsync(user);
         return user;
     }
@@ -153,21 +152,22 @@ public class UserService(
     public async Task VerifyCodeAsync(Guid id, UserVerifyRequest request)
     {
         var user = await userRepository.GetByIdAsync(id);
-        if (request.Type == OtpType.Email)
+
+
+        if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
-            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Email, Code = request.Code }))
+            if (request.Type == OtpType.Email)
             {
-                user.EmailConfirmTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                user.Email = request.Receiver;
+                user.EmailVerificationTime = DateTime.UtcNow;
             }
-        }
-        else if (request.Type == OtpType.Cellphone)
-        {
-            if (await otpService.ValidateAsync(new OtpValidateRequest() { Receiver = user.Cellphone, Code = request.Code }))
+            else if (request.Type == OtpType.Cellphone)
             {
-                user.CellphoneConfirmTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                user.Cellphone = request.Receiver;
+                user.CellphoneVerificationTime = DateTime.UtcNow;
             }
+
+            await userRepository.UpdateAsync(user);
         }
     }
 }

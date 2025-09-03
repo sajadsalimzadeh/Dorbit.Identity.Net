@@ -17,13 +17,13 @@ public class UserDto : IUserDto
     public bool HasPassword { get; set; }
     
     public string Cellphone { get; set; }
-    public DateTime? CellphoneConfirmTime { get; set; }
+    public DateTime? CellphoneVerificationTime { get; set; }
     
     public string Email { get; set; }
-    public DateTime? EmailConfirmTime { get; set; }
+    public DateTime? EmailVerificationTime { get; set; }
     
     public string AuthenticatorKey { get; set; }
-    public DateTime? AuthenticatorConfirmTime { get; set; }
+    public DateTime? AuthenticatorVerificationTime { get; set; }
     
     public string Thumbnail { get; set; }
     
