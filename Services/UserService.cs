@@ -29,7 +29,6 @@ public class UserService(
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
-
     public async Task<User> AddAsync(UserAddRequest request)
     {
         var existsUser = await userRepository.Set(false).FirstOrDefaultAsync(x => x.Username.ToLower() == request.Username);
@@ -44,10 +43,10 @@ public class UserService(
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
             entity.CellphoneVerificationTime = DateTime.UtcNow;
-        
-        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email)) 
+
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email))
             entity.EmailVerificationTime = DateTime.UtcNow;
-        
+
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
             entity.AuthenticatorVerificationTime = DateTime.UtcNow;
 
@@ -153,9 +152,18 @@ public class UserService(
     {
         var user = await userRepository.GetByIdAsync(id);
 
-
         if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
+            user.Infos ??= new();
+
+            if (request.Infos is not null)
+            {
+                foreach (var info in request.Infos)
+                {
+                    user.Infos[info.Key] = info.Value;
+                }
+            }
+
             if (request.Type == OtpType.Email)
             {
                 user.Email = request.Receiver;

@@ -56,6 +56,9 @@ public class User : FullEntity
 
     [JsonField]
     public List<string> WhiteListIps { get; set; }
+
+    [JsonField]
+    public Dictionary<string, object> Infos { get; set; }
     
     [JsonField]
     public List<UserWebPushSubscription> WebPushSubscriptions { get; set; }
