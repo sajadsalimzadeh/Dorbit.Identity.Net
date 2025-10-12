@@ -13,7 +13,7 @@ public class AuthRegisterRequest
     public string Cellphone { get; set; }
     [MaxLength(64)]
     public string Email { get; set; }
-    [MaxLength(32), Required]
+    [MaxLength(32)]
     public string Password { get; set; }
 
     public OtpValidationRequest OtpValidation { get; set; }
