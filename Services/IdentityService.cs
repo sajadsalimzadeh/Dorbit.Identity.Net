@@ -10,6 +10,7 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
+using Dorbit.Framework.Utils;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
@@ -148,9 +149,17 @@ public class IdentityService(
     {
         var validateResult = await otpService.ValidateAsync(request.OtpValidation);
         if (!validateResult) throw new OperationException(IdentityErrors.OtpIsInvalid);
-        
+
+        var csrfToken = Guid.NewGuid().ToString();
         var user = await userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
-        if (user is not null) throw new OperationException(IdentityErrors.UserExists);
+        if (user is not null)
+        {
+            return await tokenService.CreateAsync(new TokenCreateRequest()
+            {
+                User = user,
+                CsrfToken = csrfToken
+            });
+        }
 
         user = await userService.AddAsync(new UserAddRequest()
         {
@@ -160,7 +169,6 @@ public class IdentityService(
             Password = request.Password,
         });
 
-        var csrfToken = Guid.NewGuid().ToString();
         return await tokenService.CreateAsync(new TokenCreateRequest()
         {
             User = user,
@@ -206,7 +214,7 @@ public class IdentityService(
 
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
         await userRepository.UpdateAsync(user);
-        
+
         var csrfToken = Guid.NewGuid().ToString();
         return await tokenService.CreateAsync(new TokenCreateRequest()
         {
@@ -224,11 +232,11 @@ public class IdentityService(
         if (!jwtService.TryValidateToken(request.AccessToken, secret, out _, out var claimsPrincipal))
             throw new AuthenticationException("Invalid access token");
 
-        if (!claimsPrincipal.Claims.TryGetString(nameof(TokenClaimTypes.CsrfToken), out var csrfToken))
-            throw new AuthenticationException("Csrf token not fount");
-
         if (!_configIdentitySecurity.IgnoreCsrfTokenValidation)
         {
+            if (!claimsPrincipal.Claims.TryGetString(nameof(TokenClaimTypes.CsrfToken), out var csrfToken))
+                throw new AuthenticationException("Csrf token not fount");
+
             if (request.CsrfToken.IsNullOrEmpty())
                 throw new AuthenticationException("Csrf token not set");
 
