@@ -108,8 +108,8 @@ public class OtpService(
             await messageManager.SendAsync(new MessageEmailRequest()
             {
                 To = request.Receiver,
-                Subject = "Code",
-                Body = "Code: {0}",
+                Subject = "One time password",
+                Body = "Your one time password is: {0}",
                 Args = [otp.Code]
             });
         }
