@@ -2,5 +2,6 @@
 
 public class AuthLoginWithGoogleRequest : AuthLoginRequest
 {
-    public string Token { get; set; }
+    public string AuthorizationCode { get; set; }
+    public string RedirectUrl { get; set; }
 }

@@ -19,6 +19,7 @@ public static class IdentityInstaller
         services.AddControllers(typeof(IdentityInstaller).Assembly).AddODataDefault();
 
         configs.ConfigAdmin?.Configure(services);
+        configs.GoogleOAuth?.Configure(services);
         configs.ConfigSecurity?.Configure(services);
 
         return services;
@@ -26,7 +27,8 @@ public static class IdentityInstaller
 
     public class Configs(IConfiguration configuration)
     {
-        public IConfig<ConfigAdmin> ConfigAdmin { get; set; } = configuration.GetConfig<ConfigAdmin>("Admin");
-        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
+        public IConfig<ConfigAdmin> ConfigAdmin { get; init; } = configuration.GetConfig<ConfigAdmin>("Admin");
+        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; init; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
+        public IConfig<ConfigGoogleOAuth> GoogleOAuth { get; init; } = configuration.GetConfig<ConfigGoogleOAuth>("GoogleOAuth");
     }
 }

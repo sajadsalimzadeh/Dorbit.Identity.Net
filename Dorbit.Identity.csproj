@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
+      <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
       <PackageReference Include="WebPush" Version="1.0.12" />
     </ItemGroup>
 

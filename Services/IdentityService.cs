@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
+using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Abstractions;
@@ -21,6 +22,10 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -37,6 +42,7 @@ public class IdentityService(
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
     UserPrivilegeRepository userPrivilegeRepository,
+    IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity
 )
     : IIdentityService, IUserResolver
@@ -67,15 +73,44 @@ public class IdentityService(
     {
         try
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == payload.Email);
+            var configGoogleOAuth = configGoogleOAuthOptions.Value;
+            var initializer = new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = configGoogleOAuth.ClientId,
+                    ClientSecret = configGoogleOAuth.ClientSecret
+                }
+            };
+
+            var flow = new GoogleAuthorizationCodeFlow(initializer);
+
+            // این متد خودش درخواست POST رو به گوگل می‌فرسته و response رو برمی‌گردونه
+            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                userId: "user", // مقدار دلخواه برای شناسایی کاربر (در صورت نیاز)
+                code: request.AuthorizationCode,
+                redirectUri: request.RedirectUrl,
+                taskCancellationToken: CancellationToken.None
+            );
+
+            var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
+            var oauthService = new Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "MyApp"
+            });
+
+            // اطلاعات کاربر لاگین‌شده
+            var userInfo = await oauthService.Userinfo.Get().ExecuteAsync();
+
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
             if (user is null)
             {
                 user = await userService.AddAsync(new UserAddRequest()
                 {
-                    Username = payload.Email,
-                    Name = payload.Name,
-                    Email = payload.Email,
+                    Username = userInfo.Email,
+                    Name = userInfo.Name,
+                    Email = userInfo.Email,
                     ValidateTypes = UserValidateTypes.Email
                 });
             }
