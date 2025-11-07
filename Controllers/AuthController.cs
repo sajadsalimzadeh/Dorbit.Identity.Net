@@ -47,16 +47,16 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         return loginResponse.SetCookie(Response).ToQueryResult();
     }
     
-    [HttpPost("LoginWithGoogle")]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithGoogleAsync([FromBody] AuthLoginWithGoogleRequest request)
+    [HttpGet("LoginWithGoogle"), HttpPost("LoginWithGoogle")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithGoogleAsync(AuthLoginWithGoogleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         return loginResponse.SetCookie(Response).ToQueryResult();
     }
     
-    [HttpPost("LoginWithApple")]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithAppleAsync([FromBody] AuthLoginWithAppleRequest request)
+    [HttpGet("LoginWithApple"), HttpPost("LoginWithApple")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithAppleAsync(AuthLoginWithAppleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
