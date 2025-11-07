@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Contracts.Results;
@@ -13,6 +14,7 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Controllers;
@@ -53,7 +55,13 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        var queryParams = new Dictionary<string, string>()
+        {
+            ["access_token"] = loginResponse.AccessToken,
+            ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
+        };
+        var finalUrl = QueryHelpers.AddQueryString("/", queryParams);
+        return LocalRedirect(finalUrl);
     }
 
     [HttpPost("LoginWithApple")]
@@ -62,7 +70,13 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        var queryParams = new Dictionary<string, string>()
+        {
+            ["access_token"] = loginResponse.AccessToken,
+            ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
+        };
+        var finalUrl = QueryHelpers.AddQueryString("/", queryParams);
+        return LocalRedirect(finalUrl);
     }
 
     [HttpPost("LoginWithOtp")]
