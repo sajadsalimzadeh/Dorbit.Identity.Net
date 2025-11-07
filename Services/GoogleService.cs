@@ -44,7 +44,6 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions)
             ApplicationName = "MyApp"
         });
         
-        
         return await oauthService.Userinfo.Get().ExecuteAsync();
     }
 }

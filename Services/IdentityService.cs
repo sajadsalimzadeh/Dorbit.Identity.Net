@@ -26,6 +26,7 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Dorbit.Identity.Services;
 
@@ -41,6 +42,7 @@ public class IdentityService(
     UserRepository userRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
+    ILogger logger,
     UserPrivilegeRepository userPrivilegeRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
@@ -111,6 +113,7 @@ public class IdentityService(
         try
         {
             var tokenInfo = await appleService.ValidateAsync(request);
+            logger.Information("Sign in with apple token info: {@tokenInfo}",tokenInfo);
             var userInfo = tokenInfo.User;
             var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
             
