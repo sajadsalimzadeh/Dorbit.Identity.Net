@@ -55,13 +55,8 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        var queryParams = new Dictionary<string, string>()
-        {
-            ["access_token"] = loginResponse.AccessToken,
-            ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
-        };
-        var finalUrl = QueryHelpers.AddQueryString("/#/auth", queryParams);
-        return LocalRedirect(finalUrl);
+        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        // return loginResponse.ToQueryResult();
     }
 
     [HttpPost("LoginWithApple")]
@@ -70,13 +65,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        var queryParams = new Dictionary<string, string>()
-        {
-            ["access_token"] = loginResponse.AccessToken,
-            ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
-        };
-        var finalUrl = QueryHelpers.AddQueryString("/#/auth", queryParams);
-        return LocalRedirect(finalUrl);
+        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]
