@@ -60,7 +60,7 @@ public class AuthController(
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithApple")]
@@ -69,7 +69,7 @@ public class AuthController(
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        return LocalRedirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return LocalRedirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]
