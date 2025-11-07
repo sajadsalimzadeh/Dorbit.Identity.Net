@@ -60,7 +60,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
             ["access_token"] = loginResponse.AccessToken,
             ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
         };
-        var finalUrl = QueryHelpers.AddQueryString("/", queryParams);
+        var finalUrl = QueryHelpers.AddQueryString("/#/auth", queryParams);
         return LocalRedirect(finalUrl);
     }
 
@@ -75,7 +75,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
             ["access_token"] = loginResponse.AccessToken,
             ["timeoutInSecond"] = loginResponse.TimeoutInSecond.ToString()
         };
-        var finalUrl = QueryHelpers.AddQueryString("/", queryParams);
+        var finalUrl = QueryHelpers.AddQueryString("/#/auth", queryParams);
         return LocalRedirect(finalUrl);
     }
 
