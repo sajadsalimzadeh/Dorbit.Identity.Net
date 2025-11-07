@@ -53,7 +53,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        return RedirectPermanent($"/?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return RedirectPermanent($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithApple")]
@@ -62,7 +62,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        return RedirectPermanent($"/?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return RedirectPermanent($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]
