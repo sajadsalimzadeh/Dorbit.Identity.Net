@@ -89,7 +89,7 @@ public class IdentityService(
             // این متد خودش درخواست POST رو به گوگل می‌فرسته و response رو برمی‌گردونه
             var tokenResponse = await flow.ExchangeCodeForTokenAsync(
                 userId: "user", // مقدار دلخواه برای شناسایی کاربر (در صورت نیاز)
-                code: request.AuthorizationCode,
+                code: request.Code,
                 redirectUri: request.RedirectUrl,
                 taskCancellationToken: CancellationToken.None
             );
@@ -137,12 +137,12 @@ public class IdentityService(
         }
     }
 
-    public Task LoginWithApple(AuthLoginWithAppleRequest request)
+    public Task<AuthLoginResponse> LoginWithAppleAsync(AuthLoginWithAppleRequest request)
     {
         var configAppleOAuth = configAppleOAuthOptions.Value;
 
 
-        return Task.CompletedTask;
+        throw new NotImplementedException();
     }
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)

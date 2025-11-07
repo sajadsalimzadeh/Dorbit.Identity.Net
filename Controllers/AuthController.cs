@@ -54,6 +54,14 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         return loginResponse.SetCookie(Response).ToQueryResult();
     }
+    
+    [HttpPost("LoginWithApple")]
+    public async Task<QueryResult<AuthLoginResponse>> LoginWithAppleAsync([FromBody] AuthLoginWithAppleRequest request)
+    {
+        request.FillByRequest(Request);
+        var loginResponse = await identityService.LoginWithAppleAsync(request);
+        return loginResponse.SetCookie(Response).ToQueryResult();
+    }
 
     [HttpPost("LoginWithOtp")]
     public async Task<QueryResult<AuthLoginResponse>> LoginWithOtpAsync([FromBody] AuthLoginWithOtpRequest request)
