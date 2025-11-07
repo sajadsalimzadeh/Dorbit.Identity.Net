@@ -48,21 +48,21 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
     }
 
     [HttpGet("LoginWithGoogle")]
-    public async Task<RedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
+    public async Task<LocalRedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        return RedirectPermanent($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithApple")]
-    public async Task<RedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
+    public async Task<LocalRedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        return RedirectPermanent($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]
