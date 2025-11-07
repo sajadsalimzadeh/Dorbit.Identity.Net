@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Utilities;
@@ -30,7 +33,19 @@ public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions, IL
         var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", new FormUrlEncodedContent(form));
         var content = await response.Content.ReadAsStringAsync();
 
-        logger.Information("Sign in with apple token info: {@content}",content);
-        return JsonSerializer.Deserialize<AuthLoginWithAppleResponse>(content, JsonSerializerOptions.Web);
+        logger.Information("Sign in with apple token info: {@content}", content);
+        var result = JsonSerializer.Deserialize<AuthLoginWithAppleResponse>(content, JsonSerializerOptions.Web);
+
+        if (result.IdToken.IsNotNullOrEmpty() && result.User == null)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.IdToken);
+            result.User = new AuthLoginWithAppleResponseUserInfo()
+            {
+                Email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value
+            };
+        }
+
+        return result;
     }
 }
