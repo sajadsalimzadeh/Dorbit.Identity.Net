@@ -42,15 +42,16 @@ public class IdentityService(
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
     UserPrivilegeRepository userPrivilegeRepository,
+    IOptions<ConfigAppleOAuth> configAppleOAuthOptions,
     IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
-    IOptions<ConfigIdentitySecurity> configIdentitySecurity
+    IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
     : IIdentityService, IUserResolver
 {
     public IdentityDto Identity { get; private set; }
     public IUserDto User { get; set; }
 
-    private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurityOptions.Value;
 
     public async Task<AuthLoginResponse> LoginWithPasswordAsync(AuthLoginWithPasswordRequest request)
     {
@@ -134,6 +135,14 @@ public class IdentityService(
         {
             throw new UnauthorizedAccessException("Authorization failed");
         }
+    }
+
+    public Task LoginWithApple(AuthLoginWithAppleRequest request)
+    {
+        var configAppleOAuth = configAppleOAuthOptions.Value;
+
+
+        return Task.CompletedTask;
     }
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)
