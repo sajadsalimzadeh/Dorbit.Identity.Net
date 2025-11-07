@@ -1,6 +1,9 @@
-﻿namespace Dorbit.Identity.Contracts.Auth;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace Dorbit.Identity.Contracts.Auth;
 
 public class AuthLoginWithGoogleRequest : AuthLoginRequest
 {
-    public string Code { get; set; }
+    [FromQuery(Name = "code")]
+    public string AuthenticationCode { get; set; }
 }

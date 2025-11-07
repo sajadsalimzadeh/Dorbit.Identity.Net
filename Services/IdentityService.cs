@@ -11,7 +11,6 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
-using Dorbit.Framework.Utils;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
@@ -21,7 +20,6 @@ using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
-using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Oauth2.v2;
@@ -37,13 +35,13 @@ public class IdentityService(
     JwtService jwtService,
     TokenService tokenService,
     UserService userService,
+    AppleService appleService,
+    GoogleService googleService,
     RoleRepository roleRepository,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
     UserPrivilegeRepository userPrivilegeRepository,
-    IOptions<ConfigAppleOAuth> configAppleOAuthOptions,
-    IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
     : IIdentityService, IUserResolver
@@ -74,35 +72,7 @@ public class IdentityService(
     {
         try
         {
-            var configGoogleOAuth = configGoogleOAuthOptions.Value;
-            var initializer = new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = new ClientSecrets
-                {
-                    ClientId = configGoogleOAuth.ClientId,
-                    ClientSecret = configGoogleOAuth.ClientSecret
-                }
-            };
-
-            var flow = new GoogleAuthorizationCodeFlow(initializer);
-
-            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                userId: "user",
-                code: request.Code,
-                redirectUri: configGoogleOAuth.RedirectUrl,
-                taskCancellationToken: CancellationToken.None
-            );
-
-            var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
-            var oauthService = new Oauth2Service(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "MyApp"
-            });
-
-            // اطلاعات کاربر لاگین‌شده
-            var userInfo = await oauthService.Userinfo.Get().ExecuteAsync();
-
+            var userInfo = await googleService.ValidateAsync(request);
             var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
             if (user is null)
             {
@@ -136,12 +106,43 @@ public class IdentityService(
         }
     }
 
-    public Task<AuthLoginResponse> LoginWithAppleAsync(AuthLoginWithAppleRequest request)
+    public async Task<AuthLoginResponse> LoginWithAppleAsync(AuthLoginWithAppleRequest request)
     {
-        var configAppleOAuth = configAppleOAuthOptions.Value;
+        try
+        {
+            var tokenInfo = await appleService.ValidateAsync(request);
+            var userInfo = tokenInfo.User;
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
+            if (user is null)
+            {
+                user = await userService.AddAsync(new UserAddRequest()
+                {
+                    Username = userInfo.Email,
+                    Name = (userInfo.Name != null ? $"{userInfo.Name.FirstName} {userInfo.Name.LastName}" : userInfo.Email),
+                    Email = userInfo.Email,
+                    ValidateTypes = UserValidateTypes.Email
+                });
+            }
+            else
+            {
+                if (!user.EmailVerificationTime.HasValue)
+                {
+                    user.EmailVerificationTime = DateTime.UtcNow;
+                    await userRepository.UpdateAsync(user);
+                }
+            }
 
-
-        throw new NotImplementedException();
+            return await tokenService.CreateAsync(new TokenCreateRequest()
+            {
+                User = user,
+                CsrfToken = Guid.NewGuid().ToString(),
+                UserAgent = request.UserAgent,
+            });
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException("Authorization failed");
+        }
     }
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)

@@ -1,0 +1,34 @@
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Dorbit.Framework.Attributes;
+using Dorbit.Identity.Configs;
+using Dorbit.Identity.Contracts.Auth;
+using Dorbit.Identity.Utilities;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+
+namespace Dorbit.Identity.Services;
+
+[ServiceRegister]
+public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions)
+{
+    public async Task<AuthLoginWithAppleResponse> ValidateAsync(AuthLoginWithAppleRequest request)
+    {
+        var configAppleOAuth = configAppleOAuthOptions.Value;
+        var form = new Dictionary<string, string>
+        {
+            { "client_id", configAppleOAuth.ClientId },
+            { "client_secret", AppleUtil.GenerateClientSecret(configAppleOAuth.TeamId, configAppleOAuth.ClientId, configAppleOAuth.KeyId, configAppleOAuth.PrivateKey) },
+            { "code", request.AuthenticationCode },
+            { "grant_type", "authorization_code" },
+            { "redirect_uri", configAppleOAuth.RedirectUrl }
+        };
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", new FormUrlEncodedContent(form));
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<AuthLoginWithAppleResponse>(content);
+    }
+}
