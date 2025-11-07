@@ -20,7 +20,12 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Controllers;
 
 [Route("Identity/[controller]")]
-public class AuthController(IdentityService identityService, IOptions<ConfigIdentitySecurity> configIdentitySecurity) : BaseController
+public class AuthController(
+    IdentityService identityService, 
+    IOptions<ConfigIdentitySecurity> configIdentitySecurity, 
+    IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
+    IOptions<ConfigAppleOAuth> configAppleOAuthOptions
+    ) : BaseController
 {
     [HttpGet, Auth]
     public QueryResult<AuthIdentityDto> GetLoginInfo()
@@ -50,13 +55,12 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
     }
 
     [HttpGet("LoginWithGoogle")]
-    public async Task<LocalRedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
+    public async Task<RedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
         loginResponse.SetCookie(Response);
-        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
-        // return loginResponse.ToQueryResult();
+        return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithApple")]
@@ -65,7 +69,7 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
-        return LocalRedirect($"/#/auth?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return LocalRedirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={loginResponse.AccessToken}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]

@@ -7,4 +7,5 @@ public class ConfigAppleOAuth
     public string TeamId { get; set; }
     public string PrivateKey { get; set; }
     public string RedirectUrl { get; set; }
+    public string ReturnUrl { get; set; }
 }
