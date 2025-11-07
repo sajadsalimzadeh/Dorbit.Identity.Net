@@ -102,7 +102,7 @@ public class IdentityService(
         }
         catch (Exception ex)
         {
-            throw new UnauthorizedAccessException("Authorization failed");
+            throw new UnauthorizedAccessException(ex.Message, ex);
         }
     }
 
@@ -141,7 +141,7 @@ public class IdentityService(
         }
         catch (Exception ex)
         {
-            throw new UnauthorizedAccessException("Authorization failed");
+            throw new UnauthorizedAccessException(ex.Message, ex);
         }
     }
 
