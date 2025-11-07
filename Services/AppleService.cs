@@ -7,11 +7,12 @@ using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Utilities;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions)
+public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions, ILogger logger)
 {
     public async Task<AuthLoginWithAppleResponse> ValidateAsync(AuthLoginWithAppleRequest request)
     {
@@ -29,6 +30,7 @@ public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions)
         var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", new FormUrlEncodedContent(form));
         var content = await response.Content.ReadAsStringAsync();
 
+        logger.Information("Sign in with apple token info: {@content}",content);
         return JsonSerializer.Deserialize<AuthLoginWithAppleResponse>(content, JsonSerializerOptions.Web);
     }
 }
