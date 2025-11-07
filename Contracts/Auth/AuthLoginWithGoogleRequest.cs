@@ -3,5 +3,4 @@
 public class AuthLoginWithGoogleRequest : AuthLoginRequest
 {
     public string Code { get; set; }
-    public string RedirectUrl { get; set; }
 }

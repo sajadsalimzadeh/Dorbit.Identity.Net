@@ -86,11 +86,10 @@ public class IdentityService(
 
             var flow = new GoogleAuthorizationCodeFlow(initializer);
 
-            // این متد خودش درخواست POST رو به گوگل می‌فرسته و response رو برمی‌گردونه
             var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                userId: "user", // مقدار دلخواه برای شناسایی کاربر (در صورت نیاز)
+                userId: "user",
                 code: request.Code,
-                redirectUri: request.RedirectUrl,
+                redirectUri: configGoogleOAuth.RedirectUrl,
                 taskCancellationToken: CancellationToken.None
             );
 
