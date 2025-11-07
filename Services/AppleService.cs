@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Utilities;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Dorbit.Identity.Services;
 
@@ -29,6 +29,6 @@ public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions)
         var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", new FormUrlEncodedContent(form));
         var content = await response.Content.ReadAsStringAsync();
 
-        return JsonConvert.DeserializeObject<AuthLoginWithAppleResponse>(content);
+        return JsonSerializer.Deserialize<AuthLoginWithAppleResponse>(content, JsonSerializerOptions.Web);
     }
 }

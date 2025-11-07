@@ -113,6 +113,7 @@ public class IdentityService(
             var tokenInfo = await appleService.ValidateAsync(request);
             var userInfo = tokenInfo.User;
             var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
+            
             if (user is null)
             {
                 user = await userService.AddAsync(new UserAddRequest()
