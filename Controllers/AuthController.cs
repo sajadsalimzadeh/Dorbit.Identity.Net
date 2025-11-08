@@ -66,14 +66,14 @@ public class AuthController(
     }
 
     [HttpPost("LoginWithApple")]
-    public async Task<LocalRedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
+    public async Task<RedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithAppleAsync(request);
         loginResponse.SetCookie(Response);
         Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
         Response.Headers["Pragma"] = "no-cache";
-        return LocalRedirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        return Redirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]
