@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
+using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Abstractions;
@@ -10,7 +11,6 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Services.Abstractions;
-using Dorbit.Framework.Utils;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
@@ -20,9 +20,13 @@ using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
-using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Dorbit.Identity.Services;
 
@@ -32,19 +36,22 @@ public class IdentityService(
     JwtService jwtService,
     TokenService tokenService,
     UserService userService,
+    AppleService appleService,
+    GoogleService googleService,
     RoleRepository roleRepository,
     UserRepository userRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
+    ILogger logger,
     UserPrivilegeRepository userPrivilegeRepository,
-    IOptions<ConfigIdentitySecurity> configIdentitySecurity
+    IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
     : IIdentityService, IUserResolver
 {
     public IdentityDto Identity { get; private set; }
     public IUserDto User { get; set; }
 
-    private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurity.Value;
+    private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurityOptions.Value;
 
     public async Task<AuthLoginResponse> LoginWithPasswordAsync(AuthLoginWithPasswordRequest request)
     {
@@ -67,15 +74,15 @@ public class IdentityService(
     {
         try
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == payload.Email);
+            var userInfo = await googleService.ValidateAsync(request);
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
             if (user is null)
             {
                 user = await userService.AddAsync(new UserAddRequest()
                 {
-                    Username = payload.Email,
-                    Name = payload.Name,
-                    Email = payload.Email,
+                    Username = userInfo.Email,
+                    Name = userInfo.Name,
+                    Email = userInfo.Email,
                     ValidateTypes = UserValidateTypes.Email
                 });
             }
@@ -97,7 +104,48 @@ public class IdentityService(
         }
         catch (Exception ex)
         {
-            throw new UnauthorizedAccessException("Authorization failed");
+            throw new UnauthorizedAccessException(ex.Message, ex);
+        }
+    }
+
+    public async Task<AuthLoginResponse> LoginWithAppleAsync(AuthLoginWithAppleRequest request)
+    {
+        try
+        {
+            var tokenInfo = await appleService.ValidateAsync(request);
+            logger.Information("Sign in with apple token info: {@tokenInfo}",tokenInfo);
+            var userInfo = tokenInfo.User;
+            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
+            
+            if (user is null)
+            {
+                user = await userService.AddAsync(new UserAddRequest()
+                {
+                    Username = userInfo.Email,
+                    Name = (userInfo.Name != null ? $"{userInfo.Name.FirstName} {userInfo.Name.LastName}" : userInfo.Email),
+                    Email = userInfo.Email,
+                    ValidateTypes = UserValidateTypes.Email
+                });
+            }
+            else
+            {
+                if (!user.EmailVerificationTime.HasValue)
+                {
+                    user.EmailVerificationTime = DateTime.UtcNow;
+                    await userRepository.UpdateAsync(user);
+                }
+            }
+
+            return await tokenService.CreateAsync(new TokenCreateRequest()
+            {
+                User = user,
+                CsrfToken = Guid.NewGuid().ToString(),
+                UserAgent = request.UserAgent,
+            });
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException(ex.Message, ex);
         }
     }
 

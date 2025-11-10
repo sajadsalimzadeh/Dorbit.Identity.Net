@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Contracts.Results;
@@ -13,12 +14,18 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Controllers;
 
 [Route("Identity/[controller]")]
-public class AuthController(IdentityService identityService, IOptions<ConfigIdentitySecurity> configIdentitySecurity) : BaseController
+public class AuthController(
+    IdentityService identityService, 
+    IOptions<ConfigIdentitySecurity> configIdentitySecurity, 
+    IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
+    IOptions<ConfigAppleOAuth> configAppleOAuthOptions
+    ) : BaseController
 {
     [HttpGet, Auth]
     public QueryResult<AuthIdentityDto> GetLoginInfo()
@@ -46,13 +53,23 @@ public class AuthController(IdentityService identityService, IOptions<ConfigIden
         var loginResponse = await identityService.LoginWithPasswordAsync(request);
         return loginResponse.SetCookie(Response).ToQueryResult();
     }
-    
-    [HttpPost("LoginWithGoogle")]
-    public async Task<QueryResult<AuthLoginResponse>> LoginWithGoogleAsync([FromBody] AuthLoginWithGoogleRequest request)
+
+    [HttpGet("LoginWithGoogle")]
+    public async Task<RedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
     {
         request.FillByRequest(Request);
         var loginResponse = await identityService.LoginWithGoogleAsync(request);
-        return loginResponse.SetCookie(Response).ToQueryResult();
+        loginResponse.SetCookie(Response);
+        return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+    }
+
+    [HttpPost("LoginWithApple")]
+    public async Task<RedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
+    {
+        request.FillByRequest(Request);
+        var loginResponse = await identityService.LoginWithAppleAsync(request);
+        loginResponse.SetCookie(Response);
+        return Redirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
     }
 
     [HttpPost("LoginWithOtp")]

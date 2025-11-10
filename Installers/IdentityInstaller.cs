@@ -20,13 +20,17 @@ public static class IdentityInstaller
 
         configs.ConfigAdmin?.Configure(services);
         configs.ConfigSecurity?.Configure(services);
+        configs.ConfigAppleOAuth?.Configure(services);
+        configs.ConfigGoogleOAuth?.Configure(services);
 
         return services;
     }
 
     public class Configs(IConfiguration configuration)
     {
-        public IConfig<ConfigAdmin> ConfigAdmin { get; set; } = configuration.GetConfig<ConfigAdmin>("Admin");
-        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; set; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
+        public IConfig<ConfigAdmin> ConfigAdmin { get; init; } = configuration.GetConfig<ConfigAdmin>("Admin");
+        public IConfig<ConfigIdentitySecurity> ConfigSecurity { get; init; } = configuration.GetConfig<ConfigIdentitySecurity>("Security");
+        public IConfig<ConfigGoogleOAuth> ConfigGoogleOAuth { get; init; } = configuration.GetConfig<ConfigGoogleOAuth>("GoogleOAuth");
+        public IConfig<ConfigAppleOAuth> ConfigAppleOAuth { get; init; } = configuration.GetConfig<ConfigAppleOAuth>("AppleOAuth");
     }
 }
