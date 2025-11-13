@@ -21,11 +21,11 @@ namespace Dorbit.Identity.Controllers;
 
 [Route("Identity/[controller]")]
 public class AuthController(
-    IdentityService identityService, 
-    IOptions<ConfigIdentitySecurity> configIdentitySecurity, 
+    IdentityService identityService,
+    IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     IOptions<ConfigAppleOAuth> configAppleOAuthOptions
-    ) : BaseController
+) : BaseController
 {
     [HttpGet, Auth]
     public QueryResult<AuthIdentityDto> GetLoginInfo()
@@ -57,19 +57,35 @@ public class AuthController(
     [HttpGet("LoginWithGoogle")]
     public async Task<RedirectResult> LoginWithGoogleAsync([FromQuery] AuthLoginWithGoogleRequest request)
     {
-        request.FillByRequest(Request);
-        var loginResponse = await identityService.LoginWithGoogleAsync(request);
-        loginResponse.SetCookie(Response);
-        return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        try
+        {
+            request.FillByRequest(Request);
+            var loginResponse = await identityService.LoginWithGoogleAsync(request);
+            loginResponse.SetCookie(Response);
+            return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, ex.Message);
+            return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}");
+        }
     }
 
     [HttpPost("LoginWithApple")]
     public async Task<RedirectResult> LoginWithAppleAsync([FromForm] AuthLoginWithAppleRequest request)
     {
-        request.FillByRequest(Request);
-        var loginResponse = await identityService.LoginWithAppleAsync(request);
-        loginResponse.SetCookie(Response);
-        return Redirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        try
+        {
+            request.FillByRequest(Request);
+            var loginResponse = await identityService.LoginWithAppleAsync(request);
+            loginResponse.SetCookie(Response);
+            return Redirect($"{configAppleOAuthOptions.Value.ReturnUrl}?access_token={Uri.EscapeDataString(loginResponse.AccessToken)}&timeoutInSecond={loginResponse.TimeoutInSecond}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, ex.Message);
+            return Redirect($"{configGoogleOAuthOptions.Value.ReturnUrl}");
+        }
     }
 
     [HttpPost("LoginWithOtp")]
