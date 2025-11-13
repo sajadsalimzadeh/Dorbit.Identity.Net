@@ -21,7 +21,7 @@ public class User : FullEntity
     [MaxLength(128)]
     public string Name { get; set; }
 
-    [MaxLength(32), Required]
+    [MaxLength(128), Required]
     public string Username { get; set; }
 
     [MaxLength(128), Required]
@@ -36,7 +36,7 @@ public class User : FullEntity
     public string CellphoneCountryCode { get; set; }
     public DateTime? CellphoneVerificationTime { get; set; }
 
-    [MaxLength(64)]
+    [MaxLength(128)]
     public string Email { get; set; }
     public DateTime? EmailVerificationTime { get; set; }
 
