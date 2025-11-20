@@ -50,6 +50,7 @@ public class OtpService(
             otp.Code = code;
             otp.TryRemain = 5;
             otp.Type = request.Type;
+            otp.ExpireAt = DateTime.UtcNow.Add(request.Duration);
             otp.IsUsed = false;
             await otpRepository.UpdateAsync(otp);
         }
