@@ -39,8 +39,8 @@ public class AuthController(
         };
         if (identity.User is UserDto user)
         {
-            result.IsEmailVerificationRequired = !user.EmailVerificationTime.HasValue && configIdentitySecurity.Value.IsEmailVerificationRequired;
-            result.IsCellphoneVerificationRequired = !user.CellphoneVerificationTime.HasValue && configIdentitySecurity.Value.IsCellphoneVerificationRequired;
+            result.IsEmailVerified = !user.EmailVerificationTime.HasValue && configIdentitySecurity.Value.IsEmailVerified;
+            result.IsCellphoneVerified = !user.CellphoneVerificationTime.HasValue && configIdentitySecurity.Value.IsCellphoneVerified;
         }
 
         return result.ToQueryResult();

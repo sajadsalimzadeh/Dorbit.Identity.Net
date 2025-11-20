@@ -15,8 +15,8 @@ public class ConfigIdentitySecurity
     public string Issuer { get; set; }
     public string Audience { get; set; }
     public ConfigIdentitySecurityWebPush WebPush { get; set; }
-    public bool IsCellphoneVerificationRequired { get; set; }
-    public bool IsEmailVerificationRequired { get; set; }
+    public bool IsCellphoneVerified { get; set; }
+    public bool IsEmailVerified { get; set; }
 }
 
 public class ConfigIdentitySecurityWebPush
