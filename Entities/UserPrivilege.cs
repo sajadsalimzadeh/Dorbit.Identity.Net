@@ -16,7 +16,7 @@ public class UserPrivilege : FullEntity
     public Guid? TenantId { get; set; }
     public DateTime? From { get; set; }
     public DateTime? To { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsFullAccess { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }

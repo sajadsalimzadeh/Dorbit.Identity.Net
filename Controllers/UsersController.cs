@@ -31,7 +31,6 @@ public class UsersController(
     UserRepository userRepository,
     IdentityService identityService,
     TokenRepository tokenRepository,
-    PrivilegeService privilegeService,
     UserPrivilegeRepository userPrivilegeRepository)
     : CrudController<User, Guid, UserDto, UserAddRequest>
 {
@@ -74,7 +73,7 @@ public class UsersController(
     public async Task<QueryResult<PrivilegeDto>> SaveUserPrivilegeAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
-        return (await privilegeService.SaveAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
+        return (await userService.SavePrivilegeAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 
     [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("Privilege")]

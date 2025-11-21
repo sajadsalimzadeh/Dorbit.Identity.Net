@@ -318,7 +318,7 @@ public class IdentityService(
         var allAccessibility = new List<string>();
         foreach (var userPrivilege in userPrivileges)
         {
-            if (userPrivilege.IsAdmin)
+            if (userPrivilege.IsFullAccess)
             {
                 Identity.IsFullAccess = true;
                 break;

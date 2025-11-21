@@ -12,6 +12,7 @@ using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Otps;
+using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
@@ -177,5 +178,21 @@ public class UserService(
 
             await userRepository.UpdateAsync(user);
         }
+    }
+    
+    public async Task<UserPrivilege> SavePrivilegeAsync(PrivilegeSaveRequest request)
+    {
+        request.Accessibility = request.Accessibility?.Select(x => x.ToLower()).ToList();
+        var privilege = await userPrivilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == request.UserId);
+        if (privilege is null)
+        {
+            privilege = await userPrivilegeRepository.InsertAsync(request.MapTo<UserPrivilege>());
+        }
+        else
+        {
+            privilege = await userPrivilegeRepository.UpdateAsync(request.MapTo(privilege));
+        }
+
+        return privilege;
     }
 }

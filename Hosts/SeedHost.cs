@@ -42,15 +42,12 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
         await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
 
-        var privilegeService = serviceProvider.GetService<PrivilegeService>();
-
         if (admin is not null)
         {
-            await privilegeService.SaveAsync(new PrivilegeSaveRequest()
+            await userService.SavePrivilegeAsync(new PrivilegeSaveRequest()
             {
                 UserId = admin.Id,
                 IsAdmin = true,
-                Accessibility = ["AllAccess"]
             });
         }
     }
