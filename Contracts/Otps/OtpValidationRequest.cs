@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dorbit.Identity.Contracts.Otps;
+﻿namespace Dorbit.Identity.Contracts.Otps;
 
 public class OtpValidationRequest
 {

@@ -7,11 +7,8 @@ using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
-using Dorbit.Framework.Services;
-using Dorbit.Framework.Utils.Queries;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
-using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
@@ -20,7 +17,6 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 
 namespace Dorbit.Identity.Controllers;
 

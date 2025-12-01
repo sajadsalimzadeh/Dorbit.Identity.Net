@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Dorbit.Identity.Contracts.Otps;
 
 namespace Dorbit.Identity.Contracts.Users;

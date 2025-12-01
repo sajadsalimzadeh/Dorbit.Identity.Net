@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using Dorbit.Framework.Contracts.Abstractions;
 using Dorbit.Framework.Contracts.Identities;
 using Dorbit.Framework.Entities.Abstractions;

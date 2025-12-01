@@ -47,7 +47,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
             await userService.SavePrivilegeAsync(new PrivilegeSaveRequest()
             {
                 UserId = admin.Id,
-                IsAdmin = true,
+                IsFullAccess = true,
             });
         }
     }
