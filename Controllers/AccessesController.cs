@@ -14,9 +14,15 @@ namespace Dorbit.Identity.Controllers;
 [Route("Identity/[controller]")]
 public class AccessesController(AccessRepository accessRepository) : BaseController
 {
-    [HttpGet, Auth("Access-Read")]
-    public Task<QueryResult<List<Access>>> SelectAsync()
+    [HttpGet, Auth]
+    public Task<QueryResult<List<Access>>> GetAllAsync()
     {
-        return accessRepository.Set().ToListAsync().ToQueryResultAsync();
+        return accessRepository.GetAllAccessibilityAsync().ToQueryResultAsync();
+    }
+    
+    [HttpGet("Dictionary"), Auth]
+    public Task<QueryResult<Dictionary<string, HashSet<string>>>> GetDictionaryAsync()
+    {
+        return accessRepository.GetAccessibilityDictionaryAsync().ToQueryResultAsync();
     }
 }

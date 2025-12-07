@@ -16,10 +16,15 @@ namespace Dorbit.Identity.Repositories;
 [ServiceRegister]
 public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache memoryCache) : BaseRepository<Access>(dbContext)
 {
-    public async Task<HashSet<string>> GetTotalAccessibilityAsync(List<string> accessibility)
+    public Task<List<Access>> GetAllAccessibilityAsync()
     {
-        var key = $"{nameof(AccessRepository)}-{nameof(GetTotalAccessibilityAsync)}";
-        var accessDictionary = await memoryCache.GetValueWithLockAsync(key, async () =>
+        return Set().ToListAsync();
+    }
+    
+    public Task<Dictionary<string, HashSet<string>>> GetAccessibilityDictionaryAsync()
+    {
+        var key = $"{nameof(AccessRepository)}-{nameof(GetAccessibilityDictionaryAsync)}";
+        return memoryCache.GetValueWithLockAsync(key, async () =>
         {
             var allAccesses = await Set().ToListAsync();
             allAccesses.ForEach(x =>
@@ -47,6 +52,11 @@ public class AccessRepository(IdentityInMemoryDbContext dbContext, IMemoryCache 
 
             return result;
         }, TimeSpan.FromMinutes(10));
+    }
+    
+    public async Task<HashSet<string>> GetAccessibilityDictionaryAsync(List<string> accessibility)
+    {
+        var accessDictionary = await GetAccessibilityDictionaryAsync();
 
         var allAccessibility = new List<string>();
         foreach (var access in accessibility)
