@@ -9,6 +9,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
+using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
@@ -9,6 +12,7 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
@@ -108,38 +112,67 @@ public class UserService(
 
     public async Task PushNotificationAsync(List<User> users, NotificationDto dto)
     {
-        var webPushClient = new WebPushClient();
+        var subscriptions = users.SelectMany(x => x.NotifySubscriptions).ToList();
 
-        webPushClient.SetVapidDetails(
-            subject: "mailto:salimzadehsajad@gmail.com",
-            publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
-            privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
-        );
+        var webPushSubscripions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush).ToList();
+        var expoSubscriptions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.Expo).ToList();
 
-        foreach (var user in users)
+        if (webPushSubscripions.Count > 0)
         {
-            if (user.NotifySubscriptions is null) continue;
-            foreach (var webPushToken in user.NotifySubscriptions)
+            var webPushClient = new WebPushClient();
+
+            webPushClient.SetVapidDetails(
+                subject: "mailto:salimzadehsajad@gmail.com",
+                publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
+                privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
+            );
+
+            foreach (var subscripion in webPushSubscripions)
             {
                 try
                 {
                     var payload = JsonSerializer.Serialize(new
                     {
-                        notification = new
+                        Notification = new
                         {
-                            title = dto.Title,
-                            body = dto.Body,
-                            icon = dto.Icon,
-                            data = new
+                            dto.Title,
+                            dto.Body,
+                            dto.Icon,
+                            Data = new
                             {
                                 url = dto.Url
                             }
                         }
-                    });
+                    }, JsonSerializerOptions.Web);
 
-                    await webPushClient.SendNotificationAsync(new PushSubscription(webPushToken.Token, webPushToken.P256DH, webPushToken.Auth), payload);
+                    await webPushClient.SendNotificationAsync(new PushSubscription(subscripion.Token, subscripion.P256DH, subscripion.Auth), payload);
                 }
                 catch (Exception)
+                {
+                    // ignored
+                }
+            }
+        }
+
+        if (expoSubscriptions.Count > 0)
+        {
+            foreach (var subscripion in expoSubscriptions)
+            {
+                try
+                {
+                    var httpClient = new HttpClient() { BaseAddress = new Uri("https://exp.host/--/api/v2/push/send") };
+                    var responseMessage = await httpClient.PostAsJsonAsync("", new NotificationExpoDto()
+                    {
+                        Token = subscripion.Token,
+                        Title = dto.Title,
+                        Body = dto.Body,
+                        Data = new Dictionary<string, string>
+                        {
+                            { "url", dto.Url }
+                        }
+                    });
+                }
+                catch (Exception ex)
                 {
                     // ignored
                 }
@@ -153,7 +186,7 @@ public class UserService(
 
         if (await userRepository.Set().AnyAsync(x => x.Cellphone == request.Receiver && x.Id != user.Id))
             throw new OperationException(IdentityErrors.UserWithSameCellphoneExists);
-        
+
         if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
             user.Infos ??= new();
@@ -180,7 +213,7 @@ public class UserService(
             await userRepository.UpdateAsync(user);
         }
     }
-    
+
     public async Task<UserPrivilege> SavePrivilegeAsync(PrivilegeSaveRequest request)
     {
         request.Accessibility = request.Accessibility?.Select(x => x.ToLower()).ToList();

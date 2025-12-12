@@ -5,6 +5,7 @@ namespace Dorbit.Identity.Contracts.Users;
 [NotMapped]
 public class UserNotifySubscription
 {
+    public UserNotifySubscriptionType Type { get; set; }
     public string Token { get; set; }
     public string P256DH { get; set; }
     public string Auth { get; set; }

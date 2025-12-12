@@ -1,4 +1,4 @@
-﻿namespace Dorbit.Identity.Contracts;
+﻿namespace Dorbit.Identity.Contracts.Tokens;
 
 public enum TokenState
 {

@@ -4,6 +4,7 @@ using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts;
+using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

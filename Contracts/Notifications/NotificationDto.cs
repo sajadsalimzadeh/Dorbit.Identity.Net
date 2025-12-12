@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Dorbit.Identity.Contracts;
+namespace Dorbit.Identity.Contracts.Notifications;
 
 public class NotificationDto
 {
