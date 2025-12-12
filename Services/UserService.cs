@@ -137,7 +137,7 @@ public class UserService(
                         }
                     });
 
-                    await webPushClient.SendNotificationAsync(new PushSubscription(webPushToken.Endpoint, webPushToken.P256DH, webPushToken.Auth), payload);
+                    await webPushClient.SendNotificationAsync(new PushSubscription(webPushToken.Token, webPushToken.P256DH, webPushToken.Auth), payload);
                 }
                 catch (Exception)
                 {

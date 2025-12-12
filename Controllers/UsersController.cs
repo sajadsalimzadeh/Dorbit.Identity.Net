@@ -157,7 +157,7 @@ public class UsersController(
     {
         var user = await userRepository.GetByIdAsync(GetUserId());
         user.NotifySubscriptions ??= [];
-        if (user.NotifySubscriptions.All(x => x.Endpoint != request.Endpoint))
+        if (user.NotifySubscriptions.All(x => x.Token != request.Token))
         {
             user.NotifySubscriptions.Add(request);
             await userRepository.UpdateAsync(user);
