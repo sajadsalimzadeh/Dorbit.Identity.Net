@@ -266,7 +266,7 @@ public class IdentityService(
         });
     }
 
-    public async Task<IdentityDto> ValidateAsync(IdentityValidateRequest request)
+    public async Task<IdentityDto> ValidateAsync(IdentityRequest request)
     {
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
         if (request.AccessToken.IsNullOrEmpty())
