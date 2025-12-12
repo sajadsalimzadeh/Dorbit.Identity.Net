@@ -101,7 +101,7 @@ public class UserService(
     {
         var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
         {
-            WebPushSubscriptions = x.WebPushSubscriptions
+            NotifySubscriptions = x.NotifySubscriptions
         }).ToListAsync();
         await PushNotificationAsync(users, dto);
     }
@@ -118,8 +118,8 @@ public class UserService(
 
         foreach (var user in users)
         {
-            if (user.WebPushSubscriptions is null) continue;
-            foreach (var webPushToken in user.WebPushSubscriptions)
+            if (user.NotifySubscriptions is null) continue;
+            foreach (var webPushToken in user.NotifySubscriptions)
             {
                 try
                 {
@@ -147,10 +147,13 @@ public class UserService(
         }
     }
 
-    public async Task VerifyCodeAsync(Guid id, UserVerifyRequest request)
+    public async Task VerifyAsync(Guid id, UserVerifyRequest request)
     {
         var user = await userRepository.GetByIdAsync(id);
 
+        if (await userRepository.Set().AnyAsync(x => x.Cellphone == request.Receiver && x.Id != user.Id))
+            throw new OperationException(IdentityErrors.UserWithSameCellphoneExists);
+        
         if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
         {
             user.Infos ??= new();

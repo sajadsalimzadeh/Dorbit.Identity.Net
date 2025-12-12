@@ -106,11 +106,12 @@ public class OtpService(
         }
         else if (request.Type == OtpType.Email)
         {
+            var text = configSecurityOptions.Value.EmailVerificationBody;
             await messageManager.SendAsync(new MessageEmailRequest()
             {
                 To = request.Receiver,
-                Subject = "One time password",
-                Body = "Your one time password is: {0}",
+                Subject = "Trainout verification code",
+                Body = text,
                 Args = [otp.Code]
             });
         }

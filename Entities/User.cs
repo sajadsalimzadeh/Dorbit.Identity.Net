@@ -61,7 +61,7 @@ public class User : FullEntity
     public Dictionary<string, object> Infos { get; set; }
     
     [JsonField]
-    public List<UserWebPushSubscription> WebPushSubscriptions { get; set; }
+    public List<UserNotifySubscription> NotifySubscriptions { get; set; }
     
     [JsonField]
     public List<ClaimDto> Claims { get; set; }

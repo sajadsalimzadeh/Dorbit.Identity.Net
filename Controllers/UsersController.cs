@@ -148,18 +148,18 @@ public class UsersController(
     [HttpPost("Own/Verify"), Auth]
     public async Task<CommandResult> VerifyAsync([FromBody] UserVerifyRequest request)
     {
-        await userService.VerifyCodeAsync(GetUserId(), request);
+        await userService.VerifyAsync(GetUserId(), request);
         return Succeed();
     }
 
-    [HttpPost("Own/WebPushSubscription"), Auth]
-    public async Task<CommandResult> SetOwnFirebaseTokenAsync([FromBody] UserWebPushSubscription request)
+    [HttpPost("Own/NotifySubscription"), Auth]
+    public async Task<CommandResult> SetOwnNotifySubscriptionAsync([FromBody] UserNotifySubscription request)
     {
         var user = await userRepository.GetByIdAsync(GetUserId());
-        user.WebPushSubscriptions ??= [];
-        if (user.WebPushSubscriptions.All(x => x.Endpoint != request.Endpoint))
+        user.NotifySubscriptions ??= [];
+        if (user.NotifySubscriptions.All(x => x.Endpoint != request.Endpoint))
         {
-            user.WebPushSubscriptions.Add(request);
+            user.NotifySubscriptions.Add(request);
             await userRepository.UpdateAsync(user);
         }
 
