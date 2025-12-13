@@ -330,7 +330,7 @@ public class IdentityService(
 
         Identity.Claims = token.User.Claims;
         Identity.Accessibility = allAccessibility.Select(x => x.ToLower()).ToList();
-        Identity.DeepAccessibility = await accessRepository.GetAccessibilityDictionaryAsync(allAccessibility);
+        Identity.DeepAccessibility = await accessRepository.GetAccessibilityDictionaryAsync(Identity.Accessibility);
 
         return Identity;
     }
