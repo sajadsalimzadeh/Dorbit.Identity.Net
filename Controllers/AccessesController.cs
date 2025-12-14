@@ -7,7 +7,6 @@ using Dorbit.Framework.Filters;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Controllers;
 
