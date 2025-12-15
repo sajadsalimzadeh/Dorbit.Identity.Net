@@ -7,7 +7,6 @@ using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
-using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Privileges;

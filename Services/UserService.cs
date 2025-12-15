@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
-using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;

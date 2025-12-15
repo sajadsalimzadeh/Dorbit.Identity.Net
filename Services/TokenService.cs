@@ -8,7 +8,6 @@ using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils;
 using Dorbit.Identity.Configs;
-using Dorbit.Identity.Contracts;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Entities;
