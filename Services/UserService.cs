@@ -32,7 +32,7 @@ public class UserService(
 {
     public async Task<User> AddAsync(UserAddRequest request)
     {
-        var existsUser = await userRepository.Set(false).FirstOrDefaultAsync(x => EF.Functions.ILike(x.Username, request.Username));
+        var existsUser = await userRepository.GetByUsernameAsync(request.Username);
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
         var entity = request.MapTo(existsUser ?? new User()
         {

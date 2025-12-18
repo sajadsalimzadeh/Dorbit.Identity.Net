@@ -193,9 +193,14 @@ public class IdentityService(
         if (!validateResult) throw new OperationException(IdentityErrors.OtpIsInvalid);
 
         var csrfToken = Guid.NewGuid().ToString();
-        var user = await userRepository.FirstOrDefaultAsync(x => x.Username == request.Username);
+        var user = await userRepository.GetByUsernameAsync(request.Username);
         if (user is not null)
         {
+            if (user.IsDeleted)
+            {
+                user.IsDeleted = false;
+                user = await userRepository.UpdateAsync(user);
+            }
             return await tokenService.CreateAsync(new TokenCreateRequest()
             {
                 User = user,

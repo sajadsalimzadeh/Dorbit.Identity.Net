@@ -16,7 +16,7 @@ public class UserRepository(IIdentityDbContext dbContext) : BaseRepository<User>
 {
     public Task<User> GetByUsernameAsync(string value)
     {
-        return Set().FirstOrDefaultAsync(x => x.Username == value);
+        return Set(false).FirstOrDefaultAsync(x => EF.Functions.ILike(x.Username, value));
     }
     
     public Task<User> GetByCellphoneAsync(string value)
