@@ -50,7 +50,7 @@ public class IdentityService(
     public async Task<AuthLoginResponse> LoginWithPasswordAsync(AuthLoginWithPasswordRequest request)
     {
         var username = request.Username.ToLower();
-        var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == username) ??
+        var user = await userRepository.GetByUsernameAsync(username) ??
                    throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
         var hash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
@@ -69,7 +69,7 @@ public class IdentityService(
         try
         {
             var userInfo = await googleService.ValidateAsync(request);
-            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
+            var user = await userRepository.GetByUsernameAsync(userInfo.Email);
             if (user is null)
             {
                 user = await userService.AddAsync(new UserAddRequest()
@@ -109,7 +109,7 @@ public class IdentityService(
             var tokenInfo = await appleService.ValidateAsync(request);
             logger.Information("Sign in with apple token info: {@tokenInfo}",tokenInfo);
             var userInfo = tokenInfo.User;
-            var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == userInfo.Email);
+            var user = await userRepository.GetByUsernameAsync(userInfo.Email);
             
             if (user is null)
             {
@@ -255,7 +255,7 @@ public class IdentityService(
         if (!validateResult)
             throw new OperationException(IdentityErrors.OtpIsInvalid);
 
-        var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Username == request.OtpValidation.Receiver);
+        var user = await userRepository.GetByUsernameAsync(request.OtpValidation.Receiver);
         if (user is null)
             throw new OperationException(IdentityErrors.UserNotExists);
 
