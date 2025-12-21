@@ -39,6 +39,8 @@ public class UserDto : IUserDto
     public List<string> FirebaseTokens { get; set; }
     public List<ClaimDto> Claims { get; set; }
     
+    public string ThumbnailFilename { get; set; }
+    
     public IEntity Profile { get; set; }
     
     public Guid GetId()
