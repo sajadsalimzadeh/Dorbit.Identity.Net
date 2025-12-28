@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Databases.Abstractions;
@@ -16,14 +17,19 @@ public class UserRepository(IIdentityDbContext dbContext) : BaseRepository<User>
 {
     public Task<User> GetByUsernameAsync(string value)
     {
+        if (dbContext.ProviderType == DatabaseProviderType.InMemory)
+        {
+            return Set(false).FirstOrDefaultAsync(x => string.Equals(x.Username, value, StringComparison.OrdinalIgnoreCase));
+        }
+
         return Set(false).FirstOrDefaultAsync(x => EF.Functions.ILike(x.Username, value));
     }
-    
+
     public Task<User> GetByCellphoneAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Cellphone == value);
     }
-    
+
     public Task<User> GetByEmailAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Email == value);
