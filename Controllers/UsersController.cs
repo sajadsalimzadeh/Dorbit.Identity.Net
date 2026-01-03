@@ -167,7 +167,7 @@ public class UsersController(
     }
 
     [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
-    public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] NotificationDto notification)
+    public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] NotificationRequest notification)
     {
         var user = await userRepository.GetByIdAsync(id);
         await userService.PushNotificationAsync([user], notification);

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
+using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Notifications;
@@ -27,6 +28,7 @@ public class UserService(
     OtpService otpService,
     UserRepository userRepository,
     TokenRepository tokenRepository,
+    TranslationService translationService,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
@@ -99,23 +101,23 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task PushNotificationAsync(List<Guid> userIds, NotificationDto dto)
+    public async Task PushNotificationAsync(List<Guid> userIds, NotificationRequest request, string locale = null)
     {
         var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
         {
             NotifySubscriptions = x.NotifySubscriptions
         }).ToListAsync();
-        await PushNotificationAsync(users, dto);
+        await PushNotificationAsync(users, request, locale);
     }
 
-    public async Task PushNotificationAsync(List<User> users, NotificationDto dto)
+    public async Task PushNotificationAsync(List<User> users, NotificationRequest request, string locale = null)
     {
         var subscriptions = users.SelectMany(x => x.NotifySubscriptions).ToList();
 
-        var webPushSubscripions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush).ToList();
+        var webPushSubscriptions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush).ToList();
         var expoSubscriptions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.Expo).ToList();
 
-        if (webPushSubscripions.Count > 0)
+        if (webPushSubscriptions.Count > 0)
         {
             var webPushClient = new WebPushClient();
 
@@ -125,7 +127,7 @@ public class UserService(
                 privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
             );
 
-            foreach (var subscripion in webPushSubscripions)
+            foreach (var subscription in webPushSubscriptions)
             {
                 try
                 {
@@ -133,17 +135,17 @@ public class UserService(
                     {
                         Notification = new
                         {
-                            dto.Title,
-                            dto.Body,
-                            dto.Icon,
+                            Title = translationService.TranslateLocale(request.Title, locale),
+                            Body = translationService.TranslateLocale(request.Body, locale),
+                            request.Icon,
                             Data = new
                             {
-                                url = dto.Url
+                                url = request.Url
                             }
                         }
                     }, JsonSerializerOptions.Web);
 
-                    await webPushClient.SendNotificationAsync(new PushSubscription(subscripion.Token, subscripion.P256DH, subscripion.Auth), payload);
+                    await webPushClient.SendNotificationAsync(new PushSubscription(subscription.Token, subscription.P256DH, subscription.Auth), payload);
                 }
                 catch (Exception)
                 {
@@ -162,11 +164,11 @@ public class UserService(
                     var responseMessage = await httpClient.PostAsJsonAsync("", new NotificationExpoDto()
                     {
                         Token = subscripion.Token,
-                        Title = dto.Title,
-                        Body = dto.Body,
+                        Title = request.Title,
+                        Body = request.Body,
                         Data = new Dictionary<string, string>
                         {
-                            { "url", dto.Url }
+                            { "url", request.Url }
                         }
                     });
                 }
