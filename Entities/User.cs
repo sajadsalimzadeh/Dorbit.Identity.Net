@@ -48,6 +48,10 @@ public class User : FullEntity
     public string ThumbnailFilename { get; set; }
 
     public bool NeedResetPassword { get; set; }
+    
+    public TimeSpan TimeZone { get; set; }
+    [MaxLength(4)]
+    public string Locale { get; set; }
 
     // Security
     public short MaxTokenCount { get; set; } = 1;

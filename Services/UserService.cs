@@ -101,23 +101,18 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task PushNotificationAsync(List<Guid> userIds, NotificationRequest request, string locale = null)
+    public async Task PushNotificationAsync(List<Guid> userIds, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
         var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
         {
             NotifySubscriptions = x.NotifySubscriptions
         }).ToListAsync();
-        await PushNotificationAsync(users, request, locale);
+        await PushNotificationAsync(users, request, translationArguments);
     }
 
-    public async Task PushNotificationAsync(List<User> users, NotificationRequest request, string locale = null)
+    public async Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
-        var subscriptions = users.SelectMany(x => x.NotifySubscriptions).ToList();
-
-        var webPushSubscriptions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush).ToList();
-        var expoSubscriptions = subscriptions.Where(x => x.Type == UserNotifySubscriptionType.Expo).ToList();
-
-        if (webPushSubscriptions.Count > 0)
+        foreach (var user in users.Where(x => x.NotifySubscriptions.Any(x => x.Type == UserNotifySubscriptionType.WebPush)))
         {
             var webPushClient = new WebPushClient();
 
@@ -127,7 +122,7 @@ public class UserService(
                 privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
             );
 
-            foreach (var subscription in webPushSubscriptions)
+            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush))
             {
                 try
                 {
@@ -135,8 +130,8 @@ public class UserService(
                     {
                         Notification = new
                         {
-                            Title = translationService.TranslateLocale(request.Title, locale),
-                            Body = translationService.TranslateLocale(request.Body, locale),
+                            Title = translationService.TranslateLocale(request.Title, user.Locale, translationArguments),
+                            Body = translationService.TranslateLocale(request.Body, user.Locale, translationArguments),
                             request.Icon,
                             Data = new
                             {
@@ -154,18 +149,18 @@ public class UserService(
             }
         }
 
-        if (expoSubscriptions.Count > 0)
+        foreach (var user in users.Where(x => x.NotifySubscriptions.Any(x => x.Type == UserNotifySubscriptionType.Expo)))
         {
-            foreach (var subscripion in expoSubscriptions)
+            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == UserNotifySubscriptionType.Expo))
             {
                 try
                 {
                     var httpClient = new HttpClient() { BaseAddress = new Uri("https://exp.host/--/api/v2/push/send") };
                     var responseMessage = await httpClient.PostAsJsonAsync("", new NotificationExpoDto()
                     {
-                        Token = subscripion.Token,
-                        Title = request.Title,
-                        Body = request.Body,
+                        Token = subscription.Token,
+                        Title = translationService.TranslateLocale(request.Title, user.Locale, translationArguments),
+                        Body = translationService.TranslateLocale(request.Body, user.Locale, translationArguments),
                         Data = new Dictionary<string, string>
                         {
                             { "url", request.Url }
