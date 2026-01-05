@@ -30,7 +30,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
             admin = await userService.AddAsync(new UserAddRequest()
             {
                 Name = configAdmin.Name ?? "admin",
-                Username = "admin",
+                Username = configAdmin.Username,
                 Password = configAdmin.Password,
                 Cellphone = configAdmin.Cellphone,
                 Email = configAdmin.Email,

@@ -6,12 +6,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Notifications;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils.Cryptography;
 using Dorbit.Identity.Configs;
-using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
@@ -29,6 +29,7 @@ public class UserService(
     UserRepository userRepository,
     TokenRepository tokenRepository,
     TranslationService translationService,
+    NotificationService notificationService,
     IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     UserPrivilegeRepository userPrivilegeRepository)
 {
@@ -112,60 +113,36 @@ public class UserService(
 
     public async Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
-        foreach (var user in users.Where(x => x.NotifySubscriptions.Any(x => x.Type == UserNotifySubscriptionType.WebPush)))
+        foreach (var user in users.Where(x => x.NotifySubscriptions != null && x.NotifySubscriptions.Any(n => n.Type == NotificationSubscriptionType.WebPush)))
         {
-            var webPushClient = new WebPushClient();
 
-            webPushClient.SetVapidDetails(
-                subject: "mailto:salimzadehsajad@gmail.com",
-                publicKey: configIdentitySecurity.Value.WebPush.PublicKey,
-                privateKey: configIdentitySecurity.Value.WebPush.PrivateKey
-            );
-
-            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == UserNotifySubscriptionType.WebPush))
+            foreach (var subscription in user.NotifySubscriptions)
             {
-                try
+                notificationService.Enqueue(new NotificationStoreItem()
                 {
-                    var payload = JsonSerializer.Serialize(new
+                    Subscription = subscription,
+                    Request = new NotificationRequest()
                     {
-                        Notification = new
+                        Title = translationService.TranslateLocale(request.Title, user.Locale, translationArguments),
+                        Body = translationService.TranslateLocale(request.Body, user.Locale, translationArguments),
+                        Icon = request.Icon,
+                        Data = new Dictionary<string, string>
                         {
-                            Title = translationService.TranslateLocale(request.Title, user.Locale, translationArguments),
-                            Body = translationService.TranslateLocale(request.Body, user.Locale, translationArguments),
-                            request.Icon,
-                            Data = new
-                            {
-                                url = request.Url
-                            }
+                            {"Url", request.Url}
                         }
-                    }, JsonSerializerOptions.Web);
+                    }
+                });
 
-                    await webPushClient.SendNotificationAsync(new PushSubscription(subscription.Token, subscription.P256DH, subscription.Auth), payload);
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
             }
         }
 
-        foreach (var user in users.Where(x => x.NotifySubscriptions.Any(x => x.Type == UserNotifySubscriptionType.Expo)))
+        foreach (var user in users.Where(x => x.NotifySubscriptions != null && x.NotifySubscriptions.Any(n => n.Type == NotificationSubscriptionType.Expo)))
         {
-            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == UserNotifySubscriptionType.Expo))
+            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == NotificationSubscriptionType.Expo))
             {
                 try
                 {
-                    var httpClient = new HttpClient() { BaseAddress = new Uri("https://exp.host/--/api/v2/push/send") };
-                    var responseMessage = await httpClient.PostAsJsonAsync("", new NotificationExpoDto()
-                    {
-                        Token = subscription.Token,
-                        Title = translationService.TranslateLocale(request.Title, user.Locale, translationArguments),
-                        Body = translationService.TranslateLocale(request.Body, user.Locale, translationArguments),
-                        Data = new Dictionary<string, string>
-                        {
-                            { "url", request.Url }
-                        }
-                    });
+                   
                 }
                 catch (Exception ex)
                 {

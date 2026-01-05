@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Dorbit.Identity.Contracts.Notifications;
+using Dorbit.Framework.Contracts.Notifications;
 
 namespace Dorbit.Identity.Contracts.Users;
 

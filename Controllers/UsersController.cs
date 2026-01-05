@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Dorbit.Framework.Contracts.Notifications;
 using Dorbit.Framework.Contracts.Results;
 using Dorbit.Framework.Controllers;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Filters;
 using Dorbit.Identity.Contracts.Auth;
-using Dorbit.Identity.Contracts.Notifications;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
@@ -120,9 +121,9 @@ public class UsersController(
 
     [Auth]
     [HttpPatch("Own")]
-    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] UserEditOwnRequest request)
+    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] JsonElement request)
     {
-        return userRepository.PatchAsync(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return userRepository.PatchAsync<UserEditOwnRequest>(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override async Task<CommandResult> DeleteAsync(Guid id)
@@ -153,7 +154,7 @@ public class UsersController(
     }
 
     [HttpPost("Own/NotifySubscription"), Auth]
-    public async Task<CommandResult> SetOwnNotifySubscriptionAsync([FromBody] UserNotifySubscription request)
+    public async Task<CommandResult> SetOwnNotifySubscriptionAsync([FromBody] NotificationSubscription request)
     {
         var user = await userRepository.GetByIdAsync(GetUserId());
         user.NotifySubscriptions ??= [];

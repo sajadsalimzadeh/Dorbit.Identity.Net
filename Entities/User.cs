@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Identities;
+using Dorbit.Framework.Contracts.Notifications;
 using Dorbit.Framework.Entities;
 using Dorbit.Framework.Utils.Json;
 using Dorbit.Identity.Contracts.Users;
@@ -65,7 +66,7 @@ public class User : FullEntity
     public Dictionary<string, object> Infos { get; set; }
     
     [JsonField]
-    public List<UserNotifySubscription> NotifySubscriptions { get; set; }
+    public List<NotificationSubscription> NotifySubscriptions { get; set; }
     
     [JsonField]
     public List<ClaimDto> Claims { get; set; }

@@ -6,14 +6,16 @@ using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
+using Dorbit.Identity.Configs;
 using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class UserRepository(IIdentityDbContext dbContext) : BaseRepository<User>(dbContext)
+public class UserRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> configAdminOptions) : BaseRepository<User>(dbContext)
 {
     public Task<User> GetByUsernameAsync(string value)
     {
@@ -37,7 +39,8 @@ public class UserRepository(IIdentityDbContext dbContext) : BaseRepository<User>
 
     public Task<User> GetAdminAsync()
     {
-        return Set().FirstOrDefaultAsync(x => x.Username.ToLower() == "admin");
+        var adminUsername = configAdminOptions.Value.Username;
+        return Set().FirstOrDefaultAsync(x => x.Username.ToLower() == adminUsername);
     }
 
     public Task<List<UserPrivilege>> GetAllUserPrivileges(Guid id)

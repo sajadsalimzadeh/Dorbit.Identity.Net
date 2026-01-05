@@ -12,14 +12,7 @@ public class ConfigIdentitySecurity
     public ProtectedProperty Secret { get; set; }
     public string Issuer { get; set; }
     public string Audience { get; set; }
-    public ConfigIdentitySecurityWebPush WebPush { get; set; }
     public bool IsCellphoneVerified { get; set; }
     public bool IsEmailVerified { get; set; }
     public string EmailVerificationBody { get; set; }
-}
-
-public class ConfigIdentitySecurityWebPush
-{
-    public string PublicKey { get; set; }
-    public string PrivateKey { get; set; }
 }
