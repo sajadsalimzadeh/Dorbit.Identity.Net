@@ -10,6 +10,7 @@ public class AuthLoginResponse
     public required string AccessToken { get; set; }
     public int TimeoutInSecond { get; set; }
     public bool IsNeedAuthentication { get; set; }
+    public DateTime ExpireTime { get; set; }
 
     public AuthLoginResponse SetCookie(HttpResponse response)
     {

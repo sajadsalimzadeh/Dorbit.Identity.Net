@@ -93,6 +93,7 @@ public class TokenService(
         {
             AccessToken = accessToken,
             CsrfToken = request.CsrfToken,
+            ExpireTime = token.ExpireTime,
             IsNeedAuthentication = isNeddTwoFactorAuthentication,
             TimeoutInSecond = _configIdentitySecurity.TimeoutInSecond
         };
