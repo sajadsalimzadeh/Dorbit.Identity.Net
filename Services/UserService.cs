@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Notifications;
@@ -19,7 +16,6 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using WebPush;
 
 namespace Dorbit.Identity.Services;
 
@@ -111,11 +107,10 @@ public class UserService(
         await PushNotificationAsync(users, request, translationArguments);
     }
 
-    public async Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
+    public Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
-        foreach (var user in users.Where(x => x.NotifySubscriptions != null && x.NotifySubscriptions.Any(n => n.Type == NotificationSubscriptionType.WebPush)))
+        foreach (var user in users.Where(x => x.NotifySubscriptions != null))
         {
-
             foreach (var subscription in user.NotifySubscriptions)
             {
                 notificationService.Enqueue(new NotificationStoreItem()
@@ -132,24 +127,10 @@ public class UserService(
                         }
                     }
                 });
-
             }
         }
 
-        foreach (var user in users.Where(x => x.NotifySubscriptions != null && x.NotifySubscriptions.Any(n => n.Type == NotificationSubscriptionType.Expo)))
-        {
-            foreach (var subscription in user.NotifySubscriptions.Where(x => x.Type == NotificationSubscriptionType.Expo))
-            {
-                try
-                {
-                   
-                }
-                catch (Exception ex)
-                {
-                    // ignored
-                }
-            }
-        }
+        return Task.CompletedTask;
     }
 
     public async Task VerifyAsync(Guid id, UserVerifyRequest request)
