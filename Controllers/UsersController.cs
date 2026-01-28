@@ -121,9 +121,9 @@ public class UsersController(
 
     [Auth]
     [HttpPatch("Own")]
-    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] JsonElement request)
+    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] JsonElement patch)
     {
-        return userRepository.PatchAsync<UserEditOwnRequest>(GetUserId(), request).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return userRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override async Task<CommandResult> DeleteAsync(Guid id)
