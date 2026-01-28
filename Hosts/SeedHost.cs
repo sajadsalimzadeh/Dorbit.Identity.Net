@@ -19,9 +19,15 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
 {
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
+        
+        var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
+        await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
+        await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
+     
         var userRepository = serviceProvider.GetRequiredService<UserRepository>();
-        var userService = serviceProvider.GetRequiredService<UserService>();
+        var userService = serviceProvider.GetRequiredService<UserService>();   
         var configAdmin = serviceProvider.GetRequiredService<IOptions<ConfigAdmin>>()?.Value;
+        
         if (string.IsNullOrEmpty(configAdmin?.Password)) return;
 
         var admin = await userRepository.GetAdminAsync();
@@ -38,9 +44,6 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
                 MaxTokenCount = 3
             });
         }
-        var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
-        await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
-        await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
 
         if (admin is not null)
         {
