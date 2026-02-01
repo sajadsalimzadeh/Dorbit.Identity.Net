@@ -32,7 +32,7 @@ public class CreateTokenCommand(JwtService jwtService, IOptions<ConfigIdentitySe
     {
         var accesses = (context.GetArgAsString("Accesses") ?? "admin").Split(',');
         var lifetime = context.GetArgAsString("Lifetime") ?? "1h";
-        var lifetimeValue = Convert.ToInt32(lifetime.Substring(0, lifetime.Length - 1));
+        var lifetimeValue = Convert.ToInt32(lifetime[..^1]);
 
         var expires = DateTime.UtcNow;
         if (lifetime.EndsWith("s")) expires = expires.AddSeconds(lifetimeValue);
