@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Extensions;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Google.Apis.Auth.OAuth2;
@@ -29,24 +30,52 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
             }
         };
 
-        logger.Information("GoogleAuthorizationCodeFlow Initialize");
-        var flow = new GoogleAuthorizationCodeFlow(initializer);
-        var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-            userId: "user",
-            code: request.Code,
-            redirectUri: configGoogleOAuth.RedirectUrl,
-            taskCancellationToken: CancellationToken.None
-        );
-
-        logger.Information("ExchangeCodeForTokenAsync");
-        var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
-        var oauthService = new Oauth2Service(new BaseClientService.Initializer()
+        if (request.Verifier.IsNotNullOrEmpty())
         {
-            HttpClientInitializer = credential,
-            ApplicationName = "DorbitApp"
-        });
-        
-        logger.Information("GoogleCredential.FromAccessToken");
-        return await oauthService.Userinfo.Get().ExecuteAsync();
+            logger.Information("PkceGoogleAuthorizationCodeFlow Initialize");
+            var flow = new PkceGoogleAuthorizationCodeFlow(initializer);
+
+            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                userId: "user",
+                code: request.Code,
+                codeVerifier: request.Verifier,
+                redirectUri: configGoogleOAuth.RedirectUrl,
+                taskCancellationToken: CancellationToken.None
+            );
+
+            logger.Information("ExchangeCodeForTokenAsync");
+            var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
+            var oauthService = new Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "DorbitApp"
+            });
+
+            logger.Information("GoogleCredential.FromAccessToken");
+            return await oauthService.Userinfo.Get().ExecuteAsync();
+        }
+        else
+        {
+            logger.Information("GoogleAuthorizationCodeFlow Initialize");
+            var flow = new GoogleAuthorizationCodeFlow(initializer);
+
+            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                userId: "user",
+                code: request.Code,
+                redirectUri: configGoogleOAuth.RedirectUrl,
+                taskCancellationToken: CancellationToken.None
+            );
+
+            logger.Information("ExchangeCodeForTokenAsync");
+            var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
+            var oauthService = new Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "DorbitApp"
+            });
+
+            logger.Information("GoogleCredential.FromAccessToken");
+            return await oauthService.Userinfo.Get().ExecuteAsync();
+        }
     }
 }
