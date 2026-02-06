@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
@@ -21,11 +22,15 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     {
         logger.Information("Validating Google OAuth client ID {@Request}", request);
         var configGoogleOAuth = configGoogleOAuthOptions.Value;
+
+        if (!configGoogleOAuth.ClientIds.TryGetValue(request.Platform, out var clientId))
+            throw new Exception("Client Id not found");
+        
         var initializer = new GoogleAuthorizationCodeFlow.Initializer
         {
             ClientSecrets = new ClientSecrets
             {
-                ClientId = configGoogleOAuth.ClientId,
+                ClientId = clientId,
                 ClientSecret = configGoogleOAuth.ClientSecret
             }
         };

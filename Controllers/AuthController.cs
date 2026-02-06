@@ -17,7 +17,6 @@ namespace Dorbit.Identity.Controllers;
 [Route("Identity/[controller]")]
 public class AuthController(
     IdentityService identityService,
-    IOptions<ConfigIdentitySecurity> configIdentitySecurity,
     IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     IOptions<ConfigAppleOAuth> configAppleOAuthOptions
 ) : BaseController
