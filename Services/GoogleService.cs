@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
@@ -22,34 +21,20 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
     {
         logger.Information("Validating Google OAuth client ID {@Request}", request);
         var configGoogleOAuth = configGoogleOAuthOptions.Value;
-
-        if (!configGoogleOAuth.ClientIds.TryGetValue(request.Platform, out var clientId))
-            throw new Exception("Client Id not found");
         
         var initializer = new GoogleAuthorizationCodeFlow.Initializer
         {
             ClientSecrets = new ClientSecrets
             {
-                ClientId = clientId,
+                ClientId = configGoogleOAuth.ClientId,
                 ClientSecret = configGoogleOAuth.ClientSecret
             }
         };
 
-        if (request.Verifier.IsNotNullOrEmpty())
+        if (request.AccessToken.IsNotNullOrEmpty())
         {
-            logger.Information("PkceGoogleAuthorizationCodeFlow Initialize");
-            var flow = new PkceGoogleAuthorizationCodeFlow(initializer);
-
-            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                userId: "user",
-                code: request.Code,
-                codeVerifier: request.Verifier,
-                redirectUri: configGoogleOAuth.RedirectUrl,
-                taskCancellationToken: CancellationToken.None
-            );
-
             logger.Information("ExchangeCodeForTokenAsync");
-            var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
+            var credential = GoogleCredential.FromAccessToken(request.AccessToken);
             var oauthService = new Oauth2Service(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
