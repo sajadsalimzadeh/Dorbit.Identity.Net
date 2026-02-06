@@ -33,7 +33,7 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions,
         var flow = new GoogleAuthorizationCodeFlow(initializer);
         var tokenResponse = await flow.ExchangeCodeForTokenAsync(
             userId: "user",
-            code: request.AuthenticationCode,
+            code: request.Code,
             redirectUri: configGoogleOAuth.RedirectUrl,
             taskCancellationToken: CancellationToken.None
         );
