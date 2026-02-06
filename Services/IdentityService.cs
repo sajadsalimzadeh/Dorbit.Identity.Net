@@ -69,6 +69,8 @@ public class IdentityService(
         try
         {
             var userInfo = await googleService.ValidateAsync(request);
+            
+            logger.Information("LoginWithGoogleAsync UserInfo {@UserInfo}", userInfo);
             var user = await userRepository.GetByUsernameAsync(userInfo.Email);
             if (user is null)
             {

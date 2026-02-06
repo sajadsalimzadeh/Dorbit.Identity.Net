@@ -9,15 +9,16 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions)
+public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions, ILogger logger)
 {
     public async Task<Userinfo> ValidateAsync(AuthLoginWithGoogleRequest request)
     {
-        
+        logger.Information("Validating Google OAuth client ID {@Request}", request);
         var configGoogleOAuth = configGoogleOAuthOptions.Value;
         var initializer = new GoogleAuthorizationCodeFlow.Initializer
         {
@@ -28,8 +29,8 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions)
             }
         };
 
+        logger.Information("GoogleAuthorizationCodeFlow Initialize");
         var flow = new GoogleAuthorizationCodeFlow(initializer);
-
         var tokenResponse = await flow.ExchangeCodeForTokenAsync(
             userId: "user",
             code: request.AuthenticationCode,
@@ -37,13 +38,15 @@ public class GoogleService(IOptions<ConfigGoogleOAuth> configGoogleOAuthOptions)
             taskCancellationToken: CancellationToken.None
         );
 
+        logger.Information("ExchangeCodeForTokenAsync");
         var credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
         var oauthService = new Oauth2Service(new BaseClientService.Initializer()
         {
             HttpClientInitializer = credential,
-            ApplicationName = "MyApp"
+            ApplicationName = "DorbitApp"
         });
         
+        logger.Information("GoogleCredential.FromAccessToken");
         return await oauthService.Userinfo.Get().ExecuteAsync();
     }
 }
