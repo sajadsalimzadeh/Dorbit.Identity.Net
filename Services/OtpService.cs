@@ -99,7 +99,7 @@ public class OtpService(
             });
             await messageManager.SendAsync(new MessageSmsRequest()
             {
-                To = request.Receiver,
+                Receiver = request.Receiver,
                 TemplateType = settingIdentityOtp.TemplateCode,
                 Args = [otp.Code]
             });
@@ -109,7 +109,7 @@ public class OtpService(
             var text = configSecurityOptions.Value.EmailVerificationBody;
             await messageManager.SendAsync(new MessageEmailRequest()
             {
-                To = request.Receiver,
+                Receiver = request.Receiver,
                 Subject = "Trainout verification code",
                 Body = text,
                 Args = [otp.Code]
