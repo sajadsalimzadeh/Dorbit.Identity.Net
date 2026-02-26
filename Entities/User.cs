@@ -69,7 +69,7 @@ public class User : FullEntity
     public List<NotificationSubscription> NotifySubscriptions { get; set; }
     
     [JsonField]
-    public List<ClaimDto> Claims { get; set; }
+    public List<IdentityClaimDto> Claims { get; set; }
 
     public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
     public UserStatus Status { get; set; } = UserStatus.Active;

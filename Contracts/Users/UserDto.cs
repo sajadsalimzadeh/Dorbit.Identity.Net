@@ -37,7 +37,7 @@ public class UserDto : IUserDto
     
     public List<string> Accessibility { get; set; }
     public List<string> FirebaseTokens { get; set; }
-    public List<ClaimDto> Claims { get; set; }
+    public List<IdentityClaimDto> Claims { get; set; }
     
     public string ThumbnailFilename { get; set; }
     
