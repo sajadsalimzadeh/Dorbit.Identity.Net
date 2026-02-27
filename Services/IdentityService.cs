@@ -26,6 +26,7 @@ namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
 public class IdentityService(
+    ILogger logger,
     OtpService otpService,
     JwtService jwtService,
     TokenService tokenService,
@@ -36,7 +37,6 @@ public class IdentityService(
     UserRepository userRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
-    ILogger logger,
     UserPrivilegeRepository userPrivilegeRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
@@ -71,6 +71,7 @@ public class IdentityService(
             var userInfo = await googleService.ValidateAsync(request);
             
             logger.Information("LoginWithGoogleAsync UserInfo {@UserInfo}", userInfo);
+            
             var user = await userRepository.GetByUsernameAsync(userInfo.Email);
             if (user is null)
             {

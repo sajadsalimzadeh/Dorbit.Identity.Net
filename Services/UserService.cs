@@ -14,6 +14,7 @@ using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -26,11 +27,12 @@ public class UserService(
     TokenRepository tokenRepository,
     TranslationService translationService,
     NotificationService notificationService,
-    IOptions<ConfigIdentitySecurity> configIdentitySecurity,
-    UserPrivilegeRepository userPrivilegeRepository)
+    UserPrivilegeRepository userPrivilegeRepository,
+    IUserServiceWrapper userServiceWrapper = null)
 {
     public async Task<User> AddAsync(UserAddRequest request)
     {
+        userServiceWrapper?.OnAddExecutingAsync(request).Wait();
         var existsUser = await userRepository.GetByUsernameAsync(request.Username);
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
         var entity = request.MapTo(existsUser ?? new User()

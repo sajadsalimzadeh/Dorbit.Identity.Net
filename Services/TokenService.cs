@@ -12,6 +12,7 @@ using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
+using Dorbit.Identity.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -23,12 +24,16 @@ public class TokenService(
     JwtService jwtService,
     IMemoryCache memoryCache,
     TokenRepository tokenRepository,
-    IOptions<ConfigIdentitySecurity> configSecurityOptions)
+    IOptions<ConfigIdentitySecurity> configSecurityOptions,
+    IIdentityServiceWrapper identityServiceWrapper = null
+    )
 {
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configSecurityOptions.Value;
 
     public async Task<AuthLoginResponse> CreateAsync(TokenCreateRequest request)
     {
+        identityServiceWrapper?.OnLoginExecutingAsync(request.User).Wait();
+        
         var uaParser = UserAgentParser.GetDefault();
         var clientInfo = uaParser.Parse(request.UserAgent ?? "");
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
