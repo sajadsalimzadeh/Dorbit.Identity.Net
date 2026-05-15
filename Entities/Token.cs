@@ -16,5 +16,5 @@ public class Token : CreateEntity
     [JsonField]
     public TokenInfo TokenInfo { get; set; }
 
-    [ForeignKey(nameof(UserId))] public User User { get; set; }
+    [ForeignKey(nameof(UserId))] public UserBase User { get; set; }
 }

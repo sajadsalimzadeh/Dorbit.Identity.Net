@@ -12,6 +12,7 @@ using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Otps;
 using Dorbit.Identity.Contracts.Privileges;
 using Dorbit.Identity.Contracts.Users;
+using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services.Abstractions;
@@ -30,12 +31,12 @@ public class UserService(
     UserPrivilegeRepository userPrivilegeRepository,
     IUserServiceWrapper userServiceWrapper = null)
 {
-    public async Task<User> AddAsync(UserAddRequest request)
+    public async Task<UserBase> AddAsync(UserAddRequest request)
     {
         userServiceWrapper?.OnAddExecutingAsync(request).Wait();
         var existsUser = await userRepository.GetByUsernameAsync(request.Username);
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
-        var entity = request.MapTo(existsUser ?? new User()
+        var entity = request.MapTo(existsUser ?? new UserBase()
         {
             PasswordSalt = Guid.NewGuid().ToString()
         });
@@ -67,7 +68,7 @@ public class UserService(
         await transaction.CommitAsync();
     }
 
-    public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
+    public async Task<UserBase> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
@@ -75,7 +76,7 @@ public class UserService(
         return user;
     }
 
-    public async Task<User> InActiveAsync(UserDeActiveRequest request)
+    public async Task<UserBase> InActiveAsync(UserDeActiveRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.Id);
         var admin = await userRepository.GetAdminAsync();
@@ -85,7 +86,7 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task<User> ActiveAsync(UserActiveRequest request)
+    public async Task<UserBase> ActiveAsync(UserActiveRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.Id);
         user.Status = UserStatus.Active;
@@ -93,7 +94,7 @@ public class UserService(
         return await userRepository.UpdateAsync(user);
     }
 
-    public async Task<User> SetMessageAsync(UserMessageRequest request)
+    public async Task<UserBase> SetMessageAsync(UserMessageRequest request)
     {
         var user = await userRepository.GetByIdAsync(request.Id);
         user.Message = request.Message;
@@ -102,14 +103,14 @@ public class UserService(
 
     public async Task PushNotificationAsync(List<Guid> userIds, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
-        var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
+        var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new UserBase()
         {
             NotifySubscriptions = x.NotifySubscriptions
         }).ToListAsync();
         await PushNotificationAsync(users, request, translationArguments);
     }
 
-    public Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
+    public Task PushNotificationAsync(List<UserBase> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
         foreach (var user in users.Where(x => x.NotifySubscriptions != null))
         {
