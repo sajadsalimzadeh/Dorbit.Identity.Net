@@ -29,7 +29,7 @@ public class UsersController(
     IdentityService identityService,
     TokenRepository tokenRepository,
     UserPrivilegeRepository userPrivilegeRepository)
-    : CrudController<UserBase, Guid, UserDto, UserAddRequest>
+    : CrudController<User, Guid, UserDto, UserAddRequest>
 {
     [Auth("User-Read")]
     public override Task<PagedListResult<UserDto>> SelectAsync()
@@ -49,7 +49,7 @@ public class UsersController(
 
     public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
     {
-        return userService.AddAsync(request).MapToAsync<UserBase, UserDto>().ToQueryResultAsync();
+        return userService.AddAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
@@ -116,14 +116,14 @@ public class UsersController(
     [HttpGet("Own")]
     public Task<QueryResult<UserDto>> GetOwnAsync()
     {
-        return userRepository.GetByIdAsync(GetUserId()).MapToAsync<UserBase, UserDto>().ToQueryResultAsync();
+        return userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     [Auth]
     [HttpPatch("Own")]
     public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] JsonElement patch)
     {
-        return userRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<UserBase, UserDto>().ToQueryResultAsync();
+        return userRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<User, UserDto>().ToQueryResultAsync();
     }
 
     public override async Task<CommandResult> DeleteAsync(Guid id)

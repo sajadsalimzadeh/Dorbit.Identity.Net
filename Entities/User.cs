@@ -14,7 +14,7 @@ namespace Dorbit.Identity.Entities;
 
 [Table("User", Schema = "identity")]
 [Index(nameof(Username), IsUnique = true)]
-public class UserBase : FullEntity
+public class User : FullEntity
 {
     [Sequence("seq_user_code", Schema = "identity")]
     public int Code { get; set; }
@@ -59,6 +59,9 @@ public class UserBase : FullEntity
     public DateTime? LockoutEndTime { get; set; }
     public double Wallet { get; set; }
 
+    [MaxLength(13)]
+    public string Discriminator { get; set; }
+
     [JsonField]
     public List<string> WhiteListIps { get; set; }
 
@@ -71,9 +74,14 @@ public class UserBase : FullEntity
     [JsonField]
     public List<IdentityClaimDto> Claims { get; set; }
 
-    public bool IsTwoFactorAuthenticationEnabled { get; set; } = true;
+    public bool IsTwoFactorAuthenticationEnabled { get; set; }
     public UserStatus Status { get; set; } = UserStatus.Active;
 
     [MaxLength(1024)]
     public string Message { get; set; }
+
+    public User()
+    {
+        Discriminator = GetType().Name;
+    }
 }

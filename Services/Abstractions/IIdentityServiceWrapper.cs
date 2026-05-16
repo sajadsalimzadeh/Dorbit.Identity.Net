@@ -6,5 +6,5 @@ namespace Dorbit.Identity.Services.Abstractions;
 
 public interface IIdentityServiceWrapper
 {
-    Task OnLoginExecutingAsync(UserBase user);
+    Task OnLoginExecutingAsync(User user);
 }

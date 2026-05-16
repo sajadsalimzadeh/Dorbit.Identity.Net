@@ -11,9 +11,11 @@ public interface IIdentityDbContext : IDbContext
     public DbSet<Otp> Otp { get; set; }
     public DbSet<Token> Tokens { get; set; }
     public DbSet<UserPrivilege> UserPrivileges { get; set; }
+
+    public User CreateNewUser();
 }
 
-public interface IIdentityDbContext<TUser> : IIdentityDbContext where TUser : UserBase
+public interface IIdentityDbContext<TUser> : IIdentityDbContext where TUser : User
 {
     public DbSet<TUser> Users { get; set; }
 }

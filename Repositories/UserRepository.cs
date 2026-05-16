@@ -7,6 +7,7 @@ using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Configs;
+using Dorbit.Identity.Databases;
 using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +16,9 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class UserRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> configAdminOptions) : BaseRepository<UserBase>(dbContext)
+public class UserRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> configAdminOptions) : BaseRepository<User>(dbContext)
 {
-    public Task<UserBase> GetByUsernameAsync(string value)
+    public Task<User> GetByUsernameAsync(string value)
     {
         if (dbContext.ProviderType == DatabaseProviderType.InMemory)
         {
@@ -27,17 +28,17 @@ public class UserRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> 
         return Set(false).FirstOrDefaultAsync(x => EF.Functions.ILike(x.Username, value));
     }
 
-    public Task<UserBase> GetByCellphoneAsync(string value)
+    public Task<User> GetByCellphoneAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Cellphone == value);
     }
 
-    public Task<UserBase> GetByEmailAsync(string value)
+    public Task<User> GetByEmailAsync(string value)
     {
         return Set().FirstOrDefaultAsync(x => x.Email == value);
     }
 
-    public Task<UserBase> GetAdminAsync()
+    public Task<User> GetAdminAsync()
     {
         var adminUsername = configAdminOptions.Value.Username;
         return Set().FirstOrDefaultAsync(x => x.Username.ToLower() == adminUsername);

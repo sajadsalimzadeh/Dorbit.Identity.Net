@@ -26,14 +26,14 @@ public class Profiles : Profile
         CreateMapTwoWay<UserPrivilege, PrivilegeDto>();
         CreateMapTwoWay<PrivilegeSaveRequest, UserPrivilege>();
 
-        CreateMap<UserBase, UserDto>()
+        CreateMap<User, UserDto>()
             .ForMember(x => x.HasPassword, o => o.MapFrom(x => !string.IsNullOrEmpty(x.PasswordHash)))
             .ForMember(x => x.Profile, o => o.Ignore());
-        CreateMap<UserDto, UserBase>();
-        CreateMap<UserAddRequest, UserBase>()
+        CreateMap<UserDto, User>();
+        CreateMap<UserAddRequest, User>()
             .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
-        CreateMap<UserEditRequest, UserBase>()
+        CreateMap<UserEditRequest, User>()
             .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
     }

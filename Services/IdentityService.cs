@@ -157,7 +157,7 @@ public class IdentityService(
             });
             if (!otpValidateResult) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
-            UserBase user;
+            User user;
             if (request.Type == OtpType.Cellphone) user = await userRepository.GetByCellphoneAsync(request.Receiver);
             else if (request.Type == OtpType.Email) user = await userRepository.GetByEmailAsync(request.Receiver);
             else throw new OperationException(IdentityErrors.OtpTypeNotSupported);

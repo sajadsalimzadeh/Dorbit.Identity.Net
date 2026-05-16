@@ -19,7 +19,7 @@ public class UserPrivilege : FullEntity
     public bool IsFullAccess { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public UserBase User { get; set; }
+    public User User { get; set; }
     
     [JsonField]
     public List<Guid> RoleIds { get; set; }
