@@ -6,7 +6,7 @@ using Dorbit.Framework.Entities.Abstractions;
 
 namespace Dorbit.Identity.Contracts.Users;
 
-public class UserDto : IUserDto
+public class UserBaseDto : IUserDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; }

@@ -11,7 +11,7 @@ using Dorbit.Identity.Services;
 namespace Dorbit.Identity.Commands;
 
 [ServiceRegister]
-public class ResetUserPasswordCommand(UserService userService, UserRepository userRepository) : Command
+public class ResetUserPasswordCommand(UserBaseService userBaseService, UserBaseRepository userBaseRepository) : Command
 {
     public override bool IsRoot { get; } = false;
     public override string Message => "Reset User Password";
@@ -24,8 +24,8 @@ public class ResetUserPasswordCommand(UserService userService, UserRepository us
 
     public override async Task InvokeAsync(ICommandContext context)
     {
-        var user = await userRepository.GetByUsernameAsync(context.Arguments["Username"].ToString());
-        await userService.ResetPasswordAsync(new UserResetPasswordRequest()
+        var user = await userBaseRepository.GetByUsernameAsync(context.Arguments["Username"].ToString());
+        await userBaseService.ResetPasswordAsync(new UserResetPasswordRequest()
         {
             Id = user.Id,
             Password = context.Arguments["Password"].ToString(),

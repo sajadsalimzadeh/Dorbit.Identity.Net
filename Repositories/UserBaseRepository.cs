@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Repositories;
 
 [ServiceRegister]
-public class UserRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> configAdminOptions) : BaseRepository<UserBase>(dbContext)
+public class UserBaseRepository(IIdentityDbContext dbContext, IOptions<ConfigAdmin> configAdminOptions) : BaseRepository<UserBase>(dbContext)
 {
     public Task<UserBase> GetByUsernameAsync(string value)
     {

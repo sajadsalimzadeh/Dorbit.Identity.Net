@@ -24,8 +24,8 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
         await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
      
-        var userRepository = serviceProvider.GetRequiredService<UserRepository>();
-        var userService = serviceProvider.GetRequiredService<UserService>();   
+        var userRepository = serviceProvider.GetRequiredService<UserBaseRepository>();
+        var userService = serviceProvider.GetRequiredService<UserBaseService>();   
         var configAdmin = serviceProvider.GetRequiredService<IOptions<ConfigAdmin>>()?.Value;
         
         if (string.IsNullOrEmpty(configAdmin?.Password)) return;

@@ -14,7 +14,7 @@ namespace Dorbit.Identity.Entities;
 
 [Table("User", Schema = "identity")]
 [Index(nameof(Username), IsUnique = true)]
-public class User : FullEntity
+public class UserBase : FullEntity
 {
     [Sequence("seq_user_code", Schema = "identity")]
     public int Code { get; set; }
@@ -80,7 +80,7 @@ public class User : FullEntity
     [MaxLength(1024)]
     public string Message { get; set; }
 
-    public User()
+    public UserBase()
     {
         Discriminator = GetType().Name;
     }

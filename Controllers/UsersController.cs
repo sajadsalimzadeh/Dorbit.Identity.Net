@@ -24,39 +24,39 @@ namespace Dorbit.Identity.Controllers;
 [Auth("User")]
 [Route("Identity/[controller]")]
 public class UsersController(
-    UserService userService,
-    UserRepository userRepository,
+    UserBaseService userBaseService,
+    UserBaseRepository userBaseRepository,
     IdentityService identityService,
     TokenRepository tokenRepository,
     UserPrivilegeRepository userPrivilegeRepository)
-    : CrudController<User, Guid, UserDto, UserAddRequest>
+    : CrudController<UserBase, Guid, UserBaseDto, UserAddRequest>
 {
     [Auth("User-Read")]
-    public override Task<PagedListResult<UserDto>> SelectAsync()
+    public override Task<PagedListResult<UserBaseDto>> SelectAsync()
     {
         return base.SelectAsync();
     }
 
     [HttpGet("Search"), Auth("User-Read")]
-    public async Task<QueryResult<List<UserDto>>> SelectAsync([FromQuery] UserSearchRequest request)
+    public async Task<QueryResult<List<UserBaseDto>>> SelectAsync([FromQuery] UserSearchRequest request)
     {
-        var query = userRepository.Set();
+        var query = userBaseRepository.Set();
         if (!string.IsNullOrEmpty(request.Search)) query = query.Where(x => x.Name.Contains(request.Search) || x.Username.Contains(request.Search));
         if (request.Code.HasValue) query = query.Where(x => x.Code == request.Code);
-        var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserDto>>();
+        var users = (await query.OrderBy(x => x.CreationTime).ToListAsync()).MapTo<List<UserBaseDto>>();
         return users.ToQueryResult();
     }
 
-    public override Task<QueryResult<UserDto>> AddAsync(UserAddRequest request)
+    public override Task<QueryResult<UserBaseDto>> AddAsync(UserAddRequest request)
     {
-        return userService.AddAsync(request).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return userBaseService.AddAsync(request).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
 
     [HttpPost("{id:guid}/ResetPassword"), Auth("User-ResetPassword")]
     public async Task<CommandResult> ResetPasswordAsync([FromRoute] Guid id, [FromBody] UserResetPasswordRequest request)
     {
         request.Id = id;
-        var user = await userService.ResetPasswordAsync(request);
+        var user = await userBaseService.ResetPasswordAsync(request);
         return Succeed();
     }
 
@@ -70,7 +70,7 @@ public class UsersController(
     public async Task<QueryResult<PrivilegeDto>> SaveUserPrivilegeAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
-        return (await userService.SavePrivilegeAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
+        return (await userBaseService.SavePrivilegeAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 
     [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("Privilege")]
@@ -86,13 +86,13 @@ public class UsersController(
     [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]
     public async Task<CommandResult> DeActiveAsync([FromRoute] UserDeActiveRequest request)
     {
-        return (await userService.InActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
+        return (await userBaseService.InActiveAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
 
     [HttpPost("{id:guid}/Active"), Auth("User-Active")]
     public async Task<CommandResult> ActiveAsync([FromRoute] UserActiveRequest request)
     {
-        return (await userService.ActiveAsync(request)).MapTo<UserDto>().ToQueryResult();
+        return (await userBaseService.ActiveAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
 
     [HttpGet("{id:guid}/Tokens"), Auth("User-Tokens")]
@@ -107,28 +107,28 @@ public class UsersController(
     }
 
     [HttpPost("{id:guid}/Message"), Auth("User-Message")]
-    public async Task<QueryResult<UserDto>> SetMessageAsync(UserMessageRequest request)
+    public async Task<QueryResult<UserBaseDto>> SetMessageAsync(UserMessageRequest request)
     {
-        return (await userService.SetMessageAsync(request)).MapTo<UserDto>().ToQueryResult();
+        return (await userBaseService.SetMessageAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
 
     [Auth]
     [HttpGet("Own")]
-    public Task<QueryResult<UserDto>> GetOwnAsync()
+    public Task<QueryResult<UserBaseDto>> GetOwnAsync()
     {
-        return userRepository.GetByIdAsync(GetUserId()).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return userBaseRepository.GetByIdAsync(GetUserId()).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
 
     [Auth]
     [HttpPatch("Own")]
-    public Task<QueryResult<UserDto>> EditOwnAsync([FromBody] JsonElement patch)
+    public Task<QueryResult<UserBaseDto>> EditOwnAsync([FromBody] JsonElement patch)
     {
-        return userRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<User, UserDto>().ToQueryResultAsync();
+        return userBaseRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
 
     public override async Task<CommandResult> DeleteAsync(Guid id)
     {
-        await userService.RemoveAsync(id);
+        await userBaseService.RemoveAsync(id);
         return Succeed();
     }
 
@@ -149,19 +149,19 @@ public class UsersController(
     [HttpPost("Own/Verify"), Auth]
     public async Task<CommandResult> VerifyAsync([FromBody] UserVerifyRequest request)
     {
-        await userService.VerifyAsync(GetUserId(), request);
+        await userBaseService.VerifyAsync(GetUserId(), request);
         return Succeed();
     }
 
     [HttpPost("Own/NotifySubscription"), Auth]
     public async Task<CommandResult> SetOwnNotifySubscriptionAsync([FromBody] NotificationSubscription request)
     {
-        var user = await userRepository.GetByIdAsync(GetUserId());
+        var user = await userBaseRepository.GetByIdAsync(GetUserId());
         user.NotifySubscriptions ??= [];
         if (user.NotifySubscriptions.All(x => x.Token != request.Token))
         {
             user.NotifySubscriptions.Add(request);
-            await userRepository.UpdateAsync(user);
+            await userBaseRepository.UpdateAsync(user);
         }
 
         return Succeed();
@@ -170,16 +170,16 @@ public class UsersController(
     [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
     public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] NotificationRequest notification)
     {
-        var user = await userRepository.GetByIdAsync(id);
-        await userService.PushNotificationAsync([user], notification);
+        var user = await userBaseRepository.GetByIdAsync(id);
+        await userBaseService.PushNotificationAsync([user], notification);
         return Succeed();
     }
     
     [HttpPost("Notifications"), Auth("User-Notification")]
     public async Task<CommandResult> SendMessageAsync([FromBody] UserSendNotificationRequest request)
     {
-        var users = await userRepository.Set().Where(x => request.UserIds.Contains(x.Id)).ToListAsync();
-        await userService.PushNotificationAsync(users, request.Notification);
+        var users = await userBaseRepository.Set().Where(x => request.UserIds.Contains(x.Id)).ToListAsync();
+        await userBaseService.PushNotificationAsync(users, request.Notification);
         return Succeed();
     }
 }

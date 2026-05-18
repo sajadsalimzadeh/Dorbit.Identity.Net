@@ -17,5 +17,5 @@ public class Token : CreateEntity
     public TokenInfo TokenInfo { get; set; }
 
     [ForeignKey(nameof(UserId))] 
-    public User User { get; set; }
+    public UserBase User { get; set; }
 }

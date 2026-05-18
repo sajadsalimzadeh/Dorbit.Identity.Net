@@ -29,9 +29,9 @@ public class AuthController(
         {
             IsFullAccess = identity.IsFullAccess,
             Accessibility = identity.Accessibility,
-            User = identity.User.MapTo(new UserDto()),
+            User = identity.User.MapTo(new UserBaseDto()),
         };
-        if (identity.User is UserDto user)
+        if (identity.User is UserBaseDto user)
         {
             result.IsEmailVerified = user.EmailVerificationTime.HasValue;
             result.IsCellphoneVerified = user.CellphoneVerificationTime.HasValue;

@@ -30,11 +30,11 @@ public class IdentityService(
     OtpService otpService,
     JwtService jwtService,
     TokenService tokenService,
-    UserService userService,
+    UserBaseService userBaseService,
     AppleService appleService,
     GoogleService googleService,
     RoleRepository roleRepository,
-    UserRepository userRepository,
+    UserBaseRepository userBaseRepository,
     TokenRepository tokenRepository,
     AccessRepository accessRepository,
     UserPrivilegeRepository userPrivilegeRepository,
@@ -50,7 +50,7 @@ public class IdentityService(
     public async Task<AuthLoginResponse> LoginWithPasswordAsync(AuthLoginWithPasswordRequest request)
     {
         var username = request.Username.ToLower();
-        var user = await userRepository.GetByUsernameAsync(username) ??
+        var user = await userBaseRepository.GetByUsernameAsync(username) ??
                    throw new OperationException(IdentityErrors.UsernameOrPasswordWrong);
 
         var hash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
@@ -72,10 +72,10 @@ public class IdentityService(
             
             logger.Information("LoginWithGoogleAsync UserInfo {@UserInfo}", userInfo);
             
-            var user = await userRepository.GetByUsernameAsync(userInfo.Email);
+            var user = await userBaseRepository.GetByUsernameAsync(userInfo.Email);
             if (user is null)
             {
-                user = await userService.AddAsync(new UserAddRequest()
+                user = await userBaseService.AddAsync(new UserAddRequest()
                 {
                     Username = userInfo.Email,
                     Name = userInfo.Name,
@@ -88,7 +88,7 @@ public class IdentityService(
                 if (!user.EmailVerificationTime.HasValue)
                 {
                     user.EmailVerificationTime = DateTime.UtcNow;
-                    await userRepository.UpdateAsync(user);
+                    await userBaseRepository.UpdateAsync(user);
                 }
             }
 
@@ -112,11 +112,11 @@ public class IdentityService(
             var tokenInfo = await appleService.ValidateAsync(request);
             logger.Information("Sign in with apple token info: {@tokenInfo}",tokenInfo);
             var userInfo = tokenInfo.User;
-            var user = await userRepository.GetByUsernameAsync(userInfo.Email);
+            var user = await userBaseRepository.GetByUsernameAsync(userInfo.Email);
             
             if (user is null)
             {
-                user = await userService.AddAsync(new UserAddRequest()
+                user = await userBaseService.AddAsync(new UserAddRequest()
                 {
                     Username = userInfo.Email,
                     Name = (userInfo.Name != null ? $"{userInfo.Name.FirstName} {userInfo.Name.LastName}" : userInfo.Email),
@@ -129,7 +129,7 @@ public class IdentityService(
                 if (!user.EmailVerificationTime.HasValue)
                 {
                     user.EmailVerificationTime = DateTime.UtcNow;
-                    await userRepository.UpdateAsync(user);
+                    await userBaseRepository.UpdateAsync(user);
                 }
             }
 
@@ -157,9 +157,9 @@ public class IdentityService(
             });
             if (!otpValidateResult) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
-            User user;
-            if (request.Type == OtpType.Cellphone) user = await userRepository.GetByCellphoneAsync(request.Receiver);
-            else if (request.Type == OtpType.Email) user = await userRepository.GetByEmailAsync(request.Receiver);
+            UserBase user;
+            if (request.Type == OtpType.Cellphone) user = await userBaseRepository.GetByCellphoneAsync(request.Receiver);
+            else if (request.Type == OtpType.Email) user = await userBaseRepository.GetByEmailAsync(request.Receiver);
             else throw new OperationException(IdentityErrors.OtpTypeNotSupported);
 
             if (user is null)
@@ -170,12 +170,12 @@ public class IdentityService(
             if (request.Type == OtpType.Cellphone && !user.CellphoneVerificationTime.HasValue)
             {
                 user.CellphoneVerificationTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                await userBaseRepository.UpdateAsync(user);
             }
             else if (request.Type == OtpType.Email && !user.EmailVerificationTime.HasValue)
             {
                 user.EmailVerificationTime = DateTime.UtcNow;
-                await userRepository.UpdateAsync(user);
+                await userBaseRepository.UpdateAsync(user);
             }
 
             var csrfToken = Guid.NewGuid().ToString();
@@ -196,13 +196,13 @@ public class IdentityService(
         if (!validateResult) throw new OperationException(IdentityErrors.OtpIsInvalid);
 
         var csrfToken = Guid.NewGuid().ToString();
-        var user = await userRepository.GetByUsernameAsync(request.Username);
+        var user = await userBaseRepository.GetByUsernameAsync(request.Username);
         if (user is not null)
         {
             if (user.IsDeleted)
             {
                 user.IsDeleted = false;
-                user = await userRepository.UpdateAsync(user);
+                user = await userBaseRepository.UpdateAsync(user);
             }
             return await tokenService.CreateAsync(new TokenCreateRequest()
             {
@@ -211,7 +211,7 @@ public class IdentityService(
             });
         }
 
-        user = await userService.AddAsync(new UserAddRequest()
+        user = await userBaseService.AddAsync(new UserAddRequest()
         {
             Name = request.Name,
             Email = request.Email,
@@ -228,7 +228,7 @@ public class IdentityService(
 
     public async Task ChangePasswordByPasswordAsync(AuthChangePasswordByPasswordRequest request)
     {
-        var user = await userRepository.GetByIdAsync(request.UserId);
+        var user = await userBaseRepository.GetByIdAsync(request.UserId);
 
         if (user.PasswordHash != HashUtil.PasswordV2(request.Password, user.PasswordSalt))
             throw new OperationException(IdentityErrors.OldPasswordIsInvalid);
@@ -236,12 +236,12 @@ public class IdentityService(
         user.PasswordSalt = Guid.NewGuid().ToString();
         user.PasswordHash = HashUtil.PasswordV2(request.NewPassword, user.PasswordSalt);
 
-        await userRepository.UpdateAsync(user);
+        await userBaseRepository.UpdateAsync(user);
     }
 
     public async Task ChangePasswordByOtpAsync(AuthChangePasswordByOtpRequest request)
     {
-        var user = await userRepository.GetByIdAsync(request.UserId);
+        var user = await userBaseRepository.GetByIdAsync(request.UserId);
         var validateResult = await otpService.ValidateAsync(request.OtpValidation);
         if (!validateResult)
             throw new OperationException(IdentityErrors.OtpIsInvalid);
@@ -249,7 +249,7 @@ public class IdentityService(
         user.PasswordSalt = Guid.NewGuid().ToString();
         user.PasswordHash = HashUtil.PasswordV2(request.NewPassword, user.PasswordSalt);
 
-        await userRepository.UpdateAsync(user);
+        await userBaseRepository.UpdateAsync(user);
     }
 
     public async Task<AuthLoginResponse> ForgetPasswordAsync(AuthForgetPasswordRequest request)
@@ -258,12 +258,12 @@ public class IdentityService(
         if (!validateResult)
             throw new OperationException(IdentityErrors.OtpIsInvalid);
 
-        var user = await userRepository.GetByUsernameAsync(request.OtpValidation.Receiver);
+        var user = await userBaseRepository.GetByUsernameAsync(request.OtpValidation.Receiver);
         if (user is null)
             throw new OperationException(IdentityErrors.UserNotExists);
 
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
-        await userRepository.UpdateAsync(user);
+        await userBaseRepository.UpdateAsync(user);
 
         var csrfToken = Guid.NewGuid().ToString();
         return await tokenService.CreateAsync(new TokenCreateRequest()
@@ -315,7 +315,7 @@ public class IdentityService(
 
         Identity = new IdentityDto
         {
-            User = User = token.User.MapTo<UserDto>(),
+            User = User = token.User.MapTo<UserBaseDto>(),
         };
         var allAccessibility = new List<string>();
         foreach (var userPrivilege in userPrivileges)

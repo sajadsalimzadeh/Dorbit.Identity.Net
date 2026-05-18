@@ -22,7 +22,7 @@ using Microsoft.Extensions.Options;
 namespace Dorbit.Identity.Services;
 
 [ServiceRegister]
-public class UserService(
+public class UserBaseService(
     OtpService otpService,
     UserBaseRepository userBaseRepository,
     TokenRepository tokenRepository,
@@ -125,7 +125,7 @@ public class UserService(
                         Icon = request.Icon,
                         Data = new Dictionary<string, string>
                         {
-                            {"Url", request.Url}
+                            { "Url", request.Url }
                         }
                     }
                 });
@@ -172,16 +172,11 @@ public class UserService(
     public async Task<UserPrivilege> SavePrivilegeAsync(PrivilegeSaveRequest request)
     {
         request.Accessibility = request.Accessibility?.Select(x => x.ToLower()).ToList();
-        var privilege = await userPrivilegeRepository.Set().FirstOrDefaultAsync(x => x.UserId == request.UserId);
-        if (privilege is null)
+        if (request.Id.HasValue)
         {
-            privilege = await userPrivilegeRepository.InsertAsync(request.MapTo<UserPrivilege>());
-        }
-        else
-        {
-            privilege = await userPrivilegeRepository.UpdateAsync(request.MapTo(privilege));
+            return await userPrivilegeRepository.UpdateWithPatchObjectAsync(request.Id.Value, request);
         }
 
-        return privilege;
+        return await userPrivilegeRepository.InsertWithPatchObjectAsync(request);
     }
 }

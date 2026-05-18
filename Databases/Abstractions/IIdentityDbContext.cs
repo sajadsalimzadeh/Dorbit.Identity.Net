@@ -12,10 +12,10 @@ public interface IIdentityDbContext : IDbContext
     public DbSet<Token> Tokens { get; set; }
     public DbSet<UserPrivilege> UserPrivileges { get; set; }
 
-    public User CreateNewUser();
+    public UserBase CreateNewUser();
 }
 
-public interface IIdentityDbContext<TUser> : IIdentityDbContext where TUser : User
+public interface IIdentityDbContext<TUser> : IIdentityDbContext where TUser : UserBase
 {
     public DbSet<TUser> Users { get; set; }
 }

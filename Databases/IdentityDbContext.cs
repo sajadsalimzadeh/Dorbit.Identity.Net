@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Databases;
 
-public class IdentityDbContext<TUserEntity>(DbContextOptions options, IServiceProvider serviceProvider) : EfDbContext(options, serviceProvider), IIdentityDbContext<TUserEntity> where TUserEntity : User
+public class IdentityDbContext<TUserEntity>(DbContextOptions options, IServiceProvider serviceProvider) : EfDbContext(options, serviceProvider), IIdentityDbContext<TUserEntity> where TUserEntity : UserBase
 {
     
     public DbSet<Role> Roles { get; set; }
@@ -28,7 +28,7 @@ public class IdentityDbContext<TUserEntity>(DbContextOptions options, IServicePr
 
     public override IQueryable<TEntity> DbSet<TEntity, TKey>(bool excludeDeleted = true)
     {
-        if (typeof(TEntity) == typeof(User))
+        if (typeof(TEntity) == typeof(UserBase))
         {
             return Users.AsNoTracking().ExcludeSoftDelete(excludeDeleted).Cast<TEntity>();
         }
@@ -36,7 +36,7 @@ public class IdentityDbContext<TUserEntity>(DbContextOptions options, IServicePr
         return base.DbSet<TEntity, TKey>(excludeDeleted);
     }
     
-    public User CreateNewUser()
+    public UserBase CreateNewUser()
     {
         return Activator.CreateInstance<TUserEntity>();
     }

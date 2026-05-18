@@ -8,8 +8,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Entities;
 
 [Table(nameof(UserPrivilege), Schema = "identity")]
-[Index(nameof(UserId), IsUnique = true)]
-[Index(nameof(TenantId), IsUnique = true)]
 public class UserPrivilege : FullEntity
 {
     public Guid UserId { get; set; }
@@ -19,7 +17,7 @@ public class UserPrivilege : FullEntity
     public bool IsFullAccess { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public User User { get; set; }
+    public UserBase User { get; set; }
     
     [JsonField]
     public List<Guid> RoleIds { get; set; }
