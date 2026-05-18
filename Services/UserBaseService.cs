@@ -24,7 +24,7 @@ namespace Dorbit.Identity.Services;
 [ServiceRegister]
 public class UserService(
     OtpService otpService,
-    UserRepository userRepository,
+    UserBaseRepository userBaseRepository,
     TokenRepository tokenRepository,
     IIdentityDbContext identityDbContext,
     TranslationService translationService,
@@ -32,10 +32,10 @@ public class UserService(
     UserPrivilegeRepository userPrivilegeRepository,
     IUserServiceWrapper userServiceWrapper = null)
 {
-    public async Task<User> AddAsync(UserAddRequest request)
+    public async Task<UserBase> AddAsync(UserAddRequest request)
     {
         userServiceWrapper?.OnAddExecutingAsync(request).Wait();
-        var existsUser = await userRepository.GetByUsernameAsync(request.Username);
+        var existsUser = await userBaseRepository.GetByUsernameAsync(request.Username);
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
         var entity = request.MapTo(existsUser ?? identityDbContext.CreateNewUser());
         entity.PasswordSalt = Guid.NewGuid().ToString();
@@ -53,63 +53,63 @@ public class UserService(
             entity.AuthenticatorVerificationTime = DateTime.UtcNow;
 
         entity.IsDeleted = false;
-        return await userRepository.SaveAsync(entity);
+        return await userBaseRepository.SaveAsync(entity);
     }
 
     public async Task RemoveAsync(Guid id)
     {
-        var admin = await userRepository.GetAdminAsync();
+        var admin = await userBaseRepository.GetAdminAsync();
         if (admin.Id == id) throw new OperationException(IdentityErrors.CanNotRemoveAdminUser);
-        var transaction = userRepository.DbContext.BeginTransaction();
+        var transaction = userBaseRepository.DbContext.BeginTransaction();
         await userPrivilegeRepository.BulkDeleteAsync(x => x.UserId == id);
         await tokenRepository.BulkDeleteAsync(x => x.UserId == id);
-        await userRepository.DeleteAsync(id);
+        await userBaseRepository.DeleteAsync(id);
         await transaction.CommitAsync();
     }
 
-    public async Task<User> ResetPasswordAsync(UserResetPasswordRequest request)
+    public async Task<UserBase> ResetPasswordAsync(UserResetPasswordRequest request)
     {
-        var user = await userRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
+        var user = await userBaseRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
-        await userRepository.UpdateAsync(user);
+        await userBaseRepository.UpdateAsync(user);
         return user;
     }
 
-    public async Task<User> InActiveAsync(UserDeActiveRequest request)
+    public async Task<UserBase> InActiveAsync(UserDeActiveRequest request)
     {
-        var user = await userRepository.GetByIdAsync(request.Id);
-        var admin = await userRepository.GetAdminAsync();
+        var user = await userBaseRepository.GetByIdAsync(request.Id);
+        var admin = await userBaseRepository.GetAdminAsync();
         if (admin.Id == user.Id) throw new OperationException(IdentityErrors.CanNotDeActiveAdmin);
         user.Status = UserStatus.InActive;
         user.Message = request.Message;
-        return await userRepository.UpdateAsync(user);
+        return await userBaseRepository.UpdateAsync(user);
     }
 
-    public async Task<User> ActiveAsync(UserActiveRequest request)
+    public async Task<UserBase> ActiveAsync(UserActiveRequest request)
     {
-        var user = await userRepository.GetByIdAsync(request.Id);
+        var user = await userBaseRepository.GetByIdAsync(request.Id);
         user.Status = UserStatus.Active;
         user.Message = request.Message;
-        return await userRepository.UpdateAsync(user);
+        return await userBaseRepository.UpdateAsync(user);
     }
 
-    public async Task<User> SetMessageAsync(UserMessageRequest request)
+    public async Task<UserBase> SetMessageAsync(UserMessageRequest request)
     {
-        var user = await userRepository.GetByIdAsync(request.Id);
+        var user = await userBaseRepository.GetByIdAsync(request.Id);
         user.Message = request.Message;
-        return await userRepository.UpdateAsync(user);
+        return await userBaseRepository.UpdateAsync(user);
     }
 
     public async Task PushNotificationAsync(List<Guid> userIds, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
-        var users = await userRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new User()
+        var users = await userBaseRepository.Set().Where(x => userIds.Contains(x.Id)).Select(x => new UserBase()
         {
             NotifySubscriptions = x.NotifySubscriptions
         }).ToListAsync();
         await PushNotificationAsync(users, request, translationArguments);
     }
 
-    public Task PushNotificationAsync(List<User> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
+    public Task PushNotificationAsync(List<UserBase> users, NotificationRequest request, Dictionary<string, string> translationArguments = null)
     {
         foreach (var user in users.Where(x => x.NotifySubscriptions != null))
         {
@@ -137,9 +137,9 @@ public class UserService(
 
     public async Task VerifyAsync(Guid id, UserVerifyRequest request)
     {
-        var user = await userRepository.GetByIdAsync(id);
+        var user = await userBaseRepository.GetByIdAsync(id);
 
-        if (await userRepository.Set().AnyAsync(x => x.Cellphone == request.Receiver && x.Id != user.Id))
+        if (await userBaseRepository.Set().AnyAsync(x => x.Cellphone == request.Receiver && x.Id != user.Id))
             throw new OperationException(IdentityErrors.UserWithSameCellphoneExists);
 
         if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
@@ -165,7 +165,7 @@ public class UserService(
                 user.CellphoneVerificationTime = DateTime.UtcNow;
             }
 
-            await userRepository.UpdateAsync(user);
+            await userBaseRepository.UpdateAsync(user);
         }
     }
 
