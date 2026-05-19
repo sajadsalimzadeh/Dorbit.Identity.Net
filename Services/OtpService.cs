@@ -66,6 +66,7 @@ public class OtpService(
         try
         {
             if (otp.TryRemain <= 0) throw new OperationException(IdentityErrors.OtpTryRemainFinished);
+            if (otp.Code != request.Code) throw new OperationException(IdentityErrors.OtpIsInvalid);
             if (otp.IsUsed) throw new OperationException(IdentityErrors.OtpIsUsed);
             if (otp.Code == request.Code)
             {
