@@ -31,7 +31,7 @@ public class OtpService(
 
     public async Task<Otp> CreateAsync(OtpCreateRequest request)
     {
-        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver);
+        var otp = await otpRepository.Set().FirstOrDefaultAsync(x => x.Receiver == request.Receiver && x.Type == request.Type);
         var code = "0123456789".Random(request.Length);
         if (otp is null)
         {
@@ -47,9 +47,12 @@ public class OtpService(
         }
         else
         {
-            otp.Code = code;
+            if (otp.ExpireAt < DateTime.UtcNow || otp.IsUsed)
+            {
+                otp.Code = code;
+            }
+
             otp.TryRemain = 5;
-            otp.Type = request.Type;
             otp.ExpireAt = DateTime.UtcNow.Add(request.Duration);
             otp.IsUsed = false;
             await otpRepository.UpdateAsync(otp);
@@ -111,7 +114,7 @@ public class OtpService(
             await messageManager.SendAsync(new MessageEmailRequest()
             {
                 Receiver = request.Receiver,
-                Subject = "Trainout verification code",
+                Subject = "verification code",
                 Body = text,
                 Args = [otp.Code]
             });

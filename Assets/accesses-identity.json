@@ -6,7 +6,18 @@
         "Name": "User",
         "Children": [
           {
-            "Name": "User-Read"
+            "Name": "User-View",
+            "Children": [
+              {
+                "Name": "User-ViewMinimal"
+              }
+            ]
+          },
+          {
+            "Name": "User-Save"
+          },
+          {
+            "Name": "User-Delete"
           },
           {
             "Name": "User-DeActive"
@@ -22,22 +33,61 @@
           },
           {
             "Name": "User-ResetPassword"
+          },
+          {
+            "Name": "User-Notification"
+          },
+          {
+            "Name": "User-Privilege",
+            "Children": [
+              {
+                "Name": "User-Privilege-View"
+              },
+              {
+                "Name": "User-Privilege-Save"
+              },
+              {
+                "Name": "User-Privilege-Delete"
+              }
+            ]
           }
         ]
       },
       {
-        "Name": "Access",
+        "Name": "Access"
+      },
+      {
+        "Name": "Otp",
         "Children": [
           {
-            "Name": "Access-Read"
+            "Name": "Otp-View"
           }
         ]
       },
       {
-        "Name": "Privilege",
+        "Name": "Role",
         "Children": [
           {
-            "Name": "Privilege-Read"
+            "Name": "Role-View",
+            "Children": [
+              {
+                "Name": "Role-ViewMinimal"
+              }
+            ]
+          },
+          {
+            "Name": "Role-Save"
+          },
+          {
+            "Name": "Role-Delete"
+          }
+        ]
+      },
+      {
+        "Name": "Token",
+        "Children": [
+          {
+            "Name": "Token-Terminate"
           }
         ]
       }

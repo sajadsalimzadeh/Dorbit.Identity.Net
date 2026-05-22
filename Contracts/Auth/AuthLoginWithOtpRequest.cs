@@ -1,10 +1,12 @@
-﻿using Dorbit.Identity.Contracts.Otps;
+﻿using System.ComponentModel.DataAnnotations;
+using Dorbit.Identity.Contracts.Otps;
 
 namespace Dorbit.Identity.Contracts.Auth;
 
-public class AuthLoginWithOtpRequest : AuthLoginRequest
+public class AuthLoginWithOtpRequest : IAuthLoginRequest
 {
-    public OtpType Type { get; set; }
-    public string Receiver { get; set; }
-    public string Code { get; set; }
+    public string UserAgent { get; set; }
+
+    [Required]
+    public OtpValidationRequest OtpValidation { get; set; }
 }

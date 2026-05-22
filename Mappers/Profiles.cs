@@ -26,6 +26,8 @@ public class Profiles : Profile
         CreateMapTwoWay<UserPrivilege, PrivilegeDto>();
         CreateMapTwoWay<PrivilegeSaveRequest, UserPrivilege>();
 
+        CreateMap<UserBase, UserMinimalDto>();
+        
         CreateMap<UserBase, UserBaseDto>()
             .ForMember(x => x.HasPassword, o => o.MapFrom(x => !string.IsNullOrEmpty(x.PasswordHash)))
             .ForMember(x => x.Profile, o => o.Ignore());

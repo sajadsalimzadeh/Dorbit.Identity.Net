@@ -142,7 +142,7 @@ public class UserBaseService(
         if (await userBaseRepository.Set().AnyAsync(x => x.Cellphone == request.Receiver && x.Id != user.Id))
             throw new OperationException(IdentityErrors.UserWithSameCellphoneExists);
 
-        if (await otpService.ValidateAsync(new OtpValidationRequest() { Receiver = request.Receiver, Code = request.Code, Type = request.Type }))
+        if (await otpService.ValidateAsync(request))
         {
             user.Infos ??= new();
 
@@ -174,7 +174,9 @@ public class UserBaseService(
         request.Accessibility = request.Accessibility?.Select(x => x.ToLower()).ToList();
         if (request.Id.HasValue)
         {
-            return await userPrivilegeRepository.UpdateWithPatchObjectAsync(request.Id.Value, request);
+            var privilege = await userPrivilegeRepository.GetByIdAsync(request.Id.Value);
+            if (privilege is not null)
+                return await userPrivilegeRepository.UpdateAsync(privilege.PatchObject(request));
         }
 
         return await userPrivilegeRepository.InsertWithPatchObjectAsync(request);

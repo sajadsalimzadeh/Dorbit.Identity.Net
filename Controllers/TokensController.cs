@@ -13,7 +13,7 @@ namespace Dorbit.Identity.Controllers;
 [Route("Identity/[controller]")]
 public class TokensController(TokenRepository tokenRepository) : BaseController
 {
-    [HttpPost("{id:guid}/Terminate"), Auth("Tokens-Terminate")]
+    [HttpPost("{id:guid}/Terminate"), Auth("Token-Terminate")]
     public async Task<CommandResult> TerminateAsync([FromRoute] Guid id)
     {
         var token = await tokenRepository.GetByIdAsync(id)
@@ -23,7 +23,7 @@ public class TokensController(TokenRepository tokenRepository) : BaseController
         return Succeed();
     }
     
-    [HttpPost("Own/{id:guid}/Terminate")]
+    [HttpPost("Own/{id:guid}/Terminate"), Auth]
     public async Task<CommandResult> TerminateOwnAsync([FromRoute] Guid id)
     {
         var userId = GetUserId();

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dorbit.Identity.Entities;
 
 [Table(nameof(Otp), Schema = "identity")]
-[Index(nameof(Receiver), IsUnique = true)]
+[Index(nameof(Receiver), nameof(Type), IsUnique = true)]
 public class Otp : Entity, ICreationTime
 {
     [MaxLength(64)]

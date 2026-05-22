@@ -31,13 +31,18 @@ public class UsersController(
     UserPrivilegeRepository userPrivilegeRepository)
     : CrudController<UserBase, Guid, UserBaseDto, UserAddRequest>
 {
-    [Auth("User-Read")]
-    public override Task<PagedListResult<UserBaseDto>> SelectAsync()
+    [HttpGet("Minimal"), Auth("User-ViewMinimal")]
+    public Task<QueryResult<List<UserMinimalDto>>> GetAllMinimalAsync()
     {
-        return base.SelectAsync();
+        return userBaseRepository.Set().Select(x => new UserMinimalDto()
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Username = x.Username
+        }).ToListAsync().ToQueryResultAsync();
     }
-
-    [HttpGet("Search"), Auth("User-Read")]
+    
+    [HttpGet("Search"), Auth("User-View")]
     public async Task<QueryResult<List<UserBaseDto>>> SelectAsync([FromQuery] UserSearchRequest request)
     {
         var query = userBaseRepository.Set();
@@ -60,13 +65,13 @@ public class UsersController(
         return Succeed();
     }
 
-    [HttpGet("{id:guid}/Privileges"), Auth("Privilege-Read")]
+    [HttpGet("{id:guid}/Privileges"), Auth("User-Privilege-View")]
     public Task<QueryResult<List<UserPrivilege>>> GetAllPrivilegeAsync([FromRoute] Guid id)
     {
         return userPrivilegeRepository.Set().Where(x => x.UserId == id).ToListAsync().ToQueryResultAsync();
     }
 
-    [HttpPost("{id:guid}/Privileges"), Auth("Privilege")]
+    [HttpPost("{id:guid}/Privileges"), Auth("User-Privilege-Save")]
     public async Task<QueryResult<PrivilegeDto>> SaveUserPrivilegeAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
@@ -74,7 +79,7 @@ public class UsersController(
     }
 
     [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("Privilege")]
-    public async Task<CommandResult> DeleteUserPrivilegeAsync([FromRoute] Guid id, [FromBody] Guid privilegeId)
+    public async Task<CommandResult> DeleteUserPrivilegeAsync([FromRoute] Guid id, [FromRoute] Guid privilegeId)
     {
         var userPrivilege = await userPrivilegeRepository.GetByIdAsync(privilegeId);
         if (userPrivilege.UserId != id)

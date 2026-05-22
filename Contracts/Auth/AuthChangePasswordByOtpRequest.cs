@@ -4,7 +4,7 @@ using Dorbit.Identity.Contracts.Otps;
 
 namespace Dorbit.Identity.Contracts.Auth;
 
-public class AuthChangePasswordByOtpRequest
+public class AuthChangePasswordByOtpRequest : OtpValidationRequest
 {
     [JsonIgnore]
     public Guid UserId { get; set; }

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dorbit.Identity.Entities;
 
+[AuthTypeName("User")]
 [Table("User", Schema = "identity")]
 [Index(nameof(Username), IsUnique = true)]
 public class UserBase : FullEntity

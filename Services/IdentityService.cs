@@ -18,6 +18,7 @@ using Dorbit.Identity.Contracts.Tokens;
 using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -43,7 +44,7 @@ public class IdentityService(
     : IIdentityService, IUserResolver
 {
     public IdentityDto Identity { get; private set; }
-    public IUserDto User { get; set; }
+    public IUserDto User => Identity?.User;
 
     private readonly ConfigIdentitySecurity _configIdentitySecurity = configIdentitySecurityOptions.Value;
 
@@ -148,18 +149,14 @@ public class IdentityService(
 
     public async Task<AuthLoginResponse> LoginWithOtpAsync(AuthLoginWithOtpRequest request)
     {
-        if (request.Type == OtpType.Cellphone)
+        if (request.OtpValidation.Type == OtpType.Cellphone)
         {
-            var otpValidateResult = await otpService.ValidateAsync(new OtpValidationRequest()
-            {
-                Receiver = request.Receiver,
-                Code = request.Code
-            });
+            var otpValidateResult = await otpService.ValidateAsync(request.OtpValidation);
             if (!otpValidateResult) throw new OperationException(IdentityErrors.OtpValidateFailed);
 
             UserBase user;
-            if (request.Type == OtpType.Cellphone) user = await userBaseRepository.GetByCellphoneAsync(request.Receiver);
-            else if (request.Type == OtpType.Email) user = await userBaseRepository.GetByEmailAsync(request.Receiver);
+            if (request.OtpValidation.Type == OtpType.Cellphone) user = await userBaseRepository.GetByCellphoneAsync(request.OtpValidation.Receiver);
+            else if (request.OtpValidation.Type == OtpType.Email) user = await userBaseRepository.GetByEmailAsync(request.OtpValidation.Receiver);
             else throw new OperationException(IdentityErrors.OtpTypeNotSupported);
 
             if (user is null)
@@ -167,12 +164,12 @@ public class IdentityService(
                 throw new OperationException(IdentityErrors.UserNotExists);
             }
 
-            if (request.Type == OtpType.Cellphone && !user.CellphoneVerificationTime.HasValue)
+            if (request.OtpValidation.Type == OtpType.Cellphone && !user.CellphoneVerificationTime.HasValue)
             {
                 user.CellphoneVerificationTime = DateTime.UtcNow;
                 await userBaseRepository.UpdateAsync(user);
             }
-            else if (request.Type == OtpType.Email && !user.EmailVerificationTime.HasValue)
+            else if (request.OtpValidation.Type == OtpType.Email && !user.EmailVerificationTime.HasValue)
             {
                 user.EmailVerificationTime = DateTime.UtcNow;
                 await userBaseRepository.UpdateAsync(user);
@@ -273,8 +270,15 @@ public class IdentityService(
         });
     }
 
+    public Task<IdentityDto> ValidateAsync(HttpContext httpContext)
+    {
+        return ValidateAsync(httpContext.GetIdentityRequest());
+    }
+
     public async Task<IdentityDto> ValidateAsync(IdentityRequest request)
     {
+        if (Identity != null) return Identity;
+        
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
         if (request.AccessToken.IsNullOrEmpty())
             throw new AuthenticationException("Access token not set");
@@ -315,7 +319,7 @@ public class IdentityService(
 
         Identity = new IdentityDto
         {
-            User = User = token.User.MapTo<UserBaseDto>(),
+            User = token.User.MapTo<UserBaseDto>(),
         };
         var allAccessibility = new List<string>();
         foreach (var userPrivilege in userPrivileges)

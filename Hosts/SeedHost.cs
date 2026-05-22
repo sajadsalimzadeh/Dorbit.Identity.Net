@@ -19,7 +19,6 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
 {
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        
         var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
         await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
@@ -49,6 +48,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
         {
             await userService.SavePrivilegeAsync(new PrivilegeSaveRequest()
             {
+                Id = admin.Id,
                 UserId = admin.Id,
                 IsFullAccess = true,
             });
