@@ -37,23 +37,34 @@ public class UserBaseService(
         userServiceWrapper?.OnAddExecutingAsync(request).Wait();
         var existsUser = await userBaseRepository.GetByUsernameAsync(request.Username);
         if (existsUser is not null && !existsUser.IsDeleted) throw new OperationException(IdentityErrors.UserExists);
-        var entity = request.MapTo(existsUser ?? identityDbContext.CreateNewUser());
-        entity.PasswordSalt = Guid.NewGuid().ToString();
-        entity.Username = entity.Username.ToLower();
-        request.Password ??= new Random().NextString(12);
-        entity.PasswordHash = HashUtil.PasswordV2(request.Password, entity.PasswordSalt);
+        var user = request.MapTo(existsUser ?? identityDbContext.CreateNewUser());
+        user.PasswordSalt = Guid.NewGuid().ToString();
+        user.Username = user.Username.ToLower();
+        request.Password ??= new Random().NextString(20);
+        user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
-            entity.CellphoneVerificationTime = DateTime.UtcNow;
+            user.CellphoneVerificationTime = DateTime.UtcNow;
 
         if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email))
-            entity.EmailVerificationTime = DateTime.UtcNow;
+            user.EmailVerificationTime = DateTime.UtcNow;
 
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))
-            entity.AuthenticatorVerificationTime = DateTime.UtcNow;
+            user.AuthenticatorVerificationTime = DateTime.UtcNow;
 
-        entity.IsDeleted = false;
-        return await userBaseRepository.SaveAsync(entity);
+        user.IsDeleted = false;
+        using var dbTransaction = userBaseRepository.DbContext.BeginTransaction();
+        user = await userBaseRepository.SaveAsync(user);
+        if (request.RoleIds.IsNotNullOrEmpty())
+        {
+            await userPrivilegeRepository.InsertAsync(new UserPrivilege()
+            {
+                UserId = user.Id,
+                RoleIds = request.RoleIds,
+            });
+        }
+        await dbTransaction.CommitAsync();
+        return user;
     }
 
     public async Task RemoveAsync(Guid id)

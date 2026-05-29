@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Dorbit.Identity.Contracts.Users;
 
@@ -11,8 +12,9 @@ public class UserAddRequest
     public string Email { get; set; }
     public string AuthenticatorKey { get; set; }
     public bool NeedResetPassword { get; set; }
+    public short MaxTokenCount { get; set; } = 10;
 
-    public short MaxTokenCount { get; set; } = 1;
+    public List<Guid> RoleIds { get; set; }
 
     public UserValidateTypes ValidateTypes { get; set; }
     public List<string> WhiteListIps { get; set; }

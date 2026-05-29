@@ -56,7 +56,7 @@ public class UserBase : FullEntity
     public string Locale { get; set; }
 
     // Security
-    public short MaxTokenCount { get; set; } = 1;
+    public short MaxTokenCount { get; set; } = 10;
     public DateTime? LockoutEndTime { get; set; }
     public double Wallet { get; set; }
 

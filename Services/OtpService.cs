@@ -41,19 +41,19 @@ public class OtpService(
                 Type = request.Type,
                 Receiver = request.Receiver,
                 TryRemain = request.TryRemain,
-                ExpireAt = DateTime.UtcNow.Add(request.Duration),
+                ExpireTime = DateTime.UtcNow.Add(request.Duration),
                 IsUsed = false
             });
         }
         else
         {
-            if (otp.ExpireAt < DateTime.UtcNow || otp.IsUsed)
+            if (otp.ExpireTime < DateTime.UtcNow || otp.IsUsed)
             {
                 otp.Code = code;
             }
 
             otp.TryRemain = 5;
-            otp.ExpireAt = DateTime.UtcNow.Add(request.Duration);
+            otp.ExpireTime = DateTime.UtcNow.Add(request.Duration);
             otp.IsUsed = false;
             await otpRepository.UpdateAsync(otp);
         }

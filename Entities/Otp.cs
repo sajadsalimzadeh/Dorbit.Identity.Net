@@ -19,6 +19,6 @@ public class Otp : Entity, ICreationTime
     public byte TryRemain { get; set; }
     [MaxLength(64)] 
     public string Code { get; set; }
-    public DateTime ExpireAt { get; set; }
+    public DateTime ExpireTime { get; set; }
     public DateTime CreationTime { get; set; }
 }

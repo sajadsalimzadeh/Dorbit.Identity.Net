@@ -310,12 +310,12 @@ public class IdentityService(
         var now = DateTime.UtcNow;
         var userPrivileges = await userPrivilegeRepository.Set().Where(x =>
             x.UserId == token.UserId &&
-            (x.From == null || x.From > now) &&
-            (x.To == null || x.To < now)
+            (x.From == null || x.From < now) &&
+            (x.To == null || x.To > now)
         ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
 
         var roles = await roleRepository.Set()
-            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(5));
+            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(1));
 
         Identity = new IdentityDto
         {
