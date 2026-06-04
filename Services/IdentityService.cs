@@ -20,6 +20,7 @@ using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -30,14 +31,15 @@ public class IdentityService(
     ILogger logger,
     OtpService otpService,
     JwtService jwtService,
+    IMemoryCache memoryCache,
     TokenService tokenService,
-    UserBaseService userBaseService,
     AppleService appleService,
     GoogleService googleService,
     RoleRepository roleRepository,
-    UserBaseRepository userBaseRepository,
     TokenRepository tokenRepository,
+    UserBaseService userBaseService,
     AccessRepository accessRepository,
+    UserBaseRepository userBaseRepository,
     UserPrivilegeRepository userPrivilegeRepository,
     IOptions<ConfigIdentitySecurity> configIdentitySecurityOptions
 )
@@ -307,15 +309,19 @@ public class IdentityService(
 
         if (token.State != TokenState.Valid) return null;
 
+
         var now = DateTime.UtcNow;
-        var userPrivileges = await userPrivilegeRepository.Set().Where(x =>
+        var query = userPrivilegeRepository.Set().Where(x =>
             x.UserId == token.UserId &&
             (x.From == null || x.From < now) &&
             (x.To == null || x.To > now)
-        ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}", TimeSpan.FromMinutes(1));
+        );
+        
+        var cacheKey = memoryCache.Get<DateTime>($"Identity-{token.UserId}-ChangeTime");
+        var userPrivileges = await query.ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}-{cacheKey}", TimeSpan.FromMinutes(30));
 
         var roles = await roleRepository.Set()
-            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromMinutes(1));
+            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromSeconds(10));
 
         Identity = new IdentityDto
         {

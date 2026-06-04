@@ -18,6 +18,7 @@ using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Dorbit.Identity.Controllers;
 
@@ -75,6 +76,7 @@ public class UsersController(
     public async Task<QueryResult<PrivilegeDto>> SaveUserPrivilegeAsync([FromRoute] Guid id, [FromBody] PrivilegeSaveRequest request)
     {
         request.UserId = id;
+        MemoryCache.Set($"Identity-{id}-ChangeTime", DateTime.UtcNow);
         return (await userBaseService.SavePrivilegeAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 
