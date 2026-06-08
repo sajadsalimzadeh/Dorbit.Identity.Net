@@ -185,9 +185,12 @@ public class UserBaseService(
         request.Accessibility = request.Accessibility?.Select(x => x.ToLower()).ToList();
         if (request.Id.HasValue)
         {
-            var privilege = await userPrivilegeRepository.GetByIdAsync(request.Id.Value);
+            var privilege = await userPrivilegeRepository.Set(false).GetByIdAsync(request.Id.Value);
             if (privilege is not null)
+            {
+                privilege.IsDeleted = false;
                 return await userPrivilegeRepository.UpdateAsync(privilege.PatchObject(request));
+            }
         }
 
         return await userPrivilegeRepository.InsertWithPatchObjectAsync(request);

@@ -9,6 +9,7 @@ using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Extensions;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -20,6 +21,8 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
     protected override async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var accessRepository = serviceProvider.GetRequiredService<AccessRepository>();
+        var userPrivilegeRepository = serviceProvider.GetRequiredService<UserPrivilegeRepository>();
+        
         await accessRepository.SeedAccessAsync("Assets/accesses-identity.json");
         await accessRepository.SeedAccessAsync("Assets/accesses-framework.json");
      
@@ -44,7 +47,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
             });
         }
 
-        if (admin is not null)
+        if (admin is not null && !await userPrivilegeRepository.Set().AnyAsync(x => x.Id == admin.Id, cancellationToken: cancellationToken))
         {
             await userService.SavePrivilegeAsync(new PrivilegeSaveRequest()
             {
