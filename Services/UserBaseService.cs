@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
+using Dorbit.Framework.Contracts.Messages;
 using Dorbit.Framework.Contracts.Notifications;
 using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
@@ -24,9 +25,10 @@ namespace Dorbit.Identity.Services;
 [ServiceRegister]
 public class UserBaseService(
     OtpService otpService,
-    UserBaseRepository userBaseRepository,
+    MessageManager messageManager,
     TokenRepository tokenRepository,
     IIdentityDbContext identityDbContext,
+    UserBaseRepository userBaseRepository,
     TranslationService translationService,
     NotificationService notificationService,
     UserPrivilegeRepository userPrivilegeRepository,
@@ -40,8 +42,19 @@ public class UserBaseService(
         var user = request.MapTo(existsUser ?? identityDbContext.CreateNewUser());
         user.PasswordSalt = Guid.NewGuid().ToString();
         user.Username = user.Username.ToLower();
-        request.Password ??= new Random().NextString(20);
+        request.Password ??= new Random().NextNumber(12);
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
+
+        if (user.Username.Contains("@"))
+        {
+            user.Email = user.Username;
+        }
+        else
+        {
+            user.Cellphone = user.Username;
+        }
+
+        EnqueueWelcomeMessage(request.Username, request.Password);
 
         if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
             user.CellphoneVerificationTime = DateTime.UtcNow;
@@ -66,7 +79,7 @@ public class UserBaseService(
         await dbTransaction.CommitAsync();
         return user;
     }
-
+    
     public async Task RemoveAsync(Guid id)
     {
         var admin = await userBaseRepository.GetAdminAsync();
@@ -78,10 +91,34 @@ public class UserBaseService(
         await transaction.CommitAsync();
     }
 
+    public void EnqueueWelcomeMessage(string username, string password)
+    {
+        if (username.Contains("@"))
+        {
+            messageManager.Enquee(new MessageEmailRequest()
+            {
+                Receiver = username,
+                TemplateType = "Welcome",
+                Args = [username, password],
+            });
+        }
+        else
+        {
+            messageManager.Enquee(new MessageSmsRequest()
+            {
+                Receiver = username,
+                TemplateType = "Welcome",
+                Args = [username, password],
+            });
+        }
+    }
+
     public async Task<UserBase> ResetPasswordAsync(UserResetPasswordRequest request)
     {
         var user = await userBaseRepository.Set().FirstOrDefaultAsync(x => x.Id == request.Id);
+        user.PasswordSalt = Guid.NewGuid().ToString();
         user.PasswordHash = HashUtil.PasswordV2(request.Password, user.PasswordSalt);
+        if (request.IsSendMessage) EnqueueWelcomeMessage(user.Username, request.Password);
         await userBaseRepository.UpdateAsync(user);
         return user;
     }

@@ -303,25 +303,22 @@ public class IdentityService(
         if (!claimsPrincipal.Claims.TryGetGuid(nameof(TokenClaimTypes.Id), out var tokenId))
             throw new AuthenticationException("Token claim id not found");
 
-        var token = await tokenRepository.Set().Include(x => x.User).GetByIdAsync(tokenId);
+        var token = await tokenRepository.Set().Include(x => x.User).GetByIdAsyncWithCache(tokenId, "Identity-Validate-Token", TimeSpan.FromMinutes(30));
         if (token is null)
             throw new AuthenticationException("Token not found");
 
         if (token.State != TokenState.Valid) return null;
-
-
+        
         var now = DateTime.UtcNow;
-        var query = userPrivilegeRepository.Set().Where(x =>
+        var cacheKey = memoryCache.Get<DateTime>($"Identity-{token.UserId}-ChangeTime");
+        var userPrivileges = await userPrivilegeRepository.Set().Where(x =>
             x.UserId == token.UserId &&
             (x.From == null || x.From < now) &&
             (x.To == null || x.To > now)
-        );
-        
-        var cacheKey = memoryCache.Get<DateTime>($"Identity-{token.UserId}-ChangeTime");
-        var userPrivileges = await query.ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}-{cacheKey}", TimeSpan.FromMinutes(30));
+        ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}-{cacheKey}", TimeSpan.FromMinutes(30));
 
         var roles = await roleRepository.Set()
-            .ToListAsyncWithCache($"Identity-{nameof(Role)}-GetAll", TimeSpan.FromSeconds(10));
+            .ToListAsyncWithCache($"Identity-{nameof(Role)}-{cacheKey}", TimeSpan.FromMinutes(30));
 
         Identity = new IdentityDto
         {
