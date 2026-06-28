@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Abstractions;
@@ -276,17 +277,24 @@ public class IdentityService(
     {
         return ValidateAsync(httpContext.GetIdentityRequest());
     }
+    
+    public virtual ClaimsPrincipal GetClaimsPrincipal(string accessToken)
+    {
+        var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
+        if (!jwtService.TryValidateToken(accessToken, secret, out _, out var claimsPrincipal))
+            throw new AuthenticationException();
+
+        return claimsPrincipal;
+    }
 
     public async Task<IdentityDto> ValidateAsync(IdentityRequest request)
     {
         if (Identity != null) return Identity;
         
-        var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
         if (request.AccessToken.IsNullOrEmpty())
             throw new AuthenticationException("Access token not set");
 
-        if (!jwtService.TryValidateToken(request.AccessToken, secret, out _, out var claimsPrincipal))
-            throw new AuthenticationException("Invalid access token");
+        var claimsPrincipal = GetClaimsPrincipal(request.AccessToken);
 
         if (!_configIdentitySecurity.IgnoreCsrfTokenValidation)
         {
