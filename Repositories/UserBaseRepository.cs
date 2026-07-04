@@ -7,7 +7,6 @@ using Dorbit.Framework.Contracts;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Repositories;
 using Dorbit.Identity.Configs;
-using Dorbit.Identity.Databases;
 using Dorbit.Identity.Databases.Abstractions;
 using Dorbit.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +24,7 @@ public class UserBaseRepository(IIdentityDbContext dbContext, IOptions<ConfigAdm
             return Set(false).FirstOrDefaultAsync(x => string.Equals(x.Username, value, StringComparison.OrdinalIgnoreCase));
         }
 
-        return Set(false).FirstOrDefaultAsync(x => EF.Functions.ILike(x.Username, value));
+        return Set(false).FirstOrDefaultAsync(x => EF.Functions.Like(x.Username, $"%{value}%"));
     }
 
     public Task<UserBase> GetByCellphoneAsync(string value)
