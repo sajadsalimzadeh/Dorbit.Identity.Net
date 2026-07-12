@@ -79,7 +79,7 @@ public class IdentityService(
             var user = await userBaseRepository.GetByUsernameAsync(userInfo.Email);
             if (user is null)
             {
-                user = await userBaseService.AddAsync(new UserAddRequest()
+                user = await userBaseService.AddAsync(new UserBaseAddRequest()
                 {
                     Username = userInfo.Email,
                     Name = userInfo.Name,
@@ -120,7 +120,7 @@ public class IdentityService(
             
             if (user is null)
             {
-                user = await userBaseService.AddAsync(new UserAddRequest()
+                user = await userBaseService.AddAsync(new UserBaseAddRequest()
                 {
                     Username = userInfo.Email,
                     Name = (userInfo.Name != null ? $"{userInfo.Name.FirstName} {userInfo.Name.LastName}" : userInfo.Email),
@@ -211,7 +211,7 @@ public class IdentityService(
             });
         }
 
-        user = await userBaseService.AddAsync(new UserAddRequest()
+        user = await userBaseService.AddAsync(new UserBaseAddRequest()
         {
             Name = request.Name,
             Email = request.Email,

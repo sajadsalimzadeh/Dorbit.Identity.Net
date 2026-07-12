@@ -30,7 +30,7 @@ public class UsersController(
     IdentityService identityService,
     TokenRepository tokenRepository,
     UserPrivilegeRepository userPrivilegeRepository)
-    : CrudController<UserBase, Guid, UserBaseDto, UserAddRequest>
+    : CrudController<UserBase, Guid, UserBaseDto, UserBaseAddRequest>
 {
     [HttpGet("Minimal"), Auth("User-ViewMinimal")]
     public Task<QueryResult<List<UserMinimalDto>>> GetAllMinimalAsync()
@@ -53,7 +53,7 @@ public class UsersController(
         return users.ToQueryResult();
     }
 
-    public override Task<QueryResult<UserBaseDto>> AddAsync(UserAddRequest request)
+    public override Task<QueryResult<UserBaseDto>> AddAsync(UserBaseAddRequest request)
     {
         return userBaseService.AddAsync(request).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
@@ -90,14 +90,14 @@ public class UsersController(
         return (await userPrivilegeRepository.DeleteAsync(userPrivilege)).ToQueryResult();
     }
 
-    [HttpPost("{id:guid}/DeActive"), Auth("User-DeActive")]
+    [HttpPost("{id:guid}/Deactive"), Auth("User-DeActive")]
     public async Task<CommandResult> DeActiveAsync([FromRoute] UserDeActiveRequest request)
     {
         return (await userBaseService.InActiveAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
 
     [HttpPost("{id:guid}/Active"), Auth("User-Active")]
-    public async Task<CommandResult> ActiveAsync([FromRoute] UserActiveRequest request)
+    public async Task<CommandResult> ActiveAsync([FromRoute] UserBaseActiveRequest request)
     {
         return (await userBaseService.ActiveAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
@@ -130,7 +130,7 @@ public class UsersController(
     [HttpPatch("Own")]
     public Task<QueryResult<UserBaseDto>> EditOwnAsync([FromBody] JsonElement patch)
     {
-        return userBaseRepository.UpdateWithJsonAsync<UserEditOwnRequest>(GetUserId(), patch).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
+        return userBaseRepository.UpdateWithJsonAsync<UserBaseEditOwnRequest>(GetUserId(), patch).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
 
     public override async Task<CommandResult> DeleteAsync(Guid id)

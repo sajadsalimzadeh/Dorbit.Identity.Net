@@ -32,10 +32,10 @@ public class Profiles : Profile
             .ForMember(x => x.HasPassword, o => o.MapFrom(x => !string.IsNullOrEmpty(x.PasswordHash)))
             .ForMember(x => x.Profile, o => o.Ignore());
         CreateMap<UserBaseDto, UserBase>();
-        CreateMap<UserAddRequest, UserBase>()
+        CreateMap<UserBaseAddRequest, UserBase>()
             .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
-        CreateMap<UserEditRequest, UserBase>()
+        CreateMap<UserBaseEditRequest, UserBase>()
             .ForMember(x => x.Cellphone, o => o.MapFrom(x => string.IsNullOrEmpty(x.Cellphone) ? null : x.Cellphone))
             .ForMember(x => x.Email, o => o.MapFrom(x => string.IsNullOrEmpty(x.Email) ? null : x.Email));
     }

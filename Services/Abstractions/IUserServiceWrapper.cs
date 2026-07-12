@@ -5,5 +5,5 @@ namespace Dorbit.Identity.Services.Abstractions;
 
 public interface IUserServiceWrapper
 {
-    Task OnAddExecutingAsync(UserAddRequest request);
+    Task OnAddExecutingAsync(UserBaseAddRequest request);
 }
