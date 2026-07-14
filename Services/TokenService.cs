@@ -4,12 +4,14 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Dorbit.Framework.Attributes;
 using Dorbit.Framework.Contracts.Jwts;
+using Dorbit.Framework.Exceptions;
 using Dorbit.Framework.Extensions;
 using Dorbit.Framework.Services;
 using Dorbit.Framework.Utils;
 using Dorbit.Identity.Configs;
 using Dorbit.Identity.Contracts.Auth;
 using Dorbit.Identity.Contracts.Tokens;
+using Dorbit.Identity.Contracts.Users;
 using Dorbit.Identity.Entities;
 using Dorbit.Identity.Repositories;
 using Dorbit.Identity.Services.Abstractions;
@@ -32,6 +34,9 @@ public class TokenService(
 
     public async Task<AuthLoginResponse> CreateAsync(TokenCreateRequest request)
     {
+        if (request.User.Status == UserStatus.InActive)
+            throw new OperationException(IdentityErrors.UserIsInActive);
+        
         identityServiceWrapper?.OnLoginExecutingAsync(request.User).Wait();
         
         var uaParser = UserAgentParser.GetDefault();

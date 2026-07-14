@@ -15,5 +15,6 @@ public enum IdentityErrors
     OtpIsUsed,
     ParametersNotMatch,
     EntityNotFound,
-    UserWithSameCellphoneExists
+    UserWithSameCellphoneExists,
+    UserIsInActive
 }
