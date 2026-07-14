@@ -1,6 +1,6 @@
 ﻿namespace Dorbit.Identity.Contracts.Users;
 
-public class UserEditRequest : UserEditOwnRequest
+public class UserBaseEditRequest : UserBaseEditOwnRequest
 {
     public string Username { get; set; }
     public bool NeedResetPassword { get; set; }

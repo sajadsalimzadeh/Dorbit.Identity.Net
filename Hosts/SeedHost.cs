@@ -35,7 +35,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
         var admin = await userRepository.GetAdminAsync();
         if (admin is null)
         {
-            admin = await userService.AddAsync(new UserAddRequest()
+            admin = await userService.AddAsync(new UserBaseAddRequest()
             {
                 Name = configAdmin.Name ?? "admin",
                 Username = configAdmin.Username,

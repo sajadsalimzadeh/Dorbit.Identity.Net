@@ -1,6 +1,6 @@
 ﻿namespace Dorbit.Identity.Contracts.Users;
 
-public class UserEditOwnRequest
+public class UserBaseEditOwnRequest
 {
     public string Name { get; set; }
     public string Email { get; set; }

@@ -34,7 +34,7 @@ public class UserBaseService(
     UserPrivilegeRepository userPrivilegeRepository,
     IUserServiceWrapper userServiceWrapper = null)
 {
-    public async Task<UserBase> AddAsync(UserAddRequest request)
+    public async Task<UserBase> AddAsync(UserBaseAddRequest request)
     {
         userServiceWrapper?.OnAddExecutingAsync(request).Wait();
         var existsUser = await userBaseRepository.GetByUsernameAsync(request.Username);
@@ -133,7 +133,7 @@ public class UserBaseService(
         return await userBaseRepository.UpdateAsync(user);
     }
 
-    public async Task<UserBase> ActiveAsync(UserActiveRequest request)
+    public async Task<UserBase> ActiveAsync(UserBaseActiveRequest request)
     {
         var user = await userBaseRepository.GetByIdAsync(request.Id);
         user.Status = UserStatus.Active;

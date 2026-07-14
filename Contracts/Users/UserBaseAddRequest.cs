@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dorbit.Identity.Contracts.Users;
 
-public class UserAddRequest
+public class UserBaseAddRequest
 {
     public string Name { get; set; }
     public string Username { get; set; }

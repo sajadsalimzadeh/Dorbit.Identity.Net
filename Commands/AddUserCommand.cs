@@ -24,7 +24,7 @@ public class AddUserCommand(UserBaseService userBaseService) : Command
 
     public override Task InvokeAsync(ICommandContext context)
     {
-        return userBaseService.AddAsync(new UserAddRequest()
+        return userBaseService.AddAsync(new UserBaseAddRequest()
         {
             Name = context.Arguments["Name"].ToString(),
             Username = context.Arguments["Username"].ToString(),
