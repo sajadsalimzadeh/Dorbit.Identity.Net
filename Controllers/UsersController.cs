@@ -119,15 +119,13 @@ public class UsersController(
         return (await userBaseService.SetMessageAsync(request)).MapTo<UserBaseDto>().ToQueryResult();
     }
 
-    [Auth]
-    [HttpGet("Own")]
+    [HttpGet("Own"), Auth]
     public Task<QueryResult<UserBaseDto>> GetOwnAsync()
     {
         return userBaseRepository.GetByIdAsync(GetUserId()).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
     }
 
-    [Auth]
-    [HttpPatch("Own")]
+    [HttpPatch("Own"), Auth]
     public Task<QueryResult<UserBaseDto>> EditOwnAsync([FromBody] JsonElement patch)
     {
         return userBaseRepository.UpdateWithJsonAsync<UserBaseEditOwnRequest>(GetUserId(), patch).MapToAsync<UserBase, UserBaseDto>().ToQueryResultAsync();
