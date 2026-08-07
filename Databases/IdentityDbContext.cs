@@ -12,7 +12,7 @@ public class IdentityDbContext<TUserEntity>(DbContextOptions options, IServicePr
 {
     
     public DbSet<Role> Roles { get; set; }
-    public DbSet<Otp> Otp { get; set; }
+    public DbSet<Otp> Otps { get; set; }
     public DbSet<Token> Tokens { get; set; }
     public DbSet<UserPrivilege> UserPrivileges { get; set; }
 
