@@ -311,7 +311,7 @@ public class IdentityService(
         if (!claimsPrincipal.Claims.TryGetGuid(nameof(TokenClaimTypes.Id), out var tokenId))
             throw new AuthenticationException("Token claim id not found");
 
-        var token = await tokenRepository.Set().Include(x => x.User).GetByIdAsyncWithCache(tokenId, "Identity-Validate-Token", TimeSpan.FromMinutes(30));
+        var token = await tokenRepository.Set().Include(x => x.User).GetByIdAsyncWithCache(tokenId, "Identity-Validate-Token", TimeSpan.FromMinutes(60));
         if (token is null)
             throw new AuthenticationException("Token not found");
 
@@ -323,10 +323,10 @@ public class IdentityService(
             x.UserId == token.UserId &&
             (x.From == null || x.From < now) &&
             (x.To == null || x.To > now)
-        ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}-{cacheKey}", TimeSpan.FromMinutes(30));
+        ).ToListAsyncWithCache($"Identity-{nameof(UserPrivilege)}-{token.UserId}-{cacheKey}", TimeSpan.FromMinutes(1));
 
         var roles = await roleRepository.Set()
-            .ToListAsyncWithCache($"Identity-{nameof(Role)}-{cacheKey}", TimeSpan.FromMinutes(30));
+            .ToListAsyncWithCache($"Identity-{nameof(Role)}-{cacheKey}", TimeSpan.FromMinutes(1));
 
         Identity = new IdentityDto
         {

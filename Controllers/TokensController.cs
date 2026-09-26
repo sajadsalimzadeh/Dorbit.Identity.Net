@@ -30,6 +30,7 @@ public class TokensController(TokenRepository tokenRepository) : BaseController
         var token = await tokenRepository.Set().FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId)
             ?? throw new NullReferenceException();
         token.State = TokenState.Terminated;
+        MemoryCache.Remove("Identity-Validate-Token-" + token.Id);
         await tokenRepository.UpdateAsync(token);
         return Succeed();
     }
