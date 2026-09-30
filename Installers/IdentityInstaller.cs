@@ -14,7 +14,7 @@ public static class IdentityInstaller
     {
         services.AddDbContext<IdentityInMemoryDbContext>(o => o.UseInMemoryDatabase("IdentityInMemoryDb"));
         
-        services.AddAutoMapper(typeof(IdentityInstaller).Assembly);
+        services.AddAutoMapper(cfg => cfg.AddMaps(typeof(IdentityInstaller).Assembly));
 
         services.AddControllers(typeof(IdentityInstaller).Assembly).AddODataDefault();
 

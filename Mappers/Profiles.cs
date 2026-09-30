@@ -29,7 +29,6 @@ public class Profiles : Profile
         CreateMap<UserBase, UserMinimalDto>();
         
         CreateMap<UserBase, UserBaseDto>()
-            .ForMember(x => x.HasPassword, o => o.MapFrom(x => !string.IsNullOrEmpty(x.PasswordHash)))
             .ForMember(x => x.Profile, o => o.Ignore());
         CreateMap<UserBaseDto, UserBase>();
         CreateMap<UserBaseAddRequest, UserBase>()
