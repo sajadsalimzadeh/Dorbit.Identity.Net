@@ -13,7 +13,6 @@ public class UserBaseDto : IUserDto
     public string Username { get; set; }
     
     public int Code { get; set; }
-    public bool HasPassword { get; set; }
     
     public string Cellphone { get; set; }
     public DateTime? CellphoneVerificationTime { get; set; }
@@ -21,7 +20,6 @@ public class UserBaseDto : IUserDto
     public string Email { get; set; }
     public DateTime? EmailVerificationTime { get; set; }
     
-    public string AuthenticatorKey { get; set; }
     public DateTime? AuthenticatorVerificationTime { get; set; }
     
     public string Thumbnail { get; set; }
