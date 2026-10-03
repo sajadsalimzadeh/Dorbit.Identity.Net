@@ -29,8 +29,9 @@ public class AppleService(IOptions<ConfigAppleOAuth> configAppleOAuthOptions, IL
             { "redirect_uri", configAppleOAuth.RedirectUrl }
         };
 
-        var httpClient = new HttpClient();
-        var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", new FormUrlEncodedContent(form));
+        using var httpClient = new HttpClient();
+        using var formContent = new FormUrlEncodedContent(form);
+        using var response = await httpClient.PostAsync("https://appleid.apple.com/auth/token", formContent);
         var content = await response.Content.ReadAsStringAsync();
 
         logger.Information("Sign in with apple token info: {@content}", content);

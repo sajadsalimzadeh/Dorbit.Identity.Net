@@ -82,7 +82,7 @@ public class UserBaseService(
     {
         var admin = await userBaseRepository.GetAdminAsync();
         if (admin.Id == id) throw new OperationException(IdentityErrors.CanNotRemoveAdminUser);
-        var transaction = userBaseRepository.DbContext.BeginTransaction();
+        using var transaction = userBaseRepository.DbContext.BeginTransaction();
         await userPrivilegeRepository.BulkDeleteAsync(x => x.UserId == id);
         await tokenRepository.BulkDeleteAsync(x => x.UserId == id);
         await userBaseRepository.DeleteAsync(id);
