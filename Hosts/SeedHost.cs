@@ -42,7 +42,7 @@ public class SeedHost(IServiceProvider serviceProvider) : BaseHost(serviceProvid
                 Password = configAdmin.Password,
                 Cellphone = configAdmin.Cellphone,
                 Email = configAdmin.Email,
-                NeedResetPassword = true,
+                NeedResetPassword = false,
                 MaxTokenCount = 3
             });
         }

@@ -38,6 +38,8 @@ public class UserBaseDto : IUserDto
     public List<IdentityClaimDto> Claims { get; set; }
     
     public string ThumbnailFilename { get; set; }
+
+    public double Wallet { get; set; }
     
     public IEntity Profile { get; set; }
     
