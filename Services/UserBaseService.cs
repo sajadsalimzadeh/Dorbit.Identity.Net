@@ -54,10 +54,10 @@ public class UserBaseService(
 
         EnqueueWelcomeMessage(request.Username, request.Password);
 
-        if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(request.Cellphone))
+        if ((request.ValidateTypes & UserValidateTypes.Cellphone) > 0 && !string.IsNullOrEmpty(user.Cellphone))
             user.CellphoneVerificationTime = DateTime.UtcNow;
 
-        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(request.Email))
+        if ((request.ValidateTypes & UserValidateTypes.Email) > 0 && !string.IsNullOrEmpty(user.Email))
             user.EmailVerificationTime = DateTime.UtcNow;
 
         if ((request.ValidateTypes & UserValidateTypes.Authenticator) > 0 && !string.IsNullOrEmpty(request.AuthenticatorKey))

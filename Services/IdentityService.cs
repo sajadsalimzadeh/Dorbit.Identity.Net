@@ -211,12 +211,18 @@ public class IdentityService(
             });
         }
 
+        var validateTypes = default(UserValidateTypes);
+        if (request.OtpValidation?.Type == OtpType.Cellphone) validateTypes = UserValidateTypes.Cellphone;
+        else if (request.OtpValidation?.Type == OtpType.Email) validateTypes = UserValidateTypes.Email;
+
         user = await userBaseService.AddAsync(new UserBaseAddRequest()
         {
             Name = request.Name,
             Email = request.Email,
             Username = request.Username,
             Password = request.Password,
+            Cellphone = request.Cellphone,
+            ValidateTypes = validateTypes,
         });
 
         return await tokenService.CreateAsync(new TokenCreateRequest()
