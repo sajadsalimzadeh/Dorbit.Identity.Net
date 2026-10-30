@@ -177,7 +177,8 @@ public class UsersController(
     public async Task<QueryResult<List<TokenDto>>> GetAllTokenAsync()
     {
         var userId = GetUserId(); 
-        var tokens = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid).ToListAsync();
+        var now = DateTime.UtcNow;
+        var tokens = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid && x.ExpireTime > now).ToListAsync();
         return tokens.Select(x => new TokenDto()
         {
             Id = x.Id,
