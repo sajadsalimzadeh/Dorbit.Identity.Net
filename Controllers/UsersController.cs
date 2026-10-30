@@ -200,6 +200,18 @@ public class UsersController(
         return token.ToQueryResult();
     }
 
+
+    [HttpDelete("Own/Tokens/{id:guid}"), Auth]
+    public async Task<CommandResult> TerminateTokenAsync([FromRoute] Guid id)
+    {
+        var userId = GetUserId(); 
+        var token = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid).GetByIdAsync(id);
+        token.State = TokenState.Terminated;
+        token.TerminateTime = DateTime.UtcNow;
+        await tokenRepository.UpdateAsync(token);
+        return Succeed();
+    }
+    
     [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
     public async Task<CommandResult> SendMessageAsync([FromRoute]Guid id, [FromBody] NotificationRequest notification)
     {

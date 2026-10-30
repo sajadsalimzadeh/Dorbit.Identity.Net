@@ -11,6 +11,7 @@ public class Token : CreateEntity
 {
     public Guid UserId { get; set; }
     public DateTime ExpireTime { get; set; }
+    public DateTime TerminateTime { get; set; }
     public TokenState State { get; set; } = TokenState.Valid;
 
     public bool IsApiToken { get; set; }
