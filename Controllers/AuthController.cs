@@ -92,14 +92,14 @@ public class AuthController(
     }
 
     [HttpPost("Register")]
-    public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthRegisterRequest request)
+    public async Task<QueryResult<AuthLoginResponse>> RegisterAsync([FromBody] AuthRegisterRequest request)
     {
         var loginResponse = await identityService.RegisterAsync(request);
         return loginResponse.SetCookie(Response).ToQueryResult();
     }
 
     [HttpPost("ForgetPassword")]
-    public async Task<QueryResult<AuthLoginResponse>> Register([FromBody] AuthForgetPasswordRequest request)
+    public async Task<QueryResult<AuthLoginResponse>> ForgetPasswordAsync([FromBody] AuthForgetPasswordRequest request)
     {
         var loginResponse = await identityService.ForgetPasswordAsync(request);
         return loginResponse.SetCookie(Response).ToQueryResult();

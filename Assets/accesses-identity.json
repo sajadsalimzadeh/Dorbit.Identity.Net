@@ -50,6 +50,9 @@
                 "Name": "User-Privilege-Delete"
               }
             ]
+          },
+          {
+            "Name": "User-Api"
           }
         ]
       },

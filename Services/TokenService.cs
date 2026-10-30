@@ -44,7 +44,7 @@ public class TokenService(
         var secret = _configIdentitySecurity.Secret.GetDecryptedValue();
 
         var maxActiveTokenCount = Math.Min(request.User.MaxTokenCount, _configIdentitySecurity.MaxActiveTokenCountPerUser);
-        var activeTokens = await tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow).ToListAsync();
+        var activeTokens = await tokenRepository.Set().Where(x => x.UserId == request.User.Id && x.ExpireTime > DateTime.UtcNow && !x.IsApiToken).ToListAsync();
         foreach (var activeToken in activeTokens.OrderBy(x => x.ExpireTime).Take(activeTokens.Count - maxActiveTokenCount + 1))
         {
             memoryCache.Remove(activeToken.Id);
@@ -75,8 +75,9 @@ public class TokenService(
         {
             Id = tokenId,
             UserId = request.User.Id,
-            ExpireTime = DateTime.UtcNow.AddSeconds(_configIdentitySecurity.TimeoutInSecond),
             State = TokenState.Valid,
+            IsApiToken = request.IsApiToken,
+            ExpireTime = DateTime.UtcNow.AddSeconds(request.TimeoutInSecond ?? _configIdentitySecurity.TimeoutInSecond),
             TokenInfo = new TokenInfo()
             {
                 Device = new ClientInfoVersion(clientInfo.Device.Family, clientInfo.Device.Brand, clientInfo.Device.Model),
@@ -84,6 +85,8 @@ public class TokenService(
                 Browser = new ClientInfoVersion(clientInfo.UA.Family, clientInfo.UA.Major, clientInfo.UA.Minor, clientInfo.UA.Patch),
             }
         });
+        
+        if(request.CsrfToken.IsNullOrEmpty()) request.CsrfToken = Guid.NewGuid().ToString("N");
 
         var claims = new ClaimsIdentity();
         claims.AddClaim(new Claim(nameof(TokenClaimTypes.Id), tokenId.ToString()));

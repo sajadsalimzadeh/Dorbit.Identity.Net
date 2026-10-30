@@ -25,10 +25,11 @@ namespace Dorbit.Identity.Controllers;
 [Auth("User")]
 [Route("Identity/[controller]")]
 public class UsersController(
+    TokenService tokenService,
+    TokenRepository tokenRepository,
+    IdentityService identityService,
     UserBaseService userBaseService,
     UserBaseRepository userBaseRepository,
-    IdentityService identityService,
-    TokenRepository tokenRepository,
     UserPrivilegeRepository userPrivilegeRepository)
     : CrudController<UserBase, Guid, UserBaseDto, UserBaseAddRequest>
 {
@@ -170,6 +171,33 @@ public class UsersController(
         }
 
         return Succeed();
+    }
+
+    [HttpGet("Own/Tokens"), Auth]
+    public async Task<QueryResult<List<TokenDto>>> GetAllTokenAsync()
+    {
+        var userId = GetUserId(); 
+        var tokens = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid).ToListAsync();
+        return tokens.Select(x => new TokenDto()
+        {
+            UserId = x.UserId,
+            TokenInfo = x.TokenInfo,
+            CreationTime = x.CreationTime,
+            ExpireTime = x.ExpireTime,
+        }).ToList().ToQueryResult();
+    }
+
+    [HttpPost("Own/ApiTokens"), Auth("User-Api")]
+    public async Task<QueryResult<AuthLoginResponse>> CreateApiTokenAsync()
+    {
+        var user =await userBaseRepository.GetByIdAsync(GetUserId());
+        var token = await tokenService.CreateAsync(new TokenCreateRequest()
+        {
+            User = user,
+            IsApiToken = true,
+            TimeoutInSecond = (long)TimeSpan.FromDays(10 * 365).TotalSeconds,
+        });
+        return token.ToQueryResult();
     }
 
     [HttpPost("{id:guid}/Notifications"), Auth("User-Notification")]
