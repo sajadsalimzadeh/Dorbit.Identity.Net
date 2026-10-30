@@ -180,6 +180,7 @@ public class UsersController(
         var tokens = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid).ToListAsync();
         return tokens.Select(x => new TokenDto()
         {
+            Id = x.Id,
             UserId = x.UserId,
             TokenInfo = x.TokenInfo,
             CreationTime = x.CreationTime,
