@@ -179,14 +179,7 @@ public class UsersController(
         var userId = GetUserId(); 
         var now = DateTime.UtcNow;
         var tokens = await tokenRepository.Set().Where(x => x.UserId == userId && x.State == TokenState.Valid && x.ExpireTime > now).ToListAsync();
-        return tokens.Select(x => new TokenDto()
-        {
-            Id = x.Id,
-            UserId = x.UserId,
-            TokenInfo = x.TokenInfo,
-            CreationTime = x.CreationTime,
-            ExpireTime = x.ExpireTime,
-        }).ToList().ToQueryResult();
+        return tokens.MapTo<List<TokenDto>>().ToQueryResult();
     }
 
     [HttpPost("Own/ApiTokens"), Auth("User-Api")]

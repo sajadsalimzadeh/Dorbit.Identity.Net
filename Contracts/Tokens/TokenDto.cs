@@ -8,6 +8,7 @@ public class TokenDto
     public Guid UserId { get; set; }
     public DateTime ExpireTime { get; set; }
     public TokenState State { get; set; }
+    public bool IsApiToken { get; set; }
     public TokenInfo TokenInfo { get; set; }
     public DateTime CreationTime { get; set; }
 }
