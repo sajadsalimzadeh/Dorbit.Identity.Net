@@ -81,7 +81,7 @@ public class UsersController(
         return (await userBaseService.SavePrivilegeAsync(request)).MapTo<PrivilegeDto>().ToQueryResult();
     }
 
-    [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("Privilege")]
+    [HttpDelete("{id:guid}/Privileges/{privilegeId:guid}"), Auth("User-Privilege-Delete")]
     public async Task<CommandResult> DeleteUserPrivilegeAsync([FromRoute] Guid id, [FromRoute] Guid privilegeId)
     {
         var userPrivilege = await userPrivilegeRepository.GetByIdAsync(privilegeId);

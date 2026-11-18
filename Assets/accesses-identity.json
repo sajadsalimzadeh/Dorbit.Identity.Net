@@ -53,6 +53,12 @@
           },
           {
             "Name": "User-Api"
+          },
+          {
+            "Name": "User-Add"
+          },
+          {
+            "Name": "User-Edit"
           }
         ]
       },
@@ -83,6 +89,12 @@
           },
           {
             "Name": "Role-Delete"
+          },
+          {
+            "Name": "Role-Add"
+          },
+          {
+            "Name": "Role-Edit"
           }
         ]
       },
@@ -91,6 +103,24 @@
         "Children": [
           {
             "Name": "Token-Terminate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "Framework",
+    "Children": [
+      {
+        "Name": "Setting",
+        "Children": [
+          {
+            "Name": "Setting-Identity-Otp",
+            "Children": [
+              {
+                "Name": "Setting-Identity-Otp-TemplateCode"
+              }
+            ]
           }
         ]
       }
