@@ -10,6 +10,9 @@
             "Children": [
               {
                 "Name": "User-ViewMinimal"
+              },
+              {
+                "Name": "Users-View"
               }
             ]
           },
@@ -35,7 +38,12 @@
             "Name": "User-ResetPassword"
           },
           {
-            "Name": "User-Notification"
+            "Name": "User-Notification",
+            "Children": [
+              {
+                "Name": "PushNotifications-View"
+              }
+            ]
           },
           {
             "Name": "User-Privilege",
@@ -47,7 +55,12 @@
                 "Name": "User-Privilege-Save"
               },
               {
-                "Name": "User-Privilege-Delete"
+                "Name": "User-Privilege-Delete",
+                "Children": [
+                  {
+                    "Name": "Privilege"
+                  }
+                ]
               }
             ]
           },
@@ -58,6 +71,14 @@
       },
       {
         "Name": "Access"
+      },
+      {
+        "Name": "Setting-Identity-Otp",
+        "Children": [
+          {
+            "Name": "Setting-Identity-Otp-TemplateCode"
+          }
+        ]
       },
       {
         "Name": "Otp",
@@ -75,6 +96,9 @@
             "Children": [
               {
                 "Name": "Role-ViewMinimal"
+              },
+              {
+                "Name": "Roles-View"
               }
             ]
           },
